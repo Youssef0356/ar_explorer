@@ -1,0 +1,80 @@
+{
+  "id": "quiz_intro",
+  "moduleId": "mod_intro",
+  "title": "Interview Time: AR Fundamentals",
+  "passingScore": 60,
+  "questions": [
+    {
+      "id": "q1_1",
+      "question": "What distinguishes Augmented Reality (AR) from Virtual Reality (VR)?",
+      "options": [
+        "AR replaces the real world entirely with a virtual one",
+        "AR enhances the real world with digital overlays while you still see your surroundings",
+        "AR only works with head‑mounted displays",
+        "AR can only be used with printed markers"
+      ],
+      "correctIndex": 1,
+      "explanation": "AR keeps the real environment visible and adds digital content on top of it. VR, in contrast, typically blocks out the real world and shows only a virtual environment."
+    },
+    {
+      "id": "q1_2",
+      "question": "Which of the following is a common everyday example of AR?",
+      "options": [
+        "Watching a pre‑recorded 2D video on your phone",
+        "Using a social media filter that adds virtual glasses and masks to your face in real time",
+        "Listening to a podcast while walking",
+        "Reading a static infographic on a website"
+      ],
+      "correctIndex": 1,
+      "explanation": "Face filters track your face in the camera image and overlay virtual elements on top of the real video feed, which is a typical AR use case."
+    },
+    {
+      "id": "q1_3",
+      "question": "At a high level, what does an AR system need to do before it can place virtual objects correctly in the real world?",
+      "options": [
+        "Only capture a single still image from the camera",
+        "Estimate the device's motion and understand enough about the environment to anchor content",
+        "Download a 3D model from the internet",
+        "Increase the screen brightness to maximum"
+      ],
+      "correctIndex": 1,
+      "explanation": "AR systems typically estimate the device's position and orientation (motion tracking) and detect surfaces, feature points, or markers so virtual content can be anchored consistently."
+    },
+    {
+      "id": "q1_4",
+      "question": "Which statement best describes marker‑based AR?",
+      "options": [
+        "It only uses GPS to place objects in the world",
+        "It relies on recognizing specific images or patterns to anchor content",
+        "It requires depth sensors for every scenario",
+        "It never uses the device camera"
+      ],
+      "correctIndex": 1,
+      "explanation": "Marker‑based AR recognizes predefined images or patterns (such as printed cards or logos) and uses them as anchors for virtual content."
+    },
+    {
+      "id": "q1_5",
+      "question": "Which of these platforms provides AR capabilities on Android devices?",
+      "options": [
+        "Google ARCore",
+        "Apple ARKit",
+        "Vuforia only",
+        "Unity AR Foundation only"
+      ],
+      "correctIndex": 0,
+      "explanation": "Google ARCore is Google's AR platform for supported Android devices. Unity AR Foundation can also target Android, but it typically does so by using ARCore or other underlying providers."
+    },
+    {
+      "id": "q1_6",
+      "question": "What is the main goal of Unity's AR Foundation framework?",
+      "options": [
+        "To replace all native AR SDKs entirely",
+        "To provide a unified API in Unity that can work with multiple AR providers such as ARCore and ARKit",
+        "To add ray tracing to every AR application",
+        "To create 2D user interfaces only"
+      ],
+      "correctIndex": 1,
+      "explanation": "AR Foundation is designed to give Unity developers a single C# API that can target multiple underlying AR SDKs (like ARCore and ARKit), reducing duplicate work across platforms."
+    }
+  ]
+}

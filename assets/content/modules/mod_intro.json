@@ -1,0 +1,153 @@
+{
+  "id": "mod_intro",
+  "title": "Introduction to AR",
+  "description": "A story-driven introduction to Augmented Reality concepts, examples, and platforms.",
+  "icon": "explore_rounded",
+  "order": 0,
+  "requiredQuizId": "quiz_intro",
+  "topics": [
+    {
+      "id": "what_is_ar",
+      "title": "What Is Augmented Reality?",
+      "subtitle": "A gentle, story-based introduction",
+      "contentBlocks": [
+        { "type": "heading", "content": "A Poster That Comes Alive" },
+        {
+          "type": "body",
+          "content": "Imagine walking into a science museum. On the wall, you see a poster of the solar system. When you point your phone at it, the planets slowly rise out of the paper, orbiting in 3D above the poster. Tapping a planet shows its name and a short animation."
+        },
+        {
+          "type": "infoBox",
+          "content": "In that moment, you are experiencing Augmented Reality: digital content layered on top of the real world, in real time."
+        },
+        { "type": "subheading", "content": "Simple Definition" },
+        {
+          "type": "body",
+          "content": "Augmented Reality (AR) is a technology that adds digital information—such as text, 3D models, images, or sounds—on top of the real world while you are still seeing your actual environment. Unlike Virtual Reality (VR), which replaces the real world, AR keeps you grounded in your surroundings and enhances them."
+        },
+        { "type": "subheading", "content": "AR vs VR vs MR" },
+        {
+          "type": "numbered",
+          "content": "1. Virtual Reality (VR) — You leave the real world and enter a fully digital space, usually using a headset that blocks your view of the real environment."
+        },
+        {
+          "type": "numbered",
+          "content": "2. Augmented Reality (AR) — You stay in the real world, but digital objects, labels, or characters are added on top of what your camera or glasses see."
+        },
+        {
+          "type": "numbered",
+          "content": "3. Mixed Reality (MR) — A form of AR where digital objects interact more deeply with your surroundings, for example by appearing behind real furniture or reacting to real surfaces."
+        },
+        {
+          "type": "body",
+          "content": "In practice, the boundaries between AR and MR can be blurry. In this course, we use \"AR\" as a broad term for technologies that overlay digital content on the real world."
+        },
+        { "type": "subheading", "content": "Everyday Examples" },
+        {
+          "type": "bullet",
+          "content": "Social media filters that place virtual glasses, masks, or animal ears on your face in real time."
+        },
+        {
+          "type": "bullet",
+          "content": "Navigation apps that show arrows or labels on top of streets when you hold up your camera."
+        },
+        {
+          "type": "bullet",
+          "content": "Retail apps that let you place virtual furniture in your room to see how it might look before you buy it."
+        },
+        {
+          "type": "bullet",
+          "content": "Educational apps that show 3D models of anatomy, machines, or historical artifacts on top of a book page or card."
+        },
+        {
+          "type": "infoBox",
+          "content": "All of these examples keep the real world visible and add digital layers that follow what the camera sees. This combination is what makes them AR."
+        },
+        { "type": "subheading", "content": "Checkpoint: Can You Spot AR?" },
+        {
+          "type": "body",
+          "content": "Think of one app you use that might be using AR. Does it add digital content on top of the real world in real time? If not, it is probably not AR."
+        }
+      ]
+    },
+    {
+      "id": "ar_systems_overview",
+      "title": "How AR Systems Work (High Level)",
+      "subtitle": "From camera image to augmented scene",
+      "contentBlocks": [
+        { "type": "heading", "content": "From Camera to Magic" },
+        {
+          "type": "body",
+          "content": "At a high level, most AR systems follow a similar loop: they capture the real world through a camera and sensors, understand enough about that world to build a rough 3D model, and then draw virtual content on top of the camera image in the correct position."
+        },
+        { "type": "subheading", "content": "Typical AR Processing Steps" },
+        {
+          "type": "numbered",
+          "content": "1. Capture — The device continuously captures images from the camera and reads data from motion sensors (gyroscope, accelerometer)."
+        },
+        {
+          "type": "numbered",
+          "content": "2. Track Motion — Algorithms estimate how the device moves in 3D space (position and orientation) from frame to frame."
+        },
+        {
+          "type": "numbered",
+          "content": "3. Understand the Environment — The system looks for surfaces, feature points, or known images so it can anchor digital content to the real world."
+        },
+        {
+          "type": "numbered",
+          "content": "4. Render Content — Finally, 3D models, labels, or effects are rendered on top of the camera image, aligned with the tracked real-world geometry."
+        },
+        {
+          "type": "infoBox",
+          "content": "Different AR platforms (such as ARCore, ARKit, Vuforia, and AR Foundation) implement these steps with different details, but the overall idea is very similar."
+        },
+        { "type": "subheading", "content": "Marker-Based and Markerless AR" },
+        {
+          "type": "bullet",
+          "content": "Marker-Based AR uses a known image or pattern (for example, a printed card or logo) as a reference. When the camera sees that image, content is anchored to it."
+        },
+        {
+          "type": "bullet",
+          "content": "Markerless AR relies on features of the environment (such as corners and textures), GPS, or depth information to place content without a special printed marker."
+        },
+        {
+          "type": "body",
+          "content": "Modern mobile AR platforms often use markerless tracking combined with optional image tracking features. We will explore these in more technical detail later in the course."
+        }
+      ]
+    },
+    {
+      "id": "platforms_overview",
+      "title": "AR Platforms and Tools",
+      "subtitle": "Where ARCore, ARKit, Vuforia, and AR Foundation fit in",
+      "contentBlocks": [
+        { "type": "heading", "content": "The AR Toolkit Landscape" },
+        {
+          "type": "body",
+          "content": "To build AR experiences, developers usually rely on AR software development kits (SDKs). These SDKs provide tracking, plane detection, light estimation, and other features so you do not have to implement all the math yourself."
+        },
+        { "type": "subheading", "content": "Major Mobile AR SDKs" },
+        {
+          "type": "bullet",
+          "content": "Google ARCore — An AR platform for Android devices. It provides motion tracking, environmental understanding (such as plane detection), and light estimation."
+        },
+        {
+          "type": "bullet",
+          "content": "Apple ARKit — An AR platform for iOS devices. It offers similar capabilities to ARCore, with additional features on supported Apple hardware."
+        },
+        {
+          "type": "bullet",
+          "content": "Vuforia Engine — A widely used SDK focused on robust image and object tracking. It is often used together with Unity for cross-platform AR experiences."
+        },
+        {
+          "type": "bullet",
+          "content": "Unity AR Foundation — A Unity framework that provides a unified API on top of ARCore, ARKit, and other providers, allowing you to write one C# codebase targeting multiple platforms."
+        },
+        {
+          "type": "infoBox",
+          "content": "The details of these platforms come from their official documentation and commonly used patterns in production apps. In this course we summarize and simplify those concepts for learning purposes."
+        }
+      ]
+    }
+  ]
+}
