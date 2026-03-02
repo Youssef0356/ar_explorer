@@ -1,4 +1,4 @@
-# cyber_security_quest
+# AR Explorer
 
 A new Flutter project.
 
