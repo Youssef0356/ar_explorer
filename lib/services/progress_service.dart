@@ -93,8 +93,16 @@ class ProgressService extends ChangeNotifier {
 
   // ── Module Unlock Logic ────────────────────────────────────────
   bool isModuleUnlocked(String? requiredQuizId) {
-    if (requiredQuizId == null) return true; // first module always unlocked
-    return hasPassedQuiz(requiredQuizId, 60);
+    // All modules are currently always unlocked.
+    return true;
+  }
+
+  /// Determines if a module can be accessed based on the current points
+  /// and its unlock cost. For now this assumes modules with unlockCost 0
+  /// are always available.
+  bool canAccessModule(int unlockCost) {
+    // Points-based locking is disabled for now; all modules are accessible.
+    return true;
   }
 
   // ── Achievements ───────────────────────────────────────────────

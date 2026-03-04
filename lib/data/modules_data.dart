@@ -9,194 +9,103 @@ import '../models/topic_model.dart';
 
 final List<LearningModule> allModules = [
   // ───────────────────────────────────────────────────────────────
-  //  MODULE 1 — Introduction to AR
+  //  MODULE 0 — AR Basics (Definitions Only)
   // ───────────────────────────────────────────────────────────────
   LearningModule(
-    id: 'mod_intro',
-    title: 'Introduction to AR',
+    id: 'intro_ar_basics',
+    title: 'AR Basics: Core Definitions',
     description:
-        'Fundamentals of Augmented Reality technologies and platforms.',
-    icon: Icons.explore_rounded,
+        'Start here if you are new to AR. Clear, simple definitions and mental models — no math, no SDKs.',
+    icon: Icons.school_rounded,
     order: 0,
-    requiredQuizId: null, // always unlocked
+    unlockCost: 0,
+    requiredQuizId: null,
     topics: [
       Topic(
-        id: 'overview',
-        title: 'Overview of AR Systems',
-        subtitle: 'What is AR and how does it work?',
+        id: 'what_is_ar',
+        title: 'What Is Augmented Reality?',
+        subtitle: 'A precise, practical definition of AR.',
         contentBlocks: [
-          const ContentBlock.heading('What is Augmented Reality?'),
+          const ContentBlock.heading('Augmented Reality in One Sentence'),
           const ContentBlock.body(
-            'Augmented Reality (AR) is a technology that overlays digital information — such as 3D models, text, '
-            'images, or animations — onto the real world in real time. Unlike Virtual Reality (VR), which replaces '
-            'the real environment entirely, AR enhances the existing environment by adding layers of contextual data.',
+            'Augmented Reality (AR) overlays digital content onto the real world in real time, '
+            'in a way that respects perspective and movement of the user.',
+          ),
+          const ContentBlock.subheading('Key Ingredients'),
+          const ContentBlock.bullet(
+            'You still see the real world (through a camera or transparent display).',
+          ),
+          const ContentBlock.bullet(
+            'Digital content is aligned with that world (it appears to “stick” to places or objects).',
+          ),
+          const ContentBlock.bullet(
+            'As you move, the content updates in real time to stay consistent.',
           ),
           const ContentBlock.info(
-            'AR bridges the gap between the physical and digital worlds, creating interactive experiences that '
-            'respond to the user\'s real environment.',
-          ),
-          const ContentBlock.subheading('Key Characteristics of AR'),
-          const ContentBlock.bullet(
-            'Combines real and virtual content in real time',
-          ),
-          const ContentBlock.bullet('Interactive and responsive to user input'),
-          const ContentBlock.bullet(
-            'Registered in 3D space (aligned to the real world)',
-          ),
-          const ContentBlock.bullet(
-            'Operates across mobile, headset, and web platforms',
-          ),
-          const ContentBlock.divider(),
-          const ContentBlock.subheading('Types of AR'),
-          const ContentBlock.numbered(
-            '1. Marker-Based AR — Uses visual markers (images, QR codes) to trigger and anchor content.',
-          ),
-          const ContentBlock.numbered(
-            '2. Markerless AR — Uses GPS, accelerometer, and SLAM to place content without markers.',
-          ),
-          const ContentBlock.numbered(
-            '3. Projection-Based AR — Projects digital light onto physical surfaces.',
-          ),
-          const ContentBlock.numbered(
-            '4. Superimposition AR — Replaces part of the real view with an augmented view.',
-          ),
-          const ContentBlock.divider(),
-          const ContentBlock.subheading('Real-World Applications'),
-          const ContentBlock.bullet(
-            'Education — Interactive 3D models in textbooks',
-          ),
-          const ContentBlock.bullet(
-            'Healthcare — Surgical overlay and anatomy visualization',
-          ),
-          const ContentBlock.bullet(
-            'Retail — Virtual try-on and product preview',
-          ),
-          const ContentBlock.bullet(
-            'Navigation — Real-time directional overlays',
-          ),
-          const ContentBlock.bullet('Gaming — Pokémon GO, AR escape rooms'),
-        ],
-      ),
-      Topic(
-        id: 'arcore',
-        title: 'ARCore Platform',
-        subtitle: 'Google\'s AR platform for Android.',
-        contentBlocks: [
-          const ContentBlock.heading('Google ARCore'),
-          const ContentBlock.body(
-            'ARCore is Google\'s platform for building augmented reality experiences on Android devices. '
-            'It uses three key technologies to integrate virtual content with the real world: motion tracking, '
-            'environmental understanding, and light estimation.',
-          ),
-          const ContentBlock.subheading('Core Technologies'),
-          const ContentBlock.numbered(
-            '1. Motion Tracking — Uses the phone\'s camera and IMU sensors to estimate its position and orientation as it moves through the world.',
-          ),
-          const ContentBlock.numbered(
-            '2. Environmental Understanding — Detects flat surfaces (horizontal and vertical planes) by analyzing feature point clusters.',
-          ),
-          const ContentBlock.numbered(
-            '3. Light Estimation — Analyzes camera images to estimate the lighting conditions in the environment, enabling virtual objects to be lit realistically.',
-          ),
-          const ContentBlock.divider(),
-          const ContentBlock.subheading('Supported Features'),
-          const ContentBlock.bullet('Plane detection (horizontal & vertical)'),
-          const ContentBlock.bullet('Hit testing / Raycasting'),
-          const ContentBlock.bullet('Anchors and trackable objects'),
-          const ContentBlock.bullet('Augmented images and faces'),
-          const ContentBlock.bullet('Cloud anchors for shared experiences'),
-          const ContentBlock.bullet('Depth API for occlusion'),
-          const ContentBlock.info(
-            'ARCore requires ARCore-compatible devices. Check Google\'s supported devices list before development.',
+            'If the digital content does not react to your movement or the environment, it is closer '
+            'to a “filter” or video effect than true AR.',
           ),
         ],
       ),
       Topic(
-        id: 'vuforia_intro',
-        title: 'Vuforia Image Tracking',
-        subtitle: 'Industry-leading image recognition for AR.',
+        id: 'ar_vs_vr_mr_xr',
+        title: 'AR vs VR vs MR vs XR',
+        subtitle: 'Understand the vocabulary used in the industry.',
         contentBlocks: [
-          const ContentBlock.heading('Vuforia Engine'),
+          const ContentBlock.heading('Reality Vocabulary'),
           const ContentBlock.body(
-            'Vuforia is one of the most widely used AR development platforms, known for its robust image '
-            'tracking capabilities. It allows developers to recognize and track images, objects, and multi-targets '
-            'to overlay digital content precisely.',
+            'Recruiters and senior engineers expect you to use these terms precisely. '
+            'They describe where an experience sits on the spectrum between the real world and a fully virtual one.',
           ),
-          const ContentBlock.subheading('Key Capabilities'),
-          const ContentBlock.bullet(
-            'Image Targets — Recognizes flat images and tracks them in 3D space.',
+          const ContentBlock.subheading('Virtual Reality (VR)'),
+          const ContentBlock.body(
+            'VR fully replaces your view of the real world with a virtual one. You only see digital content.',
           ),
-          const ContentBlock.bullet(
-            'Multi-Targets — Tracks multiple sides of a geometric shape (box, cylinder).',
+          const ContentBlock.subheading('Augmented Reality (AR)'),
+          const ContentBlock.body(
+            'AR shows you the real world first, then adds digital information on top of it.',
           ),
-          const ContentBlock.bullet(
-            'Object Recognition — Recognizes and tracks 3D objects.',
+          const ContentBlock.subheading('Mixed Reality (MR)'),
+          const ContentBlock.body(
+            'MR is a broader term that covers experiences where real and virtual content coexist and can interact. '
+            'Many AR headsets describe themselves as MR devices.',
           ),
-          const ContentBlock.bullet(
-            'VuMarks — Custom markers that encode data (similar to QR but AR-trackable).',
-          ),
-          const ContentBlock.divider(),
-          const ContentBlock.subheading('How Vuforia Works'),
-          const ContentBlock.numbered(
-            '1. Upload target images to the Vuforia Target Manager portal.',
-          ),
-          const ContentBlock.numbered(
-            '2. Vuforia analyzes features and generates a tracking database.',
-          ),
-          const ContentBlock.numbered(
-            '3. At runtime, the camera feed is compared against the database.',
-          ),
-          const ContentBlock.numbered(
-            '4. When a match is found, a 3D pose is computed and content is anchored.',
+          const ContentBlock.subheading('Extended Reality (XR)'),
+          const ContentBlock.body(
+            'XR is an umbrella marketing term that includes AR, VR, and MR.',
           ),
           const ContentBlock.info(
-            'Vuforia rates each image target with stars (1–5). Higher-rated images have more distinct features '
-            'and track more reliably.',
+            'In interviews, describe AR as “world-first, digital-second”. VR is “digital-only”.',
           ),
         ],
       ),
       Topic(
-        id: 'ar_foundation',
-        title: 'AR Foundation',
-        subtitle: 'Unity\'s cross-platform AR framework.',
+        id: 'ar_examples_and_misconceptions',
+        title: 'Real-World Examples & Misconceptions',
+        subtitle: 'See where AR is used and what people get wrong.',
         contentBlocks: [
-          const ContentBlock.heading('Unity AR Foundation'),
-          const ContentBlock.body(
-            'AR Foundation is Unity\'s framework for building AR applications that work across multiple platforms '
-            '(ARCore, ARKit, etc.) using a single unified API. It acts as an abstraction layer that delegates to '
-            'platform-specific plugins at runtime.',
-          ),
-          const ContentBlock.subheading('Architecture'),
+          const ContentBlock.heading('Where You Already See AR'),
           const ContentBlock.bullet(
-            'AR Foundation provides high-level C# APIs',
+            'Snapchat / Instagram face filters that lock to your head.',
           ),
           const ContentBlock.bullet(
-            'Platform-specific plugins (ARCore XR Plugin, ARKit XR Plugin) handle native calls',
+            'Google Maps Live View arrows on the street in front of you.',
           ),
-          const ContentBlock.bullet('Unity XR subsystem manages the lifecycle'),
-          const ContentBlock.divider(),
-          const ContentBlock.subheading('Core Components'),
-          const ContentBlock.numbered(
-            '1. AR Session — Manages the AR lifecycle (enable, disable, reset).',
+          const ContentBlock.bullet(
+            'Industrial assembly instructions floating over a machine.',
           ),
-          const ContentBlock.numbered(
-            '2. AR Session Origin — Defines the transform space for AR content.',
+          const ContentBlock.subheading('Common Misconceptions'),
+          const ContentBlock.bullet(
+            '“AR always needs a headset” — Many production systems run on phones and tablets.',
           ),
-          const ContentBlock.numbered(
-            '3. AR Camera Manager — Controls camera rendering and frame processing.',
+          const ContentBlock.bullet(
+            '“AR is only for games” — The biggest money is in training, logistics, maintenance, and healthcare.',
           ),
-          const ContentBlock.numbered(
-            '4. AR Plane Manager — Detects and visualizes planes.',
-          ),
-          const ContentBlock.numbered(
-            '5. AR Raycast Manager — Performs hit testing against tracked geometry.',
-          ),
-          const ContentBlock.numbered(
-            '6. AR Anchor Manager — Creates persistent world-anchored points.',
+          const ContentBlock.bullet(
+            '“Any 3D overlay is AR” — If it does not track the real world, it is closer to a video effect.',
           ),
           const ContentBlock.warning(
-            'AR Foundation requires both the core package AND at least one platform plugin (e.g., ARCore XR Plugin) '
-            'to function on a real device.',
+            'As an aspiring AR expert, avoid vague definitions. Being precise about AR vs VR vs MR is your first credibility test.',
           ),
         ],
       ),
@@ -204,15 +113,323 @@ final List<LearningModule> allModules = [
   ),
 
   // ───────────────────────────────────────────────────────────────
-  //  MODULE 2 — Technical Concepts
+  //  MODULE 1 — Coordinate Systems (Foundations)
+  // ───────────────────────────────────────────────────────────────
+  LearningModule(
+    id: 'foundations_coordinate_systems',
+    title: 'Coordinate Systems for AR',
+    description:
+        'Build an intuitive understanding of world, camera, and screen spaces — before touching any SDK.',
+    icon: Icons.language_rounded,
+    order: 1,
+    unlockCost: 0,
+    requiredQuizId: null,
+    topics: [
+      Topic(
+        id: 'why_coords_matter',
+        title: 'Why Coordinate Systems Matter',
+        subtitle: 'The invisible skeleton under every AR scene.',
+        contentBlocks: [
+          const ContentBlock.heading('AR Is 3D Math Wearing a Nice UI'),
+          const ContentBlock.body(
+            'Every AR experience is built on a set of coordinate systems: invisible 3D grids that define where '
+            'the camera is, where objects live, and how they move.',
+          ),
+          const ContentBlock.subheading('Without Coordinate Systems…'),
+          const ContentBlock.bullet(
+            'Virtual objects would not know “where” to appear in the real world.',
+          ),
+          const ContentBlock.bullet(
+            'You could not place an object on a table or at 1 meter in front of the user.',
+          ),
+          const ContentBlock.bullet(
+            'Two users could not agree on “the same” location in space.',
+          ),
+          const ContentBlock.info(
+            'You do not need to compute matrices yet. At this stage, focus on mental models: origins, axes, and how spaces relate.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'common_spaces',
+        title: 'Common Spaces in AR',
+        subtitle: 'World, camera, screen, and object space.',
+        contentBlocks: [
+          const ContentBlock.heading('The Main Spaces'),
+          const ContentBlock.subheading('World Space'),
+          const ContentBlock.body(
+            'A stable 3D coordinate system tied to the real environment. Anchors and planes live here.',
+          ),
+          const ContentBlock.subheading('Camera Space'),
+          const ContentBlock.body(
+            'A coordinate system centered on the device camera. Forward is “where the camera looks”.',
+          ),
+          const ContentBlock.subheading('Screen Space'),
+          const ContentBlock.body(
+            'A 2D coordinate system for the screen. Touch positions and UI elements use this space.',
+          ),
+          const ContentBlock.subheading('Local / Object Space'),
+          const ContentBlock.body(
+            'Each virtual object has its own local origin and axes, making it easy to move or rotate whole models.',
+          ),
+          const ContentBlock.info(
+            'In most AR SDKs, a “pose” is a transform from one space to another — for example, from world space into camera space.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'coord_mistakes',
+        title: 'Typical Coordinate System Mistakes',
+        subtitle: 'Problems you avoid by understanding spaces early.',
+        contentBlocks: [
+          const ContentBlock.heading('Common Pitfalls'),
+          const ContentBlock.bullet(
+            'Mixing units — confusing meters with arbitrary units from 3D models.',
+          ),
+          const ContentBlock.bullet(
+            'Forgetting that y-up vs z-up conventions differ between engines.',
+          ),
+          const ContentBlock.bullet(
+            'Placing content in camera space when you meant world space, causing objects to “stick” to the camera.',
+          ),
+          const ContentBlock.subheading('Mental Debugging Checklist'),
+          const ContentBlock.numbered(
+            '1. Ask: “In which space am I right now?” (screen, camera, world, local).',
+          ),
+          const ContentBlock.numbered(
+            '2. Check whether the origin and axes directions match your expectation.',
+          ),
+          const ContentBlock.numbered(
+            '3. Verify that you convert between spaces only when necessary (e.g., tap → ray → world point).',
+          ),
+          const ContentBlock.warning(
+            'When you see objects jumping or rotating in strange ways, a coordinate system mismatch is often the cause.',
+          ),
+        ],
+      ),
+    ],
+  ),
+  // ───────────────────────────────────────────────────────────────
+  //  MODULE 2 — Strategic AR Foundations
+  // ───────────────────────────────────────────────────────────────
+  LearningModule(
+    id: 'mod_intro',
+    title: 'Strategic AR Foundations',
+    description:
+        'A comprehensive masterclass on the AR spatial stack, hardware paradigms, and industrial ecosystems.',
+    icon: Icons.explore_rounded,
+    order: 2,
+    unlockCost: 0,
+    requiredQuizId: null,
+    topics: [
+      Topic(
+        id: 'spatial_foundations',
+        title: 'Foundations of the Spatial Stack',
+        subtitle: 'Milgram\'s Continuum and the Pillars of Registration',
+        contentBlocks: [
+          const ContentBlock.heading('The Evolution of Spatial Computing'),
+          const ContentBlock.body(
+            'We are currently undergoing a third foundational shift: moving from mobile to spatial computing. '
+            'In a professional context, AR is the real-time integration of digital artifacts that respect '
+            'the laws of physics, perspective, and lighting within the user’s physical environment.',
+          ),
+          const ContentBlock.subheading('The Reality-Virtuality Continuum'),
+          const ContentBlock.body(
+            'Paul Milgram’s spectrum maps the transition from Physical World to Virtual Reality. '
+            '**Mixed Reality (MR)** encompasses everything in between. AR sits closer to the "Real Environment", '
+            'prioritizing the physical world while enhancing it with contextual digital overlays.',
+          ),
+          const ContentBlock.info(
+            '**Registration**: The precise alignment of virtual objects in 3D space. Failure results in "drift," '
+            'where objects appear to slide or jump, breaking immersion.',
+          ),
+          const ContentBlock.subheading('The Three Pillars of AR'),
+          const ContentBlock.bullet(
+            '**1. Tracking (Pose Estimation)**: Determining the device\'s "Pose" (position and orientation) across 6-Degrees-of-Freedom (6DoF).',
+          ),
+          const ContentBlock.bullet(
+            '**2. Scene Understanding**: Interpreting geometry and semantics (Detecting planes, generating depth maps).',
+          ),
+          const ContentBlock.bullet(
+            '**3. Rendering**: Drawing virtual content to match real-world perspective and environmental lighting.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'hardware_paradigms',
+        title: 'Hardware Paradigms',
+        subtitle: 'Handheld vs. Head-Mounted Architectures',
+        contentBlocks: [
+          const ContentBlock.heading('Handheld vs. Head-Mounted (HMD)'),
+          const ContentBlock.body(
+            'Handheld AR (Smartphones) is widely accessible but suffers from the "windowing" effect. '
+            'Head-Mounted Displays (HMDs) provide "presence" and hands-free workflows.',
+          ),
+          const ContentBlock.subheading('Field of View (FOV) and Clarity'),
+          const ContentBlock.bullet(
+            '**Xreal Air 2**: Portable, 46° FOV - Ideal for personal media.',
+          ),
+          const ContentBlock.bullet(
+            '**Microsoft HoloLens 2**: 52° FOV - The enterprise standard for spatial mapping.',
+          ),
+          const ContentBlock.bullet(
+            '**Apple Vision Pro**: ~100° FOV, 23 Million Pixels - Near-retina clarity using Video See-Through (VST).',
+          ),
+          const ContentBlock.info(
+            'HMDs are essential for guided assembly and surgery. Studies show workers using HMDs '
+            'demonstrate significantly better performance and lower error rates than those using tablets.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'software_ecosystems',
+        title: 'Software & Development Engines',
+        subtitle: 'Unity, Unreal, and Professional SDKs',
+        contentBlocks: [
+          const ContentBlock.heading('The "Big Three" Paths'),
+          const ContentBlock.bullet(
+            '**Unity**: Industry leader. Uses **AR Foundation** to abstract ARKit (iOS) and ARCore (Android) into one API.',
+          ),
+          const ContentBlock.bullet(
+            '**Unreal Engine (C++)**: Preferred for high-fidelity industrial simulations and visual accuracy.',
+          ),
+          const ContentBlock.bullet(
+            '**Native (Swift/Kotlin)**: Highest performance. Best for LiDAR-heavy apps on iOS or Geospatial apps on Android.',
+          ),
+          const ContentBlock.subheading('Enterprise: Vuforia Model Targeting'),
+          const ContentBlock.body(
+            'Vuforia excels at Recognizing specific 3D objects (e.g., a specific engine model). This is a '
+            'critical differentiator where simple plane detection is insufficient.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'webar_revolution',
+        title: 'The WebAR Revolution',
+        subtitle: 'Lowering Friction with 8th Wall and WebXR',
+        contentBlocks: [
+          const ContentBlock.heading('Why WebAR?'),
+          const ContentBlock.body(
+            '70% of potential users drop off if required to install a native app for a single-use experience. '
+            'WebAR solves this "friction factor" by running directly in the mobile browser.',
+          ),
+          const ContentBlock.subheading('Technical Performance'),
+          const ContentBlock.body(
+            'Running in a browser sandbox means no direct GPU access. To maintain 60FPS, WebAR uses:',
+          ),
+          const ContentBlock.bullet(
+            '**WebAssembly (Wasm)**: For high-performance computer vision tasks.',
+          ),
+          const ContentBlock.bullet(
+            '**Asset Compression (Draco)**: To shrink 3D models for fast loading.',
+          ),
+          const ContentBlock.info(
+            '**8th Wall** is the professional leader in WebAR SLAM tracking, supporting older hardware '
+            'where basic libraries like AR.js might fail.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'spatial_engineering',
+        title: 'Advanced Spatial Engineering',
+        subtitle: 'Occlusion, Anchors, and Relocalization',
+        contentBlocks: [
+          const ContentBlock.heading('Occlusion: The Depth Indicator'),
+          const ContentBlock.body(
+            'Without occlusion, digital content "floats" unnaturally. Objects must be able to hide '
+            'behind physical walls or people.',
+          ),
+          const ContentBlock.bullet(
+            '**Dynamic Occlusion**: Uses LiDAR/RGB to hide objects behind moving people/pets.',
+          ),
+          const ContentBlock.bullet(
+            '**Mesh-Based Occlusion**: High stability for static furniture and walls.',
+          ),
+          const ContentBlock.warning(
+            '**Z-Fighting**: Occurs when two surfaces at the same depth flicker as they compete for rendering priority.',
+          ),
+          const ContentBlock.subheading('Persistence & Spatial Anchors'),
+          const ContentBlock.body(
+            'Persistence allows virtual content to stay fixed in a location across multiple sessions.',
+          ),
+          const ContentBlock.bullet(
+            '**Azure Spatial Anchors (ASA)**: Cloud-based, scalable for large industrial sites.',
+          ),
+          const ContentBlock.bullet(
+            '**Google Cloud Anchors**: Optimized for multi-user shared AR social experiences.',
+          ),
+          const ContentBlock.info(
+            '**Relocalization**: The process of a device recognizing its environment and resetting '
+            'its coordinate system to align with a stored spatial map.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'ux_and_safety',
+        title: 'Human-Centric Design',
+        subtitle: 'Reducing Cognitive Load in Spatial UI',
+        contentBlocks: [
+          const ContentBlock.heading('The 5 Pillars of Spatial UX'),
+          const ContentBlock.bullet(
+            '**Environment**: UI must not cover faces or real-world safety hazards.',
+          ),
+          const ContentBlock.bullet(
+            '**Onboarding**: Use visual hints (scan floor) instead of heavy text.',
+          ),
+          const ContentBlock.bullet(
+            '**Movement**: Encourage physical movement without causing "neck strain".',
+          ),
+          const ContentBlock.bullet(
+            '**Interface**: Use **Progressive Disclosure**—reveal details only upon demand.',
+          ),
+          const ContentBlock.bullet(
+            '**Interaction**: Replace menus with natural gestures (Grab, Move, Pin).',
+          ),
+          const ContentBlock.subheading('Situational Awareness'),
+          const ContentBlock.body(
+            'Apps used while moving must simplify UI when walking is detected. Never place content directly '
+            'over the ground where it might hide physical steps or hazards.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'industrial_applications',
+        title: 'Professional Domains',
+        subtitle: 'AR Transforming the Global Workforce',
+        contentBlocks: [
+          const ContentBlock.heading('Industrial Impact'),
+          const ContentBlock.body(
+            'AR is bridging the gap between digital data and physical labor in these critical sectors:',
+          ),
+          const ContentBlock.bullet(
+            '**Medical**: Surgical planning and sub-millimeter registration for real-time vitals overlay.',
+          ),
+          const ContentBlock.bullet(
+            '**Logistics**: Route optimization and real-time barcode integration for warehouse staff.',
+          ),
+          const ContentBlock.bullet(
+            '**Architecture**: Infrastructure visualization and large-scale GPS-denied navigation.',
+          ),
+          const ContentBlock.info(
+            'Example: **KLM Airlines** uses the Engine Shop app on Apple Vision Pro for trainees to '
+            'study full-fidelity 3D repair instructions, significantly reducing training errors.',
+          ),
+        ],
+      ),
+    ],
+  ),
+
+  // ───────────────────────────────────────────────────────────────
+  //  MODULE 3 — Technical Concepts
   // ───────────────────────────────────────────────────────────────
   LearningModule(
     id: 'mod_tech',
     title: 'Technical Concepts',
     description: 'How modern AR systems operate internally.',
     icon: Icons.memory_rounded,
-    order: 1,
-    requiredQuizId: 'quiz_intro',
+    order: 3,
+    unlockCost: 0,
+    requiredQuizId: null,
     topics: [
       Topic(
         id: 'sensor_fusion',
@@ -416,15 +633,16 @@ final List<LearningModule> allModules = [
   ),
 
   // ───────────────────────────────────────────────────────────────
-  //  MODULE 3 — Development
+  //  MODULE 4 — Development
   // ───────────────────────────────────────────────────────────────
   LearningModule(
     id: 'mod_dev',
     title: 'Development',
     description: 'Building AR apps with Vuforia, ARCore & AR Foundation.',
     icon: Icons.code_rounded,
-    order: 2,
-    requiredQuizId: 'quiz_tech',
+    order: 4,
+    unlockCost: 0,
+    requiredQuizId: null,
     topics: [
       Topic(
         id: 'vuforia_dev',
@@ -609,15 +827,16 @@ final List<LearningModule> allModules = [
   ),
 
   // ───────────────────────────────────────────────────────────────
-  //  MODULE 4 — Stabilization & Performance
+  //  MODULE 5 — Stabilization & Performance
   // ───────────────────────────────────────────────────────────────
   LearningModule(
     id: 'mod_stab',
     title: 'Stabilization & Performance',
     description: 'Techniques for reliable and smooth AR experiences.',
     icon: Icons.speed_rounded,
-    order: 3,
-    requiredQuizId: 'quiz_dev',
+    order: 5,
+    unlockCost: 0,
+    requiredQuizId: null,
     topics: [
       Topic(
         id: 'anchor_stability',
@@ -775,15 +994,16 @@ final List<LearningModule> allModules = [
   ),
 
   // ───────────────────────────────────────────────────────────────
-  //  MODULE 5 — Advanced Topics (Locked)
+  //  MODULE 6 — Advanced Topics (Locked)
   // ───────────────────────────────────────────────────────────────
   LearningModule(
     id: 'mod_advanced',
     title: 'Advanced AR Knowledge',
     description: 'Deep-dive topics unlocked after assessments.',
     icon: Icons.lock_rounded,
-    order: 4,
-    requiredQuizId: 'quiz_stab',
+    order: 6,
+    unlockCost: 0,
+    requiredQuizId: null,
     topics: [
       Topic(
         id: 'cloud_anchors',

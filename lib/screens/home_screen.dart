@@ -98,15 +98,6 @@ class HomeScreen extends StatelessWidget {
                               // ── Action Buttons ──
                               _ThemeToggleButton(isDark: isDark),
                               _buildIconButton(
-                                icon: Icons.search_rounded,
-                                tooltip: 'Search Topics',
-                                isDark: isDark,
-                                onTap: () => showSearch(
-                                  context: context,
-                                  delegate: TopicSearchDelegate(isDark: isDark),
-                                ),
-                              ),
-                              _buildIconButton(
                                 icon: Icons.info_outline_rounded,
                                 tooltip: 'Credits',
                                 isDark: isDark,
@@ -165,9 +156,6 @@ class HomeScreen extends StatelessWidget {
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate((context, index) {
                         final module = allModules[index];
-                        final isUnlocked = progress.isModuleUnlocked(
-                          module.requiredQuizId,
-                        );
                         final moduleProgress = progress.moduleProgress(
                           module.id,
                           module.totalTopics,
@@ -182,7 +170,7 @@ class HomeScreen extends StatelessWidget {
                             icon: module.icon,
                             accentColor: color,
                             progress: moduleProgress,
-                            isLocked: !isUnlocked,
+                            isLocked: false,
                             index: index,
                             isDark: isDark,
                             onTap: () {
@@ -258,8 +246,6 @@ class HomeScreen extends StatelessWidget {
             ? completedTopics / totalTopics
             : 0.0;
 
-        final totalQuizScore = progress.achievements.length * 40;
-        final xp = AppTheme.getXP(completedTopics, totalQuizScore);
         final levelTitle = AppTheme.getLevelTitle(overallProgress);
         final motivMsg = AppTheme.getMotivationalMessage(overallProgress);
 
@@ -276,7 +262,7 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Top row: level + XP
+                    // Top row: level badge
                     Row(
                       children: [
                         Container(
@@ -300,14 +286,6 @@ class HomeScreen extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                               fontSize: 11,
                             ),
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '⚡ $xp XP',
-                          style: AppTheme.labelMedium.copyWith(
-                            color: AppTheme.accentAmber,
-                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],

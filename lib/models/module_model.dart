@@ -11,6 +11,7 @@ class LearningModule {
   final String?
   requiredQuizId; // quiz that must be passed to unlock this module
   final int order;
+  final int unlockCost;
 
   const LearningModule({
     required this.id,
@@ -20,6 +21,7 @@ class LearningModule {
     required this.topics,
     this.requiredQuizId,
     required this.order,
+    this.unlockCost = 0,
   });
 
   int get totalTopics => topics.length;
@@ -35,6 +37,7 @@ class LearningModule {
           .toList(),
       requiredQuizId: json['requiredQuizId'] as String?,
       order: json['order'] as int? ?? 0,
+      unlockCost: json['unlockCost'] as int? ?? 0,
     );
   }
 
@@ -46,5 +49,6 @@ class LearningModule {
         'topics': topics.map((t) => t.toJson()).toList(),
         'requiredQuizId': requiredQuizId,
         'order': order,
+        'unlockCost': unlockCost,
       };
 }

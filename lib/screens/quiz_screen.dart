@@ -18,19 +18,28 @@ class QuizScreen extends StatefulWidget {
 }
 
 class _QuizScreenState extends State<QuizScreen> {
+  late List<QuizQuestion> _questions;
   int _currentIndex = 0;
   int? _selectedOption;
   bool _showResult = false;
   int _correctCount = 0;
   final List<int?> _answers = [];
 
-  QuizQuestion get _currentQuestion => widget.quiz.questions[_currentIndex];
-  int get _totalQuestions => widget.quiz.questions.length;
+  QuizQuestion get _currentQuestion => _questions[_currentIndex];
+  int get _totalQuestions => _questions.length;
   double get _progress => (_currentIndex + 1) / _totalQuestions;
 
   @override
   void initState() {
     super.initState();
+    // Randomize the question set for this attempt. Take up to 6
+    // questions from the full pool.
+    _questions = List<QuizQuestion>.from(widget.quiz.questions);
+    _questions.shuffle();
+    if (_questions.length > 6) {
+      _questions = _questions.take(6).toList();
+    }
+
     _answers.addAll(List.filled(_totalQuestions, null));
   }
 

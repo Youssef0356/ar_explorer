@@ -6,91 +6,216 @@ import '../models/quiz_model.dart';
 
 final Map<String, Quiz> allQuizzes = {
   // ───────────────────────────────────────────────────────────────
+  //  QUIZ — AR Basics (Definitions)
+  // ───────────────────────────────────────────────────────────────
+  'quiz_intro_basics': Quiz(
+    id: 'quiz_intro_basics',
+    moduleId: 'intro_ar_basics',
+    title: 'Checkup: AR Basics & Vocabulary',
+    questions: [
+      const QuizQuestion(
+        id: 'q_intro_1',
+        question: 'Which statement best describes Augmented Reality (AR)?',
+        options: [
+          'A fully virtual world that replaces reality',
+          'Digital content overlaid onto the real world in real time',
+          'Any 3D animation rendered on a screen',
+          'A 360° video without interaction',
+        ],
+        correctIndex: 1,
+        explanation:
+            'AR keeps the real world visible and adds digital content that responds to your movement.',
+      ),
+      const QuizQuestion(
+        id: 'q_intro_2',
+        question: 'What is the MAIN difference between AR and VR?',
+        options: [
+          'AR runs only on phones, VR only on PCs',
+          'AR shows the real world with digital overlays, VR hides the real world',
+          'AR uses less battery than VR',
+          'VR always uses hand controllers',
+        ],
+        correctIndex: 1,
+        explanation:
+            'In VR you only see a virtual world. In AR the physical environment is still your primary reference.',
+      ),
+      const QuizQuestion(
+        id: 'q_intro_3',
+        question: 'Which term is an umbrella that includes AR, VR and MR?',
+        options: ['XR', 'GPU', 'SLAM', 'FOV'],
+        correctIndex: 0,
+        explanation:
+            'XR (Extended Reality) is a broad label that covers AR, VR and MR.',
+      ),
+      const QuizQuestion(
+        id: 'q_intro_4',
+        question:
+            'Which of the following is the BEST example of a true AR experience?',
+        options: [
+          'A 3D logo always centered on the screen, not tied to the environment',
+          'A face filter that stays perfectly locked to the user’s head as they move',
+          'A 360° video playing on a flat screen',
+          'A static 3D image inside a PDF',
+        ],
+        correctIndex: 1,
+        explanation:
+            'Tracking and registration are key: the digital content must stay aligned with real-world motion.',
+      ),
+      const QuizQuestion(
+        id: 'q_intro_5',
+        question: 'Which misconception is MOST common among beginners?',
+        options: [
+          'AR is only for enterprise',
+          'AR always requires a headset and cannot run on phones',
+          'AR has no use in education',
+          'AR and VR are mathematically unrelated',
+        ],
+        correctIndex: 1,
+        explanation:
+            'Many powerful AR solutions run entirely on smartphones and tablets.',
+      ),
+    ],
+  ),
+
+  // ───────────────────────────────────────────────────────────────
   //  QUIZ 1 — Introduction to AR
   // ───────────────────────────────────────────────────────────────
   'quiz_intro': Quiz(
     id: 'quiz_intro',
     moduleId: 'mod_intro',
-    title: 'Interview Time: AR Fundamentals',
+    title: 'Mastery Interview: Spatial AR',
     questions: [
       const QuizQuestion(
-        id: 'q1_1',
-        question: 'What distinguishes AR from VR?',
-        options: [
-          'AR replaces the real world entirely',
-          'AR enhances the real world with digital overlays',
-          'AR requires a headset to function',
-          'AR only works with markers',
-        ],
-        correctIndex: 1,
-        explanation:
-            'AR augments the real environment by overlaying digital content, whereas VR replaces the environment entirely.',
-      ),
-      const QuizQuestion(
-        id: 'q1_2',
-        question: 'Which of the following is NOT a core technology of ARCore?',
-        options: [
-          'Motion Tracking',
-          'Light Estimation',
-          'Face Mesh Generation',
-          'Environmental Understanding',
-        ],
-        correctIndex: 2,
-        explanation:
-            'ARCore\'s three core technologies are Motion Tracking, Environmental Understanding, and Light Estimation. Face mesh is an additional feature.',
-      ),
-      const QuizQuestion(
-        id: 'q1_3',
-        question: 'What does Vuforia use to rate image target quality?',
-        options: [
-          'Percentage score (0–100%)',
-          'Star rating (1–5)',
-          'Color analysis',
-          'Resolution check',
-        ],
-        correctIndex: 1,
-        explanation:
-            'Vuforia rates image targets with 1–5 stars based on the number and distribution of detectable features.',
-      ),
-      const QuizQuestion(
-        id: 'q1_4',
-        question: 'What is the primary role of AR Foundation?',
-        options: [
-          'It replaces ARCore and ARKit entirely',
-          'It provides a cross-platform abstraction for AR development',
-          'It is a standalone AR rendering engine',
-          'It only works on iOS devices',
-        ],
-        correctIndex: 1,
-        explanation:
-            'AR Foundation provides a unified API layer that abstracts platform-specific AR SDKs (ARCore, ARKit) in Unity.',
-      ),
-      const QuizQuestion(
-        id: 'q1_5',
+        id: 'q_milgram_spectrum',
         question:
-            'Which type of AR uses GPS and sensors to place content without visual markers?',
+            'According to Paul Milgram, what does Mixed Reality (MR) encompass?',
         options: [
-          'Marker-Based AR',
-          'Projection-Based AR',
-          'Markerless AR',
-          'Superimposition AR',
-        ],
-        correctIndex: 2,
-        explanation:
-            'Markerless AR relies on GPS, accelerometers, SLAM, and other sensors to position content without physical markers.',
-      ),
-      const QuizQuestion(
-        id: 'q1_6',
-        question: 'Which component in AR Foundation manages the AR lifecycle?',
-        options: [
-          'AR Camera Manager',
-          'AR Session',
-          'AR Plane Manager',
-          'AR Anchor Manager',
+          'Only high-end VR headsets',
+          'The entire spectrum between the Physical World and Virtual Reality',
+          'Only mobile phone AR apps',
+          '3D rendering without tracking',
         ],
         correctIndex: 1,
         explanation:
-            'AR Session manages the overall AR lifecycle including enabling, disabling, and resetting the session.',
+            'MR is the broader technical term for the entire middle ground where physical and digital objects co-exist and interact.',
+      ),
+      const QuizQuestion(
+        id: 'q_hmd_performance',
+        question:
+            'Why do industrial sectors prefer Head-Mounted Displays (HMDs) over Handheld AR for guided assembly?',
+        options: [
+          'HMDs are cheaper to deploy',
+          'HMDs offer hands-free workflows and higher "presence"',
+          'HMDs have better battery life',
+          'HMDs do not require a Wi-Fi connection',
+        ],
+        correctIndex: 1,
+        explanation:
+            'Hands-free operation is critical for industrial workers who must use their hands for assembly while viewing digital instructions.',
+      ),
+      const QuizQuestion(
+        id: 'q_webar_friction',
+        question: 'What is the "Friction Factor" in mobile AR deployment?',
+        options: [
+          'The physical drag of the device',
+          'The 70% user drop-off caused by requiring a native app download',
+          'The heat generated by the GPU',
+          'The difficulty of scanning a QR code',
+        ],
+        correctIndex: 1,
+        explanation:
+            'WebAR mitigates friction by allowing users to access content instantly through a browser without an App Store download.',
+      ),
+      const QuizQuestion(
+        id: 'q_wasm_webar',
+        question:
+            'How do WebAR frameworks like 8th Wall maintain 60FPS tracking within a browser sandbox?',
+        options: [
+          'By reducing the screen resolution',
+          'By using WebAssembly (Wasm) for computer vision tasks',
+          'By disabling the camera feed',
+          'By using cloud-only rendering',
+        ],
+        correctIndex: 1,
+        explanation:
+            'Wasm allows near-native execution speed for complex tracking algorithms within the browser environment.',
+      ),
+      const QuizQuestion(
+        id: 'q_hybrid_occlusion',
+        question: 'What is "Z-fighting" in the context of AR rendering?',
+        options: [
+          'Two users competing for a shared anchor',
+          'Two surfaces at the same depth flickering as they compete for rendering priority',
+          'A failure in the accelerometer',
+          'Low battery causing screen lag',
+        ],
+        correctIndex: 1,
+        explanation:
+            'Z-fighting is a visual artifact where the engine cannot determine which object is in front of the other due to identical depth values.',
+      ),
+      const QuizQuestion(
+        id: 'q_asa_benefit',
+        question:
+            'What is a primary advantage of Azure Spatial Anchors (ASA) for large-scale enterprise?',
+        options: [
+          'It is free for all users',
+          'It allows cloud-based persistence and multi-device cross-platform collaboration',
+          'It increases the FOV of the headset',
+          'It deletes old map data automatically',
+        ],
+        correctIndex: 1,
+        explanation:
+            'ASA enables multi-device shared AR by storing the spatial map in the cloud, allowing an iOS device and a HoloLens to see the same content.',
+      ),
+      const QuizQuestion(
+        id: 'q_relocalization',
+        question: 'What happens during "Relocalization" in a SLAM system?',
+        options: [
+          'The device restarts its OS',
+          'The system recognizes a known environment and aligns its coordinate system with a stored map',
+          'The camera switches to infrared mode',
+          'The GPS coordinates are updated',
+        ],
+        correctIndex: 1,
+        explanation:
+            'Relocalization is the "Aha!" moment when the device recognizes where it is based on previously mapped features.',
+      ),
+      const QuizQuestion(
+        id: 'q_progressive_disclosure',
+        question:
+            'What does the UX principle of "Progressive Disclosure" aim to solve in AR?',
+        options: [
+          'High hardware latency',
+          'HUD clutter and cognitive overload',
+          'Low battery life',
+          'Slow internet speeds',
+        ],
+        correctIndex: 1,
+        explanation:
+            'By revealing details only upon demand, you keep the user’s field of view clear and focus their attention on critical tasks.',
+      ),
+      const QuizQuestion(
+        id: 'q_klm_visionpro',
+        question:
+            'In the KLM Royal Dutch Airlines case study, why was AR used on the Apple Vision Pro?',
+        options: [
+          'To entertain passengers on long flights',
+          'To train technicians on complex engine repairs using full-fidelity 3D models',
+          'To book tickets faster',
+          'To scan luggage weights',
+        ],
+        correctIndex: 1,
+        explanation:
+            'AR training with high-fidelity 3D overlays significantly reduces errors and accelerates learning in complex mechanical tasks.',
+      ),
+      const QuizQuestion(
+        id: 'q_registration_failure',
+        question:
+            'What is the technical term for virtual objects "sliding" or "jumping" due to tracking errors?',
+        options: ['Latency', 'Drift', 'Z-Fighting', 'Ghosting'],
+        correctIndex: 1,
+        explanation:
+            'Drift occurs when the tracking system accumulates small errors, causing the virtual content to lose its alignment with the physical world.',
       ),
     ],
   ),
@@ -350,6 +475,85 @@ final Map<String, Quiz> allQuizzes = {
         correctIndex: 2,
         explanation:
             'ASTC and ETC2 are GPU-native compressed formats optimized for mobile devices, reducing memory usage while maintaining quality.',
+      ),
+    ],
+  ),
+
+  // ───────────────────────────────────────────────────────────────
+  //  QUIZ — Coordinate Systems Foundations
+  // ───────────────────────────────────────────────────────────────
+  'quiz_foundations_coords': Quiz(
+    id: 'quiz_foundations_coords',
+    moduleId: 'foundations_coordinate_systems',
+    title: 'Checkup: Coordinate Systems for AR',
+    questions: [
+      const QuizQuestion(
+        id: 'q_coords_1',
+        question: 'What is World Space in AR?',
+        options: [
+          'A 2D grid where UI buttons live',
+          'A stable 3D coordinate system tied to the physical environment',
+          'The coordinate system of the phone’s screen pixels',
+          'The local axes of a single 3D model',
+        ],
+        correctIndex: 1,
+        explanation:
+            'World space represents the real environment; anchors and planes are defined there.',
+      ),
+      const QuizQuestion(
+        id: 'q_coords_2',
+        question: 'Camera Space is best described as:',
+        options: [
+          'A space where the origin is at the world center of the room',
+          'A space centered on the device camera, looking forward',
+          'A coordinate system used only for UI menus',
+          'A GPS-based global coordinate system',
+        ],
+        correctIndex: 1,
+        explanation:
+            'In camera space, the origin sits at the camera and the forward axis points along its viewing direction.',
+      ),
+      const QuizQuestion(
+        id: 'q_coords_3',
+        question:
+            'Screen Space coordinates are MOST directly used for which action?',
+        options: [
+          'Defining the world position of anchors',
+          'Describing the user’s GPS location outdoors',
+          'Handling touch input positions and UI layout',
+          'Storing 3D meshes in files',
+        ],
+        correctIndex: 2,
+        explanation:
+            'Screen space is a 2D coordinate system for pixels and UI elements — and for touch positions before they are converted to rays.',
+      ),
+      const QuizQuestion(
+        id: 'q_coords_4',
+        question:
+            'Placing an object in camera space instead of world space will MOST LIKELY result in:',
+        options: [
+          'The object staying fixed in the room even if you move',
+          'The object “sticking” to the camera and moving with your phone/head',
+          'The object becoming invisible',
+          'The app crashing immediately',
+        ],
+        correctIndex: 1,
+        explanation:
+            'Content in camera space follows the camera; it does not stay anchored to the room.',
+      ),
+      const QuizQuestion(
+        id: 'q_coords_5',
+        question:
+            'Which question should you ask first when debugging a weird AR position/rotation?',
+        options: [
+          '“Is my texture compressed correctly?”',
+          '“How many draw calls do I have?”',
+          '“In which coordinate system am I right now?”',
+          '“What is the FOV of the headset?”',
+        ],
+        correctIndex: 2,
+        explanation:
+            'Most early bugs come from mixing spaces. Knowing which coordinate system you are in is step one.',
       ),
     ],
   ),
