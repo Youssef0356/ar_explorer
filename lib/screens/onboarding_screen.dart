@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../core/app_theme.dart';
 import '../services/progress_service.dart';
+import '../widgets/animated_google_background.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -59,10 +60,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: AppTheme.backgroundGradient(true),
-        ),
+      body: AnimatedGoogleBackground(
+        isDark: true, // Onboarding typically locks to the dark premium aesthetic initially
         child: SafeArea(
           child: Column(
             children: [

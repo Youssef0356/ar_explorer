@@ -120,7 +120,7 @@ class _ShareableAchievementCardState extends State<ShareableAchievementCard> {
                     letterSpacing: 2,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 32),
                 Transform.scale(
                   scale: 1.5,
                   child: AchievementBadge(
@@ -130,7 +130,7 @@ class _ShareableAchievementCardState extends State<ShareableAchievementCard> {
                     earned: true,
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 40),
                 Text(
                   widget.title,
                   style: AppTheme.headingMedium.copyWith(
@@ -157,7 +157,7 @@ class _ShareableAchievementCardState extends State<ShareableAchievementCard> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      'Score: \${widget.score}',
+                      'Score: ${widget.score}',
                       style: AppTheme.headingSmall.copyWith(
                         color: widget.color,
                       ),

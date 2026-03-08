@@ -5,7 +5,7 @@ class ThemeService extends ChangeNotifier {
   static const _themeKey = 'is_dark_mode';
 
   SharedPreferences? _prefs;
-  bool _isDarkMode = false;
+  bool _isDarkMode = true;
 
   bool get isDarkMode => _isDarkMode;
 
@@ -13,7 +13,7 @@ class ThemeService extends ChangeNotifier {
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
-    _isDarkMode = _prefs?.getBool(_themeKey) ?? false;
+    _isDarkMode = _prefs?.getBool(_themeKey) ?? true;
   }
 
   Future<void> toggleTheme() async {

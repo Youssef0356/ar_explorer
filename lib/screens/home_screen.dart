@@ -14,6 +14,7 @@ import '../models/module_model.dart';
 import '../models/topic_model.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
+import '../widgets/animated_google_background.dart';
 import '../widgets/daily_keyword_card.dart';
 import '../widgets/module_card.dart';
 import 'achievements_screen.dart';
@@ -33,10 +34,8 @@ class HomeScreen extends StatelessWidget {
     final isDark = context.watch<ThemeService>().isDarkMode;
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: AppTheme.backgroundGradient(isDark),
-        ),
+      body: AnimatedGoogleBackground(
+        isDark: isDark,
         child: SafeArea(
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
@@ -52,23 +51,26 @@ class HomeScreen extends StatelessWidget {
                       Row(
                             children: [
                               Container(
-                                    width: 44,
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          AppTheme.accentCyan,
-                                          AppTheme.accentBlue,
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppTheme.accentCyan.withValues(alpha: 0.2),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
                                     ),
-                                    child: const Icon(
-                                      Icons.view_in_ar_rounded,
-                                      color: AppTheme.primaryDark,
-                                      size: 24,
-                                    ),
-                                  )
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.asset(
+                                    'assets/images/app_logo.png',
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              )
                                   .animate(
                                     onPlay: (c) => c.repeat(reverse: true),
                                   )
@@ -152,22 +154,10 @@ class HomeScreen extends StatelessWidget {
                                 ),
                               ),
                               _buildIconButton(
-                                icon: Icons.info_outline_rounded,
-                                tooltip: 'Credits',
+                                icon: Icons.settings_rounded,
+                                tooltip: 'Parameters',
                                 isDark: isDark,
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context2) =>
-                                        const CreditsScreen(),
-                                  ),
-                                ),
-                              ),
-                              _buildIconButton(
-                                icon: Icons.exit_to_app_rounded,
-                                tooltip: 'Quit',
-                                isDark: isDark,
-                                onTap: () => _showQuitDialog(context, isDark),
+                                onTap: () => _showSettingsModal(context, isDark),
                               ),
                             ],
                           )
@@ -601,6 +591,87 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  // ── Settings Modal ───────────────────────────────────────────
+  void _showSettingsModal(BuildContext context, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.cardC(isDark),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Parameters',
+                  style: AppTheme.headingMedium.copyWith(
+                    color: AppTheme.textPrimaryC(isDark),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ListTile(
+                  leading: Icon(
+                    isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                    color: AppTheme.accentCyan,
+                  ),
+                  title: Text(
+                    isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+                    style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                  ),
+                  onTap: () {
+                    context.read<ThemeService>().toggleTheme();
+                    Navigator.pop(ctx);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.info_outline_rounded, color: AppTheme.accentBlue),
+                  title: Text(
+                    'Credits',
+                    style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context2) => const CreditsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.exit_to_app_rounded, color: AppTheme.errorRed),
+                  title: Text(
+                    'Quit Application',
+                    style: AppTheme.bodyLarge.copyWith(color: AppTheme.errorRed),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _showQuitDialog(context, isDark);
+                  },
+                ),
+                const SizedBox(height: 16),
+                Divider(color: AppTheme.dividerC(isDark)),
+                ListTile(
+                  leading: const Icon(Icons.arrow_back_rounded, color: AppTheme.textSecondary),
+                  title: Text(
+                    'Go Back',
+                    style: AppTheme.bodyLarge.copyWith(color: AppTheme.textSecondaryC(isDark)),
+                  ),
+                  onTap: () => Navigator.pop(ctx),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
