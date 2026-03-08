@@ -83,20 +83,30 @@ class HomeScreen extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      'AR Explorer',
-                                      style: AppTheme.headingLarge.copyWith(
-                                        color: AppTheme.textPrimaryC(isDark),
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        'AR Explorer',
+                                        style: AppTheme.headingLarge.copyWith(
+                                          color: AppTheme.textPrimaryC(isDark),
+                                        ),
+                                        maxLines: 1,
                                       ),
                                     ),
                                     const SizedBox(height: 2),
-                                    Text(
-                                      'Learn Augmented Reality',
-                                      style: AppTheme.bodySmall.copyWith(
-                                        color: AppTheme.accentCyan.withValues(
-                                          alpha: 0.7,
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        'Learn Augmented Reality',
+                                        style: AppTheme.bodySmall.copyWith(
+                                          color: AppTheme.accentCyan.withValues(
+                                            alpha: 0.7,
+                                          ),
+                                          letterSpacing: 1,
                                         ),
-                                        letterSpacing: 1,
+                                        maxLines: 1,
                                       ),
                                     ),
                                   ],
