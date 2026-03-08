@@ -7,15 +7,22 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../core/app_theme.dart';
+import '../data/ar_keywords_data.dart';
 import '../data/modules_data.dart';
+import '../data/quiz_data.dart';
 import '../models/module_model.dart';
 import '../models/topic_model.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
+import '../widgets/daily_keyword_card.dart';
 import '../widgets/module_card.dart';
 import 'achievements_screen.dart';
+import 'bookmarks_screen.dart';
 import 'credits_screen.dart';
+import 'interview_screen.dart';
 import 'module_detail_screen.dart';
+import 'practice_screen.dart';
+import 'roadmap_screen.dart';
 import 'topic_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -95,8 +102,45 @@ class HomeScreen extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                              // ── Action Buttons ──
-                              _ThemeToggleButton(isDark: isDark),
+                              _buildIconButton(
+                                icon: Icons.calendar_today_rounded,
+                                tooltip: 'Daily Keyword',
+                                isDark: isDark,
+                                onTap: () {
+                                  final keywordEntry = getDailyKeyword();
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) => DailyKeywordCard(
+                                      keyword: keywordEntry.key,
+                                      definition: keywordEntry.value,
+                                    ),
+                                  );
+                                },
+                              ),
+                              _buildIconButton(
+                                icon: Icons.map_rounded,
+                                tooltip: 'Roadmap',
+                                isDark: isDark,
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context2) =>
+                                        const RoadmapScreen(),
+                                  ),
+                                ),
+                              ),
+                              _buildIconButton(
+                                icon: Icons.bookmark_outline_rounded,
+                                tooltip: 'Bookmarks',
+                                isDark: isDark,
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context2) =>
+                                        const BookmarksScreen(),
+                                  ),
+                                ),
+                              ),
                               _buildIconButton(
                                 icon: Icons.info_outline_rounded,
                                 tooltip: 'Credits',
@@ -128,6 +172,11 @@ class HomeScreen extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
+                      // ── Quick Actions: Practice & Interview ──
+                      _buildQuickActions(context, isDark),
+
+                      const SizedBox(height: 20),
+
                       // ── Section Title ──
                       Row(
                         children: [
@@ -156,10 +205,15 @@ class HomeScreen extends StatelessWidget {
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate((context, index) {
                         final module = allModules[index];
-                        final moduleProgress = progress.moduleProgress(
-                          module.id,
-                          module.totalTopics,
+                        final isLocked = !progress.isModuleUnlocked(
+                          module.requiredQuizId,
                         );
+                        final moduleProgress = isLocked
+                            ? 0.0
+                            : progress.moduleProgress(
+                                module.id,
+                                module.totalTopics,
+                              );
                         final color = AppTheme.getModuleColor(index);
 
                         return Padding(
@@ -170,10 +224,18 @@ class HomeScreen extends StatelessWidget {
                             icon: module.icon,
                             accentColor: color,
                             progress: moduleProgress,
-                            isLocked: false,
+                            isLocked: isLocked,
                             index: index,
                             isDark: isDark,
                             onTap: () {
+                              if (isLocked) {
+                                _showLockedDialog(
+                                  context,
+                                  isDark,
+                                  module,
+                                );
+                                return;
+                              }
                               Navigator.push(
                                 context,
                                 PageRouteBuilder(
@@ -344,7 +406,172 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  // ── Quick Actions (Practice + Interview) ─────────────────────
+  Widget _buildQuickActions(BuildContext context, bool isDark) {
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PracticeScreen()),
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: AppTheme.glassCard(isDark),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentPink.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.fitness_center_rounded,
+                      color: AppTheme.accentPink,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Practice',
+                          style: AppTheme.headingSmall.copyWith(
+                            fontSize: 14,
+                            color: AppTheme.textPrimaryC(isDark),
+                          ),
+                        ),
+                        Text(
+                          'Review & Daily',
+                          style: AppTheme.bodySmall.copyWith(
+                            color: AppTheme.textMutedC(isDark),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ).animate().fadeIn(
+                delay: const Duration(milliseconds: 400),
+                duration: const Duration(milliseconds: 500),
+              ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const InterviewScreen()),
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: AppTheme.glassCard(isDark),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentAmber.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.timer_rounded,
+                      color: AppTheme.accentAmber,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Interview',
+                          style: AppTheme.headingSmall.copyWith(
+                            fontSize: 14,
+                            color: AppTheme.textPrimaryC(isDark),
+                          ),
+                        ),
+                        Text(
+                          'Mock Test',
+                          style: AppTheme.bodySmall.copyWith(
+                            color: AppTheme.textMutedC(isDark),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ).animate().fadeIn(
+                delay: const Duration(milliseconds: 500),
+                duration: const Duration(milliseconds: 500),
+              ),
+        ),
+      ],
+    );
+  }
+
+  // ── Locked Module Dialog ─────────────────────────────────────
+  void _showLockedDialog(
+    BuildContext context,
+    bool isDark,
+    LearningModule module,
+  ) {
+    final quizId = module.requiredQuizId;
+    final quizTitle = quizId != null
+        ? (allQuizzes[quizId]?.title ?? 'the previous quiz')
+        : 'the previous quiz';
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.cardC(isDark),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Text('🔒', style: TextStyle(fontSize: 24)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Module Locked',
+                style: AppTheme.headingSmall.copyWith(
+                  color: AppTheme.textPrimaryC(isDark),
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'To unlock "${module.title}", you need to score 70%+ on:\n\n'
+          '📝 $quizTitle',
+          style: AppTheme.bodyMedium.copyWith(
+            color: AppTheme.textSecondaryC(isDark),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Got it!',
+              style: AppTheme.bodyMedium.copyWith(color: AppTheme.accentCyan),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ── Small icon button helper ─────────────────────────────────
+
   Widget _buildIconButton({
     required IconData icon,
     required String tooltip,
@@ -564,46 +791,6 @@ class TopicSearchDelegate extends SearchDelegate<String> {
           },
         );
       },
-    );
-  }
-}
-
-// ── Animated Theme Toggle Button ─────────────────────────────────
-class _ThemeToggleButton extends StatelessWidget {
-  final bool isDark;
-
-  const _ThemeToggleButton({required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: isDark ? 'Light Mode' : 'Dark Mode',
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(10),
-          onTap: () => context.read<ThemeService>().toggleTheme(),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            padding: const EdgeInsets.all(8),
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 400),
-              transitionBuilder: (child, animation) {
-                return RotationTransition(
-                  turns: Tween(begin: 0.5, end: 1.0).animate(animation),
-                  child: FadeTransition(opacity: animation, child: child),
-                );
-              },
-              child: Icon(
-                isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                key: ValueKey(isDark),
-                color: isDark ? AppTheme.accentAmber : AppTheme.accentPurple,
-                size: 22,
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

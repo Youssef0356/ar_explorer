@@ -40,6 +40,8 @@ class QuizQuestion {
   final List<String> options;
   final int correctIndex;
   final String explanation;
+  final String? relatedTopicId;
+  final String? relatedModuleId;
 
   const QuizQuestion({
     required this.id,
@@ -47,6 +49,8 @@ class QuizQuestion {
     required this.options,
     required this.correctIndex,
     required this.explanation,
+    this.relatedTopicId,
+    this.relatedModuleId,
   });
 
   factory QuizQuestion.fromJson(Map<String, dynamic> json) {
@@ -57,6 +61,8 @@ class QuizQuestion {
           (json['options'] as List<dynamic>? ?? []).map((o) => o as String).toList(),
       correctIndex: json['correctIndex'] as int? ?? 0,
       explanation: json['explanation'] as String? ?? '',
+      relatedTopicId: json['relatedTopicId'] as String?,
+      relatedModuleId: json['relatedModuleId'] as String?,
     );
   }
 
@@ -66,5 +72,7 @@ class QuizQuestion {
         'options': options,
         'correctIndex': correctIndex,
         'explanation': explanation,
+        'relatedTopicId': relatedTopicId,
+        'relatedModuleId': relatedModuleId,
       };
 }

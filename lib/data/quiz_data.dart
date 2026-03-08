@@ -557,4 +557,142 @@ final Map<String, Quiz> allQuizzes = {
       ),
     ],
   ),
+  
+  // ── NEW MODULE QUIZZES ──
+  
+  'quiz_webar': Quiz(
+    id: 'quiz_webar',
+    moduleId: 'webar',
+    title: 'WebAR Fundamentals Quiz',
+    passingScore: 70,
+    questions: [
+      const QuizQuestion(
+        id: 'q_webar_1',
+        relatedTopicId: 'webar_intro',
+        question: 'What is the primary advantage of WebAR?',
+        options: [
+          'It has the highest performance possible',
+          'It requires no app installation',
+          'It has full access to all device hardware',
+          'It works offline by default',
+        ],
+        correctIndex: 1,
+        explanation: 'WebAR lowers the barrier to entry by removing the need to download an app from a store.',
+      ),
+      const QuizQuestion(
+        id: 'q_webar_2',
+        relatedTopicId: 'webar_limitations',
+        question: 'Which is a common limitation of WebAR compared to native apps?',
+        options: [
+          'It cannot display 3D models',
+          'It only works on Android',
+          'Lower performance and limited hardware API access',
+          'It requires entirely new programming languages',
+        ],
+        correctIndex: 2,
+        explanation: 'Web browsers run in sandboxes which limit performance and restrict access to low-level APIs like LiDAR.',
+      ),
+    ],
+  ),
+
+  'quiz_openxr': Quiz(
+    id: 'quiz_openxr',
+    moduleId: 'openxr',
+    title: 'OpenXR Quiz',
+    passingScore: 70,
+    questions: [
+      const QuizQuestion(
+        id: 'q_openxr_1',
+        relatedTopicId: 'openxr_intro',
+        question: 'What problem does OpenXR primarily solve?',
+        options: [
+          'Low frame rates in VR',
+          'API fragmentation across different AR/VR headsets',
+          'High battery consumption',
+          'Poor 3D model compression',
+        ],
+        correctIndex: 1,
+        explanation: 'OpenXR provides a unified API so developers write code once to target many different headsets.',
+      ),
+      const QuizQuestion(
+        id: 'q_openxr_2',
+        relatedTopicId: 'openxr_arch',
+        question: 'In OpenXR, what represents the connection to the XR runtime?',
+        options: [
+          'Session',
+          'System',
+          'Instance',
+          'ViewConfiguration',
+        ],
+        correctIndex: 2,
+        explanation: 'The Instance is the fundamental connection object created first to talk to the OpenXR runtime.',
+      ),
+    ],
+  ),
+
+  'quiz_ar_cloud': Quiz(
+    id: 'quiz_ar_cloud',
+    moduleId: 'ar_cloud',
+    title: 'AR Cloud Quiz',
+    passingScore: 70,
+    questions: [
+      const QuizQuestion(
+        id: 'q_arcloud_1',
+        relatedTopicId: 'arcloud_concept',
+        question: 'What is the "AR Cloud"?',
+        options: [
+          'Storing 3D models on AWS or Azure',
+          'Streaming video from a server',
+          'A persistent, shared real-time 3D map of the physical world',
+          'A weather app for AR',
+        ],
+        correctIndex: 2,
+        explanation: 'The AR Cloud is a persistent spatial map that enables multi-user and cross-session AR experiences.',
+      ),
+    ],
+  ),
+
+  'quiz_slam_deepdive': Quiz(
+    id: 'quiz_slam_deepdive',
+    moduleId: 'slam_deepdive',
+    title: 'SLAM Deep Dive Quiz',
+    passingScore: 70,
+    questions: [
+      const QuizQuestion(
+        id: 'q_slam_1',
+        relatedTopicId: 'slam_math',
+        question: 'What sensors are primarily fused in VIO (Visual Inertial Odometry)?',
+        options: [
+          'Camera and GPS',
+          'Camera and IMU (Accelerometer/Gyroscope)',
+          'LiDAR and Microphone',
+          'WiFi and Bluetooth',
+        ],
+        correctIndex: 1,
+        explanation: 'VIO fuses visual feature tracking from the camera with high-frequency inertial data from the IMU.',
+      ),
+    ],
+  ),
+
+  'quiz_performance': Quiz(
+    id: 'quiz_performance',
+    moduleId: 'performance',
+    title: 'Performance Profiling Quiz',
+    passingScore: 70,
+    questions: [
+      const QuizQuestion(
+        id: 'q_perf_1',
+        relatedTopicId: 'perf_drawcalls',
+        question: 'What is a "Draw Call"?',
+        options: [
+          'A request to download a new texture',
+          'A user taping the screen to draw a line',
+          'A command from the CPU to the GPU to render an object',
+          'Saving the current frame to the camera roll',
+        ],
+        correctIndex: 2,
+        explanation: 'Draw calls are instructions sent from the CPU to the GPU. Too many will bottleneck the CPU.',
+      ),
+    ],
+  ),
 };

@@ -7,6 +7,7 @@ import '../data/modules_data.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
 import '../widgets/achievement_badge.dart';
+import '../widgets/shareable_achievement_card.dart';
 
 class AchievementsScreen extends StatelessWidget {
   const AchievementsScreen({super.key});
@@ -267,15 +268,36 @@ class AchievementsScreen extends StatelessWidget {
         final badge = badges[index];
         final isEarned = badge.condition(progress);
 
-        return AchievementBadge(
-              icon: badge.icon,
-              label: badge.label,
-              color: badge.color,
-              earned: isEarned,
-            )
-            .animate()
-            .fadeIn(delay: Duration(milliseconds: 100 * index))
-            .scale(delay: Duration(milliseconds: 100 * index));
+        return GestureDetector(
+          onTap: isEarned
+              ? () {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => Dialog(
+                      backgroundColor: Colors.transparent,
+                      insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: ShareableAchievementCard(
+                        title: badge.label,
+                        subtitle: 'I unlocked this badge in AR Explorer! ✨',
+                        icon: badge.icon,
+                        color: badge.color,
+                        score: '',
+                        isDark: isDark,
+                      ),
+                    ),
+                  );
+                }
+              : null,
+          child: AchievementBadge(
+            icon: badge.icon,
+            label: badge.label,
+            color: badge.color,
+            earned: isEarned,
+          ),
+        )
+        .animate()
+        .fadeIn(delay: Duration(milliseconds: 100 * index))
+        .scale(delay: Duration(milliseconds: 100 * index));
       },
     );
   }

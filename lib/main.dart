@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'core/app_theme.dart';
 import 'screens/home_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'services/progress_service.dart';
 import 'services/theme_service.dart';
 
@@ -32,6 +33,7 @@ class ARExplorerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = context.watch<ThemeService>().isDarkMode;
+    final progress = context.watch<ProgressService>();
 
     return MaterialApp(
       title: 'AR Explorer',
@@ -39,7 +41,12 @@ class ARExplorerApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
-      home: const HomeScreen(),
+      routes: {
+        '/home': (_) => const HomeScreen(),
+      },
+      home: progress.hasSeenOnboarding
+          ? const HomeScreen()
+          : const OnboardingScreen(),
     );
   }
 }

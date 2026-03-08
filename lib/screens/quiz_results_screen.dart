@@ -6,7 +6,7 @@ import '../core/app_theme.dart';
 import '../models/quiz_model.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
-import '../widgets/achievement_badge.dart';
+import '../widgets/shareable_achievement_card.dart';
 
 class QuizResultsScreen extends StatefulWidget {
   final Quiz quiz;
@@ -205,23 +205,18 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                   const SizedBox(height: 32),
 
                   // ── Achievement Badge ──
+                  // ── Shareable Achievement Card ──
                   if (_aced)
-                    Column(
-                          children: [
-                            AchievementBadge(
-                              icon: Icons.star_rounded,
-                              label: 'Quiz Ace',
-                              color: AppTheme.accentAmber,
-                              earned: true,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '⭐ Scored 80%+ — Achievement unlocked!',
-                              style: AppTheme.bodySmall.copyWith(
-                                color: AppTheme.accentAmber,
-                              ),
-                            ),
-                          ],
+                    Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: ShareableAchievementCard(
+                            title: 'Quiz Ace',
+                            subtitle: '⭐ Scored 80%+ — Achievement unlocked!',
+                            icon: Icons.star_rounded,
+                            color: AppTheme.accentAmber,
+                            score: '${widget.scorePercent}%',
+                            isDark: isDark,
+                          ),
                         )
                         .animate()
                         .fadeIn(delay: const Duration(milliseconds: 800))

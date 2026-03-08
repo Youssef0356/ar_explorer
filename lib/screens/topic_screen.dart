@@ -27,18 +27,24 @@ class TopicScreen extends StatefulWidget {
 class _TopicScreenState extends State<TopicScreen> {
   late ScrollController _scrollController;
   double _progress = 0.0;
+  late TextEditingController _noteController;
+  bool _showNotes = false;
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
+    final topicKey = '${widget.moduleId}_${widget.topic.id}';
+    final existingNote = context.read<ProgressService>().getNote(topicKey);
+    _noteController = TextEditingController(text: existingNote);
   }
 
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _noteController.dispose();
     super.dispose();
   }
 
@@ -96,6 +102,41 @@ class _TopicScreenState extends State<TopicScreen> {
                           ),
                         ],
                       ),
+                    ),
+                    // Bookmark button
+                    Consumer<ProgressService>(
+                      builder: (context, progress, child) {
+                        final isBookmarked =
+                            progress.isBookmarked(topicKey);
+                        return IconButton(
+                          icon: Icon(
+                            isBookmarked
+                                ? Icons.bookmark_rounded
+                                : Icons.bookmark_outline_rounded,
+                            color: isBookmarked
+                                ? widget.accentColor
+                                : AppTheme.textMutedC(isDark),
+                          ),
+                          onPressed: () {
+                            progress.toggleBookmark(topicKey);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  isBookmarked
+                                      ? 'Bookmark removed'
+                                      : 'Bookmarked!',
+                                ),
+                                backgroundColor: AppTheme.cardC(isDark),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
+                          },
+                        );
+                      },
                     ),
                     Consumer<ProgressService>(
                       builder: (context, progress, child) {
@@ -169,12 +210,92 @@ class _TopicScreenState extends State<TopicScreen> {
                   controller: _scrollController,
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(24, 8, 24, 100),
-                  child: ContentRenderer(blocks: widget.topic.contentBlocks)
-                      .animate()
-                      .fadeIn(
-                        delay: const Duration(milliseconds: 200),
-                        duration: const Duration(milliseconds: 500),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ContentRenderer(blocks: widget.topic.contentBlocks)
+                          .animate()
+                          .fadeIn(
+                            delay: const Duration(milliseconds: 200),
+                            duration: const Duration(milliseconds: 500),
+                          ),
+                      const SizedBox(height: 20),
+                      // ── Notes Section ──
+                      GestureDetector(
+                        onTap: () => setState(() => _showNotes = !_showNotes),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.04)
+                                : Colors.grey.withValues(alpha: 0.06),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color: AppTheme.dividerC(isDark)),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit_note_rounded,
+                                  color: AppTheme.textMutedC(isDark),
+                                  size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Personal Notes',
+                                style: AppTheme.labelMedium.copyWith(
+                                    color: AppTheme.textMutedC(isDark)),
+                              ),
+                              const Spacer(),
+                              Icon(
+                                _showNotes
+                                    ? Icons.expand_less
+                                    : Icons.expand_more,
+                                color: AppTheme.textMutedC(isDark),
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
+                      if (_showNotes) ...[
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _noteController,
+                          maxLines: 5,
+                          minLines: 2,
+                          style: AppTheme.bodyMedium.copyWith(
+                              color: AppTheme.textPrimaryC(isDark)),
+                          decoration: InputDecoration(
+                            hintText: 'Write your notes here...',
+                            hintStyle: AppTheme.bodyMedium.copyWith(
+                                color: AppTheme.textMutedC(isDark)),
+                            filled: true,
+                            fillColor: AppTheme.cardC(isDark),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                  color: AppTheme.dividerC(isDark)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                  color: AppTheme.dividerC(isDark)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                  color: widget.accentColor),
+                            ),
+                          ),
+                          onChanged: (value) {
+                            context
+                                .read<ProgressService>()
+                                .saveNote(topicKey, value);
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ],

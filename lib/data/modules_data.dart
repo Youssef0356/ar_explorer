@@ -220,7 +220,7 @@ final List<LearningModule> allModules = [
     icon: Icons.explore_rounded,
     order: 2,
     unlockCost: 0,
-    requiredQuizId: null,
+    requiredQuizId: 'quiz_foundations_coords',
     topics: [
       Topic(
         id: 'spatial_foundations',
@@ -429,7 +429,7 @@ final List<LearningModule> allModules = [
     icon: Icons.memory_rounded,
     order: 3,
     unlockCost: 0,
-    requiredQuizId: null,
+    requiredQuizId: 'quiz_intro',
     topics: [
       Topic(
         id: 'sensor_fusion',
@@ -642,7 +642,7 @@ final List<LearningModule> allModules = [
     icon: Icons.code_rounded,
     order: 4,
     unlockCost: 0,
-    requiredQuizId: null,
+    requiredQuizId: 'quiz_tech',
     topics: [
       Topic(
         id: 'vuforia_dev',
@@ -836,7 +836,7 @@ final List<LearningModule> allModules = [
     icon: Icons.speed_rounded,
     order: 5,
     unlockCost: 0,
-    requiredQuizId: null,
+    requiredQuizId: 'quiz_dev',
     topics: [
       Topic(
         id: 'anchor_stability',
@@ -1003,7 +1003,7 @@ final List<LearningModule> allModules = [
     icon: Icons.lock_rounded,
     order: 6,
     unlockCost: 0,
-    requiredQuizId: null,
+    requiredQuizId: 'quiz_stab',
     topics: [
       Topic(
         id: 'cloud_anchors',
@@ -1112,6 +1112,164 @@ final List<LearningModule> allModules = [
           const ContentBlock.info(
             'The AR industry is projected to reach \$340 billion by 2028. Understanding these trends positions you '
             'as a forward-thinking AR developer.',
+          ),
+        ],
+      ),
+    ],
+  ),
+
+  // ── NEW MODULES (Content Expansion) ──
+
+  LearningModule(
+    id: 'webar',
+    title: 'WebAR Fundamentals',
+    description: 'Bringing AR directly to the web browser without app installations.',
+    icon: Icons.language_rounded,
+    order: 7,
+    unlockCost: 0,
+    requiredQuizId: 'quiz_advanced_ar',
+    topics: [
+      Topic(
+        id: 'webar_intro',
+        title: 'Introduction to WebAR',
+        subtitle: 'AR in the Browser',
+        contentBlocks: [
+          const ContentBlock.heading('What is WebAR?'),
+          const ContentBlock.body(
+            'WebAR stands for Web-based Augmented Reality. It allows users to experience AR directly through their smartphone web browsers without downloading a dedicated app.',
+          ),
+          const ContentBlock.heading('Key Technologies'),
+          const ContentBlock.bullet('WebXR Device API'),
+          const ContentBlock.bullet('Three.js and A-Frame for rendering'),
+          const ContentBlock.bullet('8th Wall (Commercial SLAM engines)'),
+        ],
+      ),
+      Topic(
+        id: 'webar_limitations',
+        title: 'Limitations vs Native',
+        subtitle: 'Performance and Access',
+        contentBlocks: [
+          const ContentBlock.heading('WebAR Limitations'),
+          const ContentBlock.body(
+            'While highly accessible, WebAR faces challenges compared to native apps:',
+          ),
+          const ContentBlock.bullet('1. Performance constraints of web browsers'),
+          const ContentBlock.bullet('2. Limited access to hardware (LiDAR, low-level camera APIs)'),
+          const ContentBlock.bullet('3. File size restrictions for fast loading'),
+        ],
+      ),
+    ],
+  ),
+
+  LearningModule(
+    id: 'openxr',
+    title: 'OpenXR Standard',
+    description: 'The open standard for cross-platform AR/VR development.',
+    icon: Icons.link_rounded,
+    order: 8,
+    unlockCost: 0,
+    requiredQuizId: 'quiz_webar',
+    topics: [
+      Topic(
+        id: 'openxr_intro',
+        title: 'What is OpenXR?',
+        subtitle: 'Unifying XR Development',
+        contentBlocks: [
+          const ContentBlock.heading('The Fragmentation Problem'),
+          const ContentBlock.body(
+            'Historically, developers had to write different code for Oculus, HTC Vive, HoloLens, etc. OpenXR solves this by providing a unified API.',
+          ),
+          const ContentBlock.info(
+            'Created by the Khronos Group, OpenXR allows an application to run on any compatible XR headset.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'openxr_arch',
+        title: 'OpenXR Architecture',
+        subtitle: 'Instances and Sessions',
+        contentBlocks: [
+          const ContentBlock.heading('Core Concepts'),
+          const ContentBlock.bullet('Instance: Connection to the OpenXR runtime'),
+          const ContentBlock.bullet('System: The XR devices (headset, controllers)'),
+          const ContentBlock.bullet('Session: The active XR application state'),
+        ],
+      ),
+    ],
+  ),
+
+  LearningModule(
+    id: 'ar_cloud',
+    title: 'The AR Cloud',
+    description: 'Persistent, shared spatial computing experiences.',
+    icon: Icons.cloud_rounded,
+    order: 9,
+    unlockCost: 0,
+    requiredQuizId: 'quiz_openxr',
+    topics: [
+      Topic(
+        id: 'arcloud_concept',
+        title: 'Concept of the AR Cloud',
+        subtitle: 'A digital twin of the world',
+        contentBlocks: [
+          const ContentBlock.heading('Beyond Single User AR'),
+          const ContentBlock.body(
+            'The AR Cloud is a real-time 3D spatial map of the world. It allows digital content to persist in the physical world and be seen by multiple users simultaneously.',
+          ),
+          const ContentBlock.bullet('Persistence: Virtual objects stay where you leave them.'),
+          const ContentBlock.bullet('Multiuser: Everyone sees the same virtual objects.'),
+        ],
+      ),
+    ],
+  ),
+
+  LearningModule(
+    id: 'slam_deepdive',
+    title: 'SLAM Deep Dive',
+    description: 'The mathematics and algorithms behind tracking.',
+    icon: Icons.calculate_rounded,
+    order: 10,
+    unlockCost: 0,
+    requiredQuizId: 'quiz_ar_cloud',
+    topics: [
+      Topic(
+        id: 'slam_math',
+        title: 'Visual Inertial Odometry (VIO)',
+        subtitle: 'Camera + IMU Fusion',
+        contentBlocks: [
+          const ContentBlock.heading('How VIO Works'),
+          const ContentBlock.body(
+            'VIO combines visual data from the camera (tracking feature points frame-to-frame) with inertial data from the IMU (accelerometer/gyroscope) to determine the device pose in 3D space.',
+          ),
+          const ContentBlock.info(
+            'Kalman Filters (specifically EKF or UKF) are commonly used to fuse these sensor streams optimally.',
+          ),
+        ],
+      ),
+    ],
+  ),
+
+  LearningModule(
+    id: 'performance',
+    title: 'Performance Profiling',
+    description: 'Optimizing AR apps for mobile constraints.',
+    icon: Icons.bolt_rounded,
+    order: 11,
+    unlockCost: 0,
+    requiredQuizId: 'quiz_slam_deepdive',
+    topics: [
+      Topic(
+        id: 'perf_drawcalls',
+        title: 'Geometry and Draw Calls',
+        subtitle: 'CPU vs GPU Bottlenecks',
+        contentBlocks: [
+          const ContentBlock.heading('Draw Calls'),
+          const ContentBlock.body(
+            'A draw call is a command from the CPU to the GPU to draw an object. Too many draw calls bottleneck the CPU.',
+          ),
+          const ContentBlock.bullet('Solution: Use instancing, batching, and combine meshes where possible.'),
+          const ContentBlock.info(
+            'In AR, you also have the overhead of the camera feed and computer vision processing, leaving less headroom for graphics.',
           ),
         ],
       ),

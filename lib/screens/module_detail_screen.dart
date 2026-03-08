@@ -7,6 +7,7 @@ import '../data/quiz_data.dart';
 import '../models/module_model.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
+import 'flashcard_screen.dart';
 import 'quiz_screen.dart';
 import 'topic_screen.dart';
 
@@ -247,7 +248,7 @@ class ModuleDetailScreen extends StatelessWidget {
                                         // Open the next topic immediately.
                                         // We don't wait on the result here to avoid chaining many pushes.
                                         // The user can always navigate back if needed.
-                                        // ignore: use_build_context_synchronously
+                                        if (!context.mounted) return;
                                         Navigator.push(
                                           context,
                                           PageRouteBuilder(
@@ -549,6 +550,36 @@ class ModuleDetailScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+              // Flashcards button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => FlashcardScreen(
+                          moduleId: module.id,
+                          moduleTitle: module.title,
+                          accentColor: accentColor,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.style_rounded, size: 20),
+                  label: Text(
+                    '📇 Flashcards',
+                    style: AppTheme.buttonText.copyWith(
+                      color: accentColor,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: accentColor,
+                    side: BorderSide(color: accentColor.withValues(alpha: 0.4)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(

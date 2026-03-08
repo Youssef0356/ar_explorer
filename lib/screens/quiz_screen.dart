@@ -3,10 +3,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../core/app_theme.dart';
+import '../data/modules_data.dart';
 import '../models/quiz_model.dart';
+import '../services/progress_service.dart';
 import '../services/theme_service.dart';
 import '../widgets/quiz_option_button.dart';
 import 'quiz_results_screen.dart';
+import 'topic_screen.dart';
 
 class QuizScreen extends StatefulWidget {
   final Quiz quiz;
@@ -57,6 +60,9 @@ class _QuizScreenState extends State<QuizScreen> {
       _answers[_currentIndex] = _selectedOption;
       if (_selectedOption == _currentQuestion.correctIndex) {
         _correctCount++;
+        context.read<ProgressService>().removeWrongAnswer(_currentQuestion.id);
+      } else {
+        context.read<ProgressService>().saveWrongAnswer(_currentQuestion.id);
       }
     });
   }
@@ -286,6 +292,44 @@ class _QuizScreenState extends State<QuizScreen> {
                                             ),
                                           ),
                                         ),
+                                        if (_currentQuestion.relatedTopicId != null) ...[
+                                          const SizedBox(height: 12),
+                                          OutlinedButton.icon(
+                                            onPressed: () {
+                                              final moduleId = _currentQuestion.relatedModuleId ?? widget.quiz.moduleId;
+                                              final module = allModules.firstWhere((m) => m.id == moduleId);
+                                              final topicIndex = module.topics.indexWhere((t) => t.id == _currentQuestion.relatedTopicId);
+                                              
+                                              if (topicIndex != -1) {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) => TopicScreen(
+                                                      topic: module.topics[topicIndex],
+                                                      moduleId: module.id,
+                                                      accentColor: AppTheme.getModuleColor(allModules.indexOf(module)),
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            icon: const Icon(Icons.menu_book_rounded, size: 16),
+                                            label: Text(
+                                              'Deep Dive',
+                                              style: AppTheme.bodySmall.copyWith(
+                                                color: AppTheme.accentCyan,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            style: OutlinedButton.styleFrom(
+                                              foregroundColor: AppTheme.accentCyan,
+                                              side: BorderSide(color: AppTheme.accentCyan.withValues(alpha: 0.5)),
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                              minimumSize: Size.zero,
+                                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                            ),
+                                          ),
+                                        ],
                                       ],
                                     ),
                                   ),
