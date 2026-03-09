@@ -6,6 +6,7 @@ import '../core/app_theme.dart';
 import '../models/topic_model.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
+import '../services/sound_service.dart';
 import '../widgets/content_renderer.dart';
 
 class TopicScreen extends StatefulWidget {
@@ -64,6 +65,7 @@ class _TopicScreenState extends State<TopicScreen> {
   Widget build(BuildContext context) {
     final topicKey = '${widget.moduleId}_${widget.topic.id}';
     final isDark = context.watch<ThemeService>().isDarkMode;
+    final soundService = context.read<SoundService>();
 
     return Scaffold(
       body: Container(
@@ -81,7 +83,10 @@ class _TopicScreenState extends State<TopicScreen> {
                     IconButton(
                       icon: const Icon(Icons.arrow_back_ios_rounded),
                       color: AppTheme.textPrimaryC(isDark),
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        soundService.playTap();
+                        Navigator.pop(context);
+                      },
                     ),
                     const SizedBox(width: 4),
                     Expanded(
@@ -121,6 +126,7 @@ class _TopicScreenState extends State<TopicScreen> {
                                 : AppTheme.textMutedC(isDark),
                           ),
                           onPressed: () {
+                            soundService.playTap(); // Added sound trigger
                             progress.toggleBookmark(topicKey);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -317,6 +323,7 @@ class _TopicScreenState extends State<TopicScreen> {
               curve: Curves.easeInOut,
               child: FloatingActionButton.extended(
                 onPressed: () async {
+                  soundService.playTap();
                   await progress.completeTopic(topicKey);
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(

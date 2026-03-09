@@ -259,6 +259,37 @@ class AppTheme {
           ],
   );
 
+  static InputDecoration inputDecoration({
+    required String label,
+    required String hint,
+    required bool isDark,
+  }) {
+    final txtMuted = textMutedC(isDark);
+
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      labelStyle: TextStyle(color: txtMuted),
+      hintStyle: TextStyle(color: txtMuted.withValues(alpha: 0.5)),
+      floatingLabelStyle: const TextStyle(color: accentCyan),
+      filled: true,
+      fillColor: isDark ? cardDark : cardLightAlt,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: dividerC(isDark), width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: accentCyan, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
+
   // ── XP / Level System ──────────────────────────────────────────
   static const List<String> levelTitles = [
     '🌱 AR Beginner',

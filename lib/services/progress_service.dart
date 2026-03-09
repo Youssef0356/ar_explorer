@@ -13,8 +13,10 @@ class ProgressService extends ChangeNotifier {
   static const _onboardingKey = 'has_seen_onboarding';
   static const _lastDailyChallengeKey = 'last_daily_challenge';
   static const _interviewBestKey = 'interview_best_score';
+  static const _usernameKey = 'user_name';
 
   SharedPreferences? _prefs;
+  String _username = '';
   Set<String> _completedTopics = {};
   Map<String, int> _quizScores = {}; // quizId -> best score percentage
   Set<String> _achievements = {};
@@ -66,6 +68,7 @@ class ProgressService extends ChangeNotifier {
     }
 
     _interviewBestScore = _prefs?.getInt(_interviewBestKey) ?? 0;
+    _username = _prefs?.getString(_usernameKey) ?? '';
   }
 
   Future<void> _saveProgress() async {
@@ -76,6 +79,7 @@ class ProgressService extends ChangeNotifier {
     await _prefs?.setStringList(_bookmarksKey, _bookmarks.toList());
     await _prefs?.setString(_notesKey, jsonEncode(_notes));
     await _prefs?.setInt(_interviewBestKey, _interviewBestScore);
+    await _prefs?.setString(_usernameKey, _username);
   }
 
   // ── Topic Progress ─────────────────────────────────────────────
@@ -99,6 +103,10 @@ class ProgressService extends ChangeNotifier {
         .where((id) => id.startsWith('${moduleId}_'))
         .length;
     return (count / totalTopics).clamp(0.0, 1.0);
+  }
+
+  bool isCurriculumComplete(int totalTopicsAcrossAllModules) {
+    return _completedTopics.length >= totalTopicsAcrossAllModules;
   }
 
   // ── Quiz Scores ────────────────────────────────────────────────
@@ -204,6 +212,15 @@ class ProgressService extends ChangeNotifier {
 
   Future<void> markOnboardingSeen() async {
     await _prefs?.setBool(_onboardingKey, true);
+  }
+
+  // ── Username ───────────────────────────────────────────────────
+  String get username => _username.isEmpty ? 'Explorer' : _username;
+
+  Future<void> updateUsername(String name) async {
+    _username = name.trim();
+    await _prefs?.setString(_usernameKey, _username);
+    notifyListeners();
   }
 
   // ── Interview Best Score ───────────────────────────────────────

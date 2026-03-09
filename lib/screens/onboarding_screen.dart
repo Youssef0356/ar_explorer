@@ -15,46 +15,73 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _controller = PageController();
+  final _nameController = TextEditingController();
   int _currentPage = 0;
 
-  final _pages = const [
-    _OnboardingPage(
+  final _pages = [
+    const _OnboardingPage(
       emoji: '🚀',
       title: 'Welcome to AR Explorer',
       subtitle:
           'Your interview preparation companion for Augmented Reality.\n\n'
           'Master core AR concepts, from basics to advanced spatial computing.',
     ),
-    _OnboardingPage(
+    const _OnboardingPage(
       emoji: '🗺️',
       title: 'Your Learning Path',
       subtitle:
           'Complete modules and pass quizzes at 70%+ to unlock the next stage.\n\n'
           'Track your progress on the visual Roadmap and review flashcards to reinforce key concepts.',
     ),
-    _OnboardingPage(
+    const _OnboardingPage(
       emoji: '🎯',
       title: 'Get Interview Ready',
       subtitle:
           'Practice weak areas, take daily challenges, and test yourself with timed Mock Interviews.\n\n'
-          'Let\'s begin your journey to becoming an AR expert!',
+          'Earn your official AR Explorer Certificate once you master all modules!',
+    ),
+    const _OnboardingPage(
+      emoji: '👤',
+      title: 'Personalize Your Journey',
+      subtitle: 'What should we call you? This name will appear on your AR Explorer Certificate.',
     ),
   ];
 
   void _next() {
-    if (_currentPage < _pages.length - 1) {
+    if (_currentPage == _pages.length - 1) {
+      if (_nameController.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter your name to continue')),
+        );
+        return;
+      }
+      _finish();
+    } else {
       _controller.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
-    } else {
-      _finish();
     }
   }
 
   void _finish() {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your name to continue')),
+      );
+      return;
+    }
+    context.read<ProgressService>().updateUsername(name);
     context.read<ProgressService>().markOnboardingSeen();
     Navigator.of(context).pushReplacementNamed('/home');
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _nameController.dispose();
+    super.dispose();
   }
 
   @override
@@ -65,19 +92,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // ── Skip ──
-              Align(
-                alignment: Alignment.topRight,
-                child: TextButton(
-                  onPressed: _finish,
-                  child: Text(
-                    'Skip',
-                    style: AppTheme.bodyMedium.copyWith(
-                        color: AppTheme.textMuted),
-                  ),
-                ),
-              ),
-
+              const SizedBox(height: 24),
               // ── Pages ──
               Expanded(
                 child: PageView.builder(
@@ -110,15 +125,31 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 16),
-                          Text(
-                            page.subtitle,
-                            style: AppTheme.bodyMedium.copyWith(
-                              color: AppTheme.textSecondary,
-                              height: 1.6,
+                            Text(
+                              page.subtitle,
+                              style: AppTheme.bodyMedium.copyWith(
+                                color: AppTheme.textSecondary,
+                                height: 1.6,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                            if (index == _pages.length - 1) ...[
+                              const SizedBox(height: 32),
+                              TextField(
+                                controller: _nameController,
+                                style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimary),
+                                decoration: AppTheme.inputDecoration(
+                                  label: 'Your Name',
+                                  hint: 'e.g. Alex',
+                                  isDark: true,
+                                ).copyWith(
+                                  prefixIcon: const Icon(Icons.person_outline, color: AppTheme.accentCyan),
+                                ),
+                                textCapitalization: TextCapitalization.words,
+                                onSubmitted: (_) => _finish(),
+                              ),
+                            ],
+                          ],
                       ),
                     );
                   },

@@ -7,6 +7,7 @@ import '../data/modules_data.dart';
 import '../models/quiz_model.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
+import '../services/sound_service.dart';
 import '../widgets/quiz_option_button.dart';
 import 'quiz_results_screen.dart';
 import 'topic_screen.dart';
@@ -48,6 +49,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
   void _selectOption(int index) {
     if (_showResult) return;
+    context.read<SoundService>().playTap();
     setState(() {
       _selectedOption = index;
     });
@@ -55,6 +57,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
   void _submitAnswer() {
     if (_selectedOption == null) return;
+    context.read<SoundService>().playTap();
     setState(() {
       _showResult = true;
       _answers[_currentIndex] = _selectedOption;
@@ -68,6 +71,7 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void _nextQuestion() {
+    context.read<SoundService>().playTap();
     if (_currentIndex < _totalQuestions - 1) {
       setState(() {
         _currentIndex++;
@@ -98,6 +102,7 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = context.watch<ThemeService>().isDarkMode;
+    final soundService = context.read<SoundService>();
 
     return Scaffold(
       body: Container(
@@ -115,7 +120,10 @@ class _QuizScreenState extends State<QuizScreen> {
                     IconButton(
                       icon: const Icon(Icons.close_rounded),
                       color: AppTheme.textPrimaryC(isDark),
-                      onPressed: () => _showExitDialog(context, isDark),
+                      onPressed: () {
+                        soundService.playTap();
+                        _showExitDialog(context, isDark);
+                      },
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -296,6 +304,7 @@ class _QuizScreenState extends State<QuizScreen> {
                                           const SizedBox(height: 12),
                                           OutlinedButton.icon(
                                             onPressed: () {
+                                              soundService.playTap();
                                               final moduleId = _currentQuestion.relatedModuleId ?? widget.quiz.moduleId;
                                               final module = allModules.firstWhere((m) => m.id == moduleId);
                                               final topicIndex = module.topics.indexWhere((t) => t.id == _currentQuestion.relatedTopicId);
@@ -382,6 +391,7 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void _showExitDialog(BuildContext context, bool isDark) {
+    final soundService = context.read<SoundService>();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -407,7 +417,10 @@ class _QuizScreenState extends State<QuizScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
+            onPressed: () {
+              soundService.playTap();
+              Navigator.pop(ctx);
+            },
             child: Text(
               'Stay 💪',
               style: AppTheme.bodyMedium.copyWith(color: AppTheme.accentCyan),
@@ -415,6 +428,7 @@ class _QuizScreenState extends State<QuizScreen> {
           ),
           TextButton(
             onPressed: () {
+              soundService.playTap();
               Navigator.pop(ctx);
               Navigator.pop(context);
             },

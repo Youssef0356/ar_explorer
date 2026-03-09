@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../core/app_theme.dart';
 import '../services/theme_service.dart';
 import 'package:provider/provider.dart';
+import '../services/sound_service.dart';
 
 class CreditsScreen extends StatelessWidget {
   const CreditsScreen({super.key});
@@ -11,6 +12,7 @@ class CreditsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = context.watch<ThemeService>().isDarkMode;
+    final soundService = context.read<SoundService>();
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -27,7 +29,10 @@ class CreditsScreen extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.arrow_back_ios_rounded),
                       color: AppTheme.textPrimaryC(isDark),
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        soundService.playTap();
+                        Navigator.pop(context);
+                      },
                     ),
                     const SizedBox(width: 4),
                     Text(
