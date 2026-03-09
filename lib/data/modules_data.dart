@@ -286,16 +286,16 @@ final List<LearningModule> allModules = [
           ),
           const ContentBlock.subheading('Mental Debugging Checklist'),
           const ContentBlock.numbered(
-            'Ask: "In which space am I currently working?" (screen, camera, world, or local).',
+            '1. Ask: "In which space am I currently working?" (screen, camera, world, or local).',
           ),
           const ContentBlock.numbered(
-            'Verify the origin and axis directions match your expectation.',
+            '2. Verify the origin and axis directions match your expectation.',
           ),
           const ContentBlock.numbered(
-            'Convert between spaces only when necessary — each conversion is a potential error point.',
+            '3. Convert between spaces only when necessary — each conversion is a potential error point.',
           ),
           const ContentBlock.numbered(
-            'Check handedness when integrating external assets or SDKs.',
+            '4. Check handedness when integrating external assets or SDKs.',
           ),
           const ContentBlock.warning(
             'When objects jump, rotate strangely, or appear at (0,0,0) in world space, '
@@ -621,13 +621,13 @@ final List<LearningModule> allModules = [
           ),
           const ContentBlock.subheading('Sensor Roles'),
           const ContentBlock.numbered(
-            'Camera — Provides visual features for tracking and environment understanding. Effective but can fail with motion blur or poor lighting.',
+            '1. Camera — Provides visual features for tracking and environment understanding. Effective but can fail with motion blur or poor lighting.',
           ),
           const ContentBlock.numbered(
-            'Gyroscope — Measures angular velocity, enabling fast and accurate rotation tracking. Very low latency but accumulates drift over time.',
+            '2. Gyroscope — Measures angular velocity, enabling fast and accurate rotation tracking. Very low latency but accumulates drift over time.',
           ),
           const ContentBlock.numbered(
-            'Accelerometer — Measures linear acceleration. Used to estimate translation and detect gravity direction for orientation correction.',
+            '3. Accelerometer — Measures linear acceleration. Used to estimate translation and detect gravity direction for orientation correction.',
           ),
           const ContentBlock.divider(),
           const ContentBlock.subheading('Fusion Techniques'),
@@ -668,19 +668,19 @@ final List<LearningModule> allModules = [
           ),
           const ContentBlock.subheading('How SLAM Works (Step by Step)'),
           const ContentBlock.numbered(
-            'Feature Extraction: Distinctive visual features (corners, edges, blobs) are detected in each camera frame.',
+            '1. Feature Extraction: Distinctive visual features (corners, edges, blobs) are detected in each camera frame.',
           ),
           const ContentBlock.numbered(
-            'Feature Matching: Detected features are matched to those from previous frames to determine how the camera has moved.',
+            '2. Feature Matching: Detected features are matched to those from previous frames to determine how the camera has moved.',
           ),
           const ContentBlock.numbered(
-            'Map Building: Matched features are triangulated to create a sparse 3D point cloud map of the environment.',
+            '3. Map Building: Matched features are triangulated to create a sparse 3D point cloud map of the environment.',
           ),
           const ContentBlock.numbered(
-            'Pose Estimation: The device\'s position and orientation are calculated relative to the growing map.',
+            '4. Pose Estimation: The device\'s position and orientation are calculated relative to the growing map.',
           ),
           const ContentBlock.numbered(
-            'Loop Closure: When the device revisits a previously mapped area, accumulated drift is detected and corrected — the map "snaps" into consistency.',
+            '5. Loop Closure: When the device revisits a previously mapped area, accumulated drift is detected and corrected — the map "snaps" into consistency.',
           ),
           const ContentBlock.divider(),
           const ContentBlock.subheading('SLAM Variants'),
@@ -716,16 +716,16 @@ final List<LearningModule> allModules = [
           ),
           const ContentBlock.subheading('Detection Pipeline'),
           const ContentBlock.numbered(
-            'Feature points are detected and tracked across multiple frames as the camera moves.',
+            '1. Feature points are detected and tracked across multiple frames as the camera moves.',
           ),
           const ContentBlock.numbered(
-            'Clusters of feature points that share a common geometric plane are identified.',
+            '2. Clusters of feature points that share a common geometric plane are identified.',
           ),
           const ContentBlock.numbered(
-            'A plane model (position, normal vector, boundary polygon) is fitted to the cluster.',
+            '3. A plane model (position, normal vector, boundary polygon) is fitted to the cluster.',
           ),
           const ContentBlock.numbered(
-            'As more data is gathered, the plane boundary continuously expands and refines.',
+            '4. As more data is gathered, the plane boundary continuously expands and refines.',
           ),
           const ContentBlock.divider(),
           const ContentBlock.subheading('Plane Types'),
@@ -775,16 +775,16 @@ final List<LearningModule> allModules = [
           const ContentBlock.divider(),
           const ContentBlock.subheading('Tracking Pipeline'),
           const ContentBlock.numbered(
-            'Detect features in the current camera frame.',
+            '1. Detect features in the current camera frame.',
           ),
           const ContentBlock.numbered(
-            'Match features with those from the previous frame (using descriptors).',
+            '2. Match features with those from the previous frame (using descriptors).',
           ),
           const ContentBlock.numbered(
-            'Compute the relative transformation (rotation + translation) between frames.',
+            '3. Compute the relative transformation (rotation + translation) between frames.',
           ),
           const ContentBlock.numbered(
-            'Update the device pose estimation and the sparse map.',
+            '4. Update the device pose estimation and the sparse map.',
           ),
           const ContentBlock.warning(
             'Feature tracking degrades significantly in: low-light environments, '
@@ -825,13 +825,13 @@ final List<LearningModule> allModules = [
           const ContentBlock.divider(),
           const ContentBlock.subheading('SDK Implementation'),
           const ContentBlock.numbered(
-            'ARCore: Provides ambient intensity, color correction, and a full Environmental HDR mode.',
+            '1. ARCore: Provides ambient intensity, color correction, and a full Environmental HDR mode.',
           ),
           const ContentBlock.numbered(
-            'ARKit: Supports ambient intensity, directional estimates, and environment texture probes.',
+            '2. ARKit: Supports ambient intensity, directional estimates, and environment texture probes.',
           ),
           const ContentBlock.numbered(
-            'AR Foundation: Exposes a unified API via ARCameraManager and ARCameraFrameEventArgs for cross-platform light estimation.',
+            '3. AR Foundation: Exposes a unified API via ARCameraManager and ARCameraFrameEventArgs for cross-platform light estimation.',
           ),
           const ContentBlock.info(
             'Environmental HDR produces the most convincing results but is computationally expensive. '
@@ -913,19 +913,19 @@ final List<LearningModule> allModules = [
           ),
           const ContentBlock.subheading('ImageTarget Setup Workflow'),
           const ContentBlock.numbered(
-            'Create an account on the Vuforia Developer Portal and create a new License Key.',
+            '1. Create an account on the Vuforia Developer Portal and create a new License Key.',
           ),
           const ContentBlock.numbered(
-            'Create a new Target Database and upload your reference image(s).',
+            '2. Create a new Target Database and upload your reference image(s).',
           ),
           const ContentBlock.numbered(
-            'Review the star rating (1–5). A rating of 4–5 stars indicates a reliably trackable image. Below 3 stars, consider a different image.',
+            '3. Review the star rating (1–5). A rating of 4–5 stars indicates a reliably trackable image. Below 3 stars, consider a different image.',
           ),
           const ContentBlock.numbered(
-            'Download the database package for Unity and import it into your project.',
+            '4. Download the database package for Unity and import it into your project.',
           ),
           const ContentBlock.numbered(
-            'Add a VuforiaConfiguration asset and paste your License Key. Attach the database to an ImageTarget GameObject.',
+            '5. Add a VuforiaConfiguration asset and paste your License Key. Attach the database to an ImageTarget GameObject.',
           ),
           const ContentBlock.divider(),
           const ContentBlock.subheading('Anchoring Strategies'),
@@ -976,16 +976,16 @@ final List<LearningModule> allModules = [
           ),
           const ContentBlock.subheading('Session Lifecycle'),
           const ContentBlock.numbered(
-            'Check device compatibility with ArCoreApk.checkAvailability() and prompt installation if needed.',
+            '1. Check device compatibility with ArCoreApk.checkAvailability() and prompt installation if needed.',
           ),
           const ContentBlock.numbered(
-            'Create and configure a Session with the desired feature set (Depth, Cloud Anchors, Geospatial).',
+            '2. Create and configure a Session with the desired feature set (Depth, Cloud Anchors, Geospatial).',
           ),
           const ContentBlock.numbered(
-            'Resume the session in onResume(); pause it in onPause() to release the camera.',
+            '3. Resume the session in onResume(); pause it in onPause() to release the camera.',
           ),
           const ContentBlock.numbered(
-            'Handle SessionException cases: camera permission denied, device not compatible, ARCore not installed.',
+            '4. Handle SessionException cases: camera permission denied, device not compatible, ARCore not installed.',
           ),
           const ContentBlock.divider(),
           const ContentBlock.subheading('Anchor Lifecycle'),
@@ -1043,16 +1043,16 @@ final List<LearningModule> allModules = [
           ),
           const ContentBlock.subheading('Scene Setup'),
           const ContentBlock.numbered(
-            'Add an AR Session GameObject — manages the AR session lifecycle.',
+            '1. Add an AR Session GameObject — manages the AR session lifecycle.',
           ),
           const ContentBlock.numbered(
-            'Add an XR Origin GameObject (formerly AR Session Origin) — defines the world coordinate origin and holds the AR Camera.',
+            '2. Add an XR Origin GameObject (formerly AR Session Origin) — defines the world coordinate origin and holds the AR Camera.',
           ),
           const ContentBlock.numbered(
-            'Attach the AR Camera as a child of XR Origin.',
+            '3. Attach the AR Camera as a child of XR Origin.',
           ),
           const ContentBlock.numbered(
-            'Add required manager components to XR Origin: ARPlaneManager, ARRaycastManager, ARAnchorManager.',
+            '4. Add required manager components to XR Origin: ARPlaneManager, ARRaycastManager, ARAnchorManager.',
           ),
           const ContentBlock.divider(),
           const ContentBlock.subheading('Key Managers'),
@@ -1215,13 +1215,13 @@ final List<LearningModule> allModules = [
           ),
           const ContentBlock.subheading('Tracking States (AR Foundation)'),
           const ContentBlock.numbered(
-            'TrackingState.Tracking: Full 6DoF pose available. All AR content renders normally.',
+            '1. TrackingState.Tracking: Full 6DoF pose available. All AR content renders normally.',
           ),
           const ContentBlock.numbered(
-            'TrackingState.Limited: Tracking is degraded. Show cautionary UI. Freeze or hide moving content.',
+            '2. TrackingState.Limited: Tracking is degraded. Show cautionary UI. Freeze or hide moving content.',
           ),
           const ContentBlock.numbered(
-            'TrackingState.None: Tracking is fully lost. Hide AR content. Show recovery guidance.',
+            '3. TrackingState.None: Tracking is fully lost. Hide AR content. Show recovery guidance.',
           ),
           const ContentBlock.subheading('Recovery Strategies'),
           const ContentBlock.bullet(
@@ -1417,16 +1417,16 @@ final List<LearningModule> allModules = [
           ),
           const ContentBlock.subheading('ARCore Cloud Anchor Workflow'),
           const ContentBlock.numbered(
-            'Host creates a local anchor on a well-mapped surface and calls session.hostCloudAnchorAsync().',
+            '1. Host creates a local anchor on a well-mapped surface and calls session.hostCloudAnchorAsync().',
           ),
           const ContentBlock.numbered(
-            'ARCore processes the visual environment data and returns a Cloud Anchor ID (a string token).',
+            '2. ARCore processes the visual environment data and returns a Cloud Anchor ID (a string token).',
           ),
           const ContentBlock.numbered(
-            'The host distributes this ID to other users (via your own server, a QR code, or a shared room code).',
+            '3. The host distributes this ID to other users (via your own server, a QR code, or a shared room code).',
           ),
           const ContentBlock.numbered(
-            'Resolving devices call session.resolveCloudAnchorAsync(id). ARCore matches their current environment scan to the stored map and returns the anchor pose.',
+            '4. Resolving devices call session.resolveCloudAnchorAsync(id). ARCore matches their current environment scan to the stored map and returns the anchor pose.',
           ),
           const ContentBlock.info(
             'For best results, the host should walk around the anchor for several seconds to build a rich local feature map before hosting. '
@@ -1466,16 +1466,16 @@ final List<LearningModule> allModules = [
           ),
           const ContentBlock.subheading('Implementation Steps'),
           const ContentBlock.numbered(
-            'Enable the Depth API in your AR session configuration.',
+            '1. Enable the Depth API in your AR session configuration.',
           ),
           const ContentBlock.numbered(
-            'Access the depth texture from each camera frame.',
+            '2. Access the depth texture from each camera frame.',
           ),
           const ContentBlock.numbered(
-            'In the fragment shader, compare the virtual object\'s projected depth against the real-world depth map.',
+            '3. In the fragment shader, compare the virtual object\'s projected depth against the real-world depth map.',
           ),
           const ContentBlock.numbered(
-            'Discard (clip) virtual fragments where the real-world depth is closer than the virtual object.',
+            '4. Discard (clip) virtual fragments where the real-world depth is closer than the virtual object.',
           ),
           const ContentBlock.warning(
             'ML-estimated depth has accuracy limitations, especially on edges, thin objects, and transparent surfaces. '
@@ -1949,6 +1949,20 @@ final List<LearningModule> allModules = [
             '(accelerometer + gyroscope) to estimate the device\'s 6DoF pose in real time. '
             'It is the tracking engine inside both ARKit and ARCore.',
           ),
+          const ContentBlock.subheading('How VIO Works'),
+          const ContentBlock.numbered(
+            '1. The camera detects and tracks visual feature points frame-to-frame (optical flow).',
+          ),
+          const ContentBlock.numbered(
+            '2. The IMU measures acceleration and angular velocity at a much higher rate (hundreds of Hz).',
+          ),
+          const ContentBlock.numbered(
+            '3. A sensor fusion algorithm (EKF) combines both streams.',
+          ),
+          const ContentBlock.numbered(
+            '4. The IMU predicts fast motion between frames; the camera corrects IMU drift.',
+          ),
+          const ContentBlock.subheading('Coupling Methods'),
           const ContentBlock.bullet(
             'Tightly Coupled VIO: Raw camera features and IMU measurements are fused in a single optimization. More accurate and robust. Used by ARKit and ARCore.',
           ),

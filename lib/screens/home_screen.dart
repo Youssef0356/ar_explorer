@@ -505,12 +505,16 @@ class HomeScreen extends StatelessWidget {
                       fontSize: 14,
                       color: AppTheme.textPrimaryC(isDark),
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     subtitle,
                     style: AppTheme.bodySmall.copyWith(
                       color: AppTheme.textMutedC(isDark),
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),

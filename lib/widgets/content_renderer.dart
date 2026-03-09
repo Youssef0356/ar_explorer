@@ -96,11 +96,22 @@ class ContentRenderer extends StatelessWidget {
           ),
         );
       case ContentBlockType.numbered:
-        final parts = block.content.split('. ');
-        final number = parts.isNotEmpty ? parts[0] : '';
-        final content = parts.length > 1
-            ? parts.sublist(1).join('. ')
-            : block.content;
+        // Robust extraction of number at the start of string (e.g. "1. ", "12. ", "1)")
+        final numberRegex = RegExp(r'^(\d+)[.\)]\s*');
+        final match = numberRegex.firstMatch(block.content);
+        
+        String number;
+        String content;
+        
+        if (match != null) {
+          number = match.group(1) ?? '';
+          content = block.content.substring(match.end);
+        } else {
+          // Fallback if no number found at start
+          number = '?'; 
+          content = block.content;
+        }
+
         return Padding(
           padding: const EdgeInsets.only(left: 8),
           child: Row(
