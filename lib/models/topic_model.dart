@@ -7,6 +7,7 @@ enum ContentBlockType {
   code,
   infoBox,
   warningBox,
+  quote,
   divider,
 }
 
@@ -25,6 +26,7 @@ class ContentBlock {
   const ContentBlock.code(this.content) : type = ContentBlockType.code;
   const ContentBlock.info(this.content) : type = ContentBlockType.infoBox;
   const ContentBlock.warning(this.content) : type = ContentBlockType.warningBox;
+  const ContentBlock.quote(this.content) : type = ContentBlockType.quote;
   const ContentBlock.divider() : type = ContentBlockType.divider, content = '';
 
   factory ContentBlock.fromJson(Map<String, dynamic> json) {
@@ -59,6 +61,9 @@ class ContentBlock {
         break;
       case 'divider':
         type = ContentBlockType.divider;
+        break;
+      case 'quote':
+        type = ContentBlockType.quote;
         break;
       default:
         type = ContentBlockType.body;
@@ -101,6 +106,9 @@ class ContentBlock {
         break;
       case ContentBlockType.divider:
         typeString = 'divider';
+        break;
+      case ContentBlockType.quote:
+        typeString = 'quote';
         break;
     }
 

@@ -223,6 +223,28 @@ class ContentRenderer extends StatelessWidget {
             ],
           ),
         );
+      case ContentBlockType.quote:
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            border: Border(
+              left: BorderSide(
+                color: AppTheme.accentBlue.withValues(alpha: 0.6),
+                width: 4,
+              ),
+            ),
+            color: AppTheme.accentBlue.withValues(alpha: isDark ? 0.05 : 0.03),
+          ),
+          child: Text(
+            block.content,
+            style: AppTheme.bodyMedium.copyWith(
+              color: AppTheme.textPrimaryC(isDark),
+              fontStyle: FontStyle.italic,
+              height: 1.5,
+              letterSpacing: 0.2,
+            ),
+          ),
+        );
       case ContentBlockType.divider:
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),

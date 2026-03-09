@@ -94,6 +94,7 @@ class BookmarksScreen extends StatelessWidget {
                                   topic: topic,
                                   moduleId: module.id,
                                   accentColor: color,
+                                  fromBookmark: true,
                                 ),
                               ),
                             );

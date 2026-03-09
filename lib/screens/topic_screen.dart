@@ -13,11 +13,14 @@ class TopicScreen extends StatefulWidget {
   final String moduleId;
   final Color accentColor;
 
+  final bool fromBookmark;
+  
   const TopicScreen({
     super.key,
     required this.topic,
     required this.moduleId,
     required this.accentColor,
+    this.fromBookmark = false,
   });
 
   @override
@@ -353,6 +356,9 @@ class _TopicScreenState extends State<TopicScreen> {
 
           // After completion, show a "Next topic" button that asks the
           // previous screen to move forward.
+          // Only show this if NOT opened from bookmarks.
+          if (widget.fromBookmark) return const SizedBox.shrink();
+
           return FloatingActionButton.extended(
             onPressed: () {
               Navigator.pop<bool>(context, true);

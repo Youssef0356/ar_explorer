@@ -130,30 +130,6 @@ class HomeScreen extends StatelessWidget {
                                 },
                               ),
                               _buildIconButton(
-                                icon: Icons.map_rounded,
-                                tooltip: 'Roadmap',
-                                isDark: isDark,
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context2) =>
-                                        const RoadmapScreen(),
-                                  ),
-                                ),
-                              ),
-                              _buildIconButton(
-                                icon: Icons.bookmark_outline_rounded,
-                                tooltip: 'Bookmarks',
-                                isDark: isDark,
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context2) =>
-                                        const BookmarksScreen(),
-                                  ),
-                                ),
-                              ),
-                              _buildIconButton(
                                 icon: Icons.settings_rounded,
                                 tooltip: 'Parameters',
                                 isDark: isDark,
@@ -406,118 +382,145 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // ── Quick Actions (Practice + Interview) ─────────────────────
+  // ── Quick Actions (Practice, Interview, Roadmap, Bookmarks) ──────────
   Widget _buildQuickActions(BuildContext context, bool isDark) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const PracticeScreen()),
-            ),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: AppTheme.glassCard(isDark),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppTheme.accentPink.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.fitness_center_rounded,
-                      color: AppTheme.accentPink,
-                      size: 20,
-                    ),
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _buildQuickActionButton(
+                  context: context,
+                  isDark: isDark,
+                  title: 'Practice',
+                  subtitle: 'Review & Daily',
+                  icon: Icons.fitness_center_rounded,
+                  iconColor: AppTheme.accentPink,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PracticeScreen()),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Practice',
-                          style: AppTheme.headingSmall.copyWith(
-                            fontSize: 14,
-                            color: AppTheme.textPrimaryC(isDark),
-                          ),
-                        ),
-                        Text(
-                          'Review & Daily',
-                          style: AppTheme.bodySmall.copyWith(
-                            color: AppTheme.textMutedC(isDark),
-                          ),
-                        ),
-                      ],
-                    ),
+                  delay: 400,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildQuickActionButton(
+                  context: context,
+                  isDark: isDark,
+                  title: 'Interview',
+                  subtitle: 'Mock Test',
+                  icon: Icons.timer_rounded,
+                  iconColor: AppTheme.accentAmber,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const InterviewScreen()),
                   ),
-                ],
+                  delay: 500,
+                ),
               ),
-            ),
-          ).animate().fadeIn(
-                delay: const Duration(milliseconds: 400),
-                duration: const Duration(milliseconds: 500),
-              ),
+            ],
+          ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const InterviewScreen()),
-            ),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: AppTheme.glassCard(isDark),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppTheme.accentAmber.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.timer_rounded,
-                      color: AppTheme.accentAmber,
-                      size: 20,
-                    ),
+        const SizedBox(height: 12),
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _buildQuickActionButton(
+                  context: context,
+                  isDark: isDark,
+                  title: 'Roadmap',
+                  subtitle: 'Learning Path',
+                  icon: Icons.map_rounded,
+                  iconColor: AppTheme.accentTeal,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RoadmapScreen()),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Interview',
-                          style: AppTheme.headingSmall.copyWith(
-                            fontSize: 14,
-                            color: AppTheme.textPrimaryC(isDark),
-                          ),
-                        ),
-                        Text(
-                          'Mock Test',
-                          style: AppTheme.bodySmall.copyWith(
-                            color: AppTheme.textMutedC(isDark),
-                          ),
-                        ),
-                      ],
-                    ),
+                  delay: 600,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildQuickActionButton(
+                  context: context,
+                  isDark: isDark,
+                  title: 'Bookmarks',
+                  subtitle: 'Saved Notes',
+                  icon: Icons.bookmark_rounded,
+                  iconColor: AppTheme.accentPurple,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const BookmarksScreen()),
                   ),
-                ],
+                  delay: 700,
+                ),
               ),
-            ),
-          ).animate().fadeIn(
-                delay: const Duration(milliseconds: 500),
-                duration: const Duration(milliseconds: 500),
-              ),
+            ],
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildQuickActionButton({
+    required BuildContext context,
+    required bool isDark,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color iconColor,
+    required VoidCallback onTap,
+    required int delay,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: AppTheme.glassCard(isDark),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: AppTheme.headingSmall.copyWith(
+                      fontSize: 14,
+                      color: AppTheme.textPrimaryC(isDark),
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: AppTheme.bodySmall.copyWith(
+                      color: AppTheme.textMutedC(isDark),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ).animate().fadeIn(
+        delay: Duration(milliseconds: delay),
+        duration: const Duration(milliseconds: 500),
+      ),
     );
   }
 
@@ -658,6 +661,24 @@ class HomeScreen extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 16),
+                Divider(color: AppTheme.dividerC(isDark)),
+                // ── Testing Section ──
+                Consumer<ProgressService>(
+                  builder: (context, progress, _) => SwitchListTile(
+                    secondary: const Icon(Icons.bug_report_rounded, color: AppTheme.accentAmber),
+                    title: Text(
+                      'Bypass All Locks',
+                      style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                    ),
+                    subtitle: Text(
+                      'For testing - unlocks all modules',
+                      style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                    ),
+                    value: progress.debugUnlockAll,
+                    activeColor: AppTheme.accentAmber,
+                    onChanged: (val) => progress.toggleDebugUnlock(),
+                  ),
+                ),
                 Divider(color: AppTheme.dividerC(isDark)),
                 ListTile(
                   leading: const Icon(Icons.arrow_back_rounded, color: AppTheme.textSecondary),

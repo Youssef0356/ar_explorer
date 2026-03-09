@@ -22,6 +22,7 @@ class ProgressService extends ChangeNotifier {
   Set<String> _bookmarks = {}; // topic keys (moduleId_topicId)
   Map<String, String> _notes = {}; // topic key -> note text
   int _interviewBestScore = 0;
+  bool _debugUnlockAll = false; // Testing: ignore module locks
 
   ProgressService();
 
@@ -125,11 +126,20 @@ class ProgressService extends ChangeNotifier {
 
   // ── Module Unlock Logic ────────────────────────────────────────
   /// A module is unlocked if it has no requiredQuizId, or if the user
-  /// has scored ≥ 70% on the required quiz.
+  /// has scored ≥ 70% on the required quiz, OR if debug mode is ON.
   bool isModuleUnlocked(String? requiredQuizId) {
+    if (_debugUnlockAll) return true; // Debug mode bypass
     if (requiredQuizId == null) return true;
     final score = _quizScores[requiredQuizId];
     return score != null && score >= 70;
+  }
+
+  // ── Testing/Debug ──────────────────────────────────────────────
+  bool get debugUnlockAll => _debugUnlockAll;
+
+  void toggleDebugUnlock() {
+    _debugUnlockAll = !_debugUnlockAll;
+    notifyListeners();
   }
 
   // ── Wrong Answer Tracking (Practice Mode) ─────────────────────
