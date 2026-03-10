@@ -83,54 +83,54 @@ class AppTheme {
   static Color surfaceC(bool isDark) => isDark ? surfaceDark : surfaceLight;
   static Color scaffoldC(bool isDark) => isDark ? primaryDark : primaryLight;
 
-  // ── Text Styles ────────────────────────────────────────────────
-  static TextStyle get headingLarge => GoogleFonts.outfit(
+  // ── Text Styles (cached — GoogleFonts is expensive per-call) ──
+  static final TextStyle headingLarge = GoogleFonts.outfit(
     fontSize: 28,
     fontWeight: FontWeight.w700,
     color: textPrimary,
     letterSpacing: -0.5,
   );
 
-  static TextStyle get headingMedium => GoogleFonts.outfit(
+  static final TextStyle headingMedium = GoogleFonts.outfit(
     fontSize: 22,
     fontWeight: FontWeight.w600,
     color: textPrimary,
   );
 
-  static TextStyle get headingSmall => GoogleFonts.outfit(
+  static final TextStyle headingSmall = GoogleFonts.outfit(
     fontSize: 18,
     fontWeight: FontWeight.w600,
     color: textPrimary,
   );
 
-  static TextStyle get bodyLarge => GoogleFonts.inter(
+  static final TextStyle bodyLarge = GoogleFonts.inter(
     fontSize: 16,
     fontWeight: FontWeight.w400,
     color: textPrimary,
     height: 1.6,
   );
 
-  static TextStyle get bodyMedium => GoogleFonts.inter(
+  static final TextStyle bodyMedium = GoogleFonts.inter(
     fontSize: 14,
     fontWeight: FontWeight.w400,
     color: textSecondary,
     height: 1.5,
   );
 
-  static TextStyle get bodySmall => GoogleFonts.inter(
+  static final TextStyle bodySmall = GoogleFonts.inter(
     fontSize: 12,
     fontWeight: FontWeight.w400,
     color: textMuted,
   );
 
-  static TextStyle get labelMedium => GoogleFonts.inter(
+  static final TextStyle labelMedium = GoogleFonts.inter(
     fontSize: 13,
     fontWeight: FontWeight.w600,
     color: textSecondary,
     letterSpacing: 0.5,
   );
 
-  static TextStyle get buttonText => GoogleFonts.outfit(
+  static final TextStyle buttonText = GoogleFonts.outfit(
     fontSize: 15,
     fontWeight: FontWeight.w600,
     color: primaryDark,

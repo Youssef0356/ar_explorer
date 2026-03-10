@@ -49,4 +49,34 @@ final Map<String, List<Flashcard>> allFlashcards = {
     const Flashcard(id: 'fc_adv_2', moduleId: 'mod_advanced', front: 'Environmental Occlusion means...', back: 'Real objects in front hide virtual objects behind them.'),
     const Flashcard(id: 'fc_adv_3', moduleId: 'mod_advanced', front: 'Depth API uses...', back: 'Machine learning on-device to produce per-pixel depth maps for occlusion.'),
   ],
+  'mod_webar': [
+    const Flashcard(id: 'fc_webar_1', moduleId: 'mod_webar', front: 'Primary advantage of WebAR?', back: 'Zero installation friction—runs directly in the browser.'),
+    const Flashcard(id: 'fc_webar_2', moduleId: 'mod_webar', front: 'WebXR Device API?', back: 'The W3C standard for accessing AR and VR capabilities natively via the browser.'),
+    const Flashcard(id: 'fc_webar_3', moduleId: 'mod_webar', front: 'Role of WebAssembly (Wasm) in WebAR?', back: 'Runs complex computer vision algorithms at near-native speed in the browser.'),
+    const Flashcard(id: 'fc_webar_4', moduleId: 'mod_webar', front: '8th Wall SLAM Engine?', back: 'Runs purely in JavaScript/Wasm, giving broader device compatibility than WebXR.'),
+  ],
+  'mod_openxr': [
+    const Flashcard(id: 'fc_openxr_1', moduleId: 'mod_openxr', front: 'What problem does OpenXR solve?', back: 'API fragmentation across different AR/VR headsets and platforms.'),
+    const Flashcard(id: 'fc_openxr_2', moduleId: 'mod_openxr', front: 'Who maintains OpenXR?', back: 'The Khronos Group (an open, royalty-free standard).'),
+    const Flashcard(id: 'fc_openxr_3', moduleId: 'mod_openxr', front: 'OpenXR Instance?', back: 'The fundamental connection object created first to talk to the OpenXR runtime.'),
+    const Flashcard(id: 'fc_openxr_4', moduleId: 'mod_openxr', front: 'OpenXR Action System?', back: 'Abstracts input—maps logical actions (like "jump") to physical hardware inputs.'),
+  ],
+  'mod_ar_cloud': [
+    const Flashcard(id: 'fc_arcloud_1', moduleId: 'mod_ar_cloud', front: 'What is the AR Cloud?', back: 'A persistent, real-time shared 3D map of the physical world.'),
+    const Flashcard(id: 'fc_arcloud_2', moduleId: 'mod_ar_cloud', front: 'Digital Twin?', back: 'A virtual replica of a physical space or object updated in near real-time.'),
+    const Flashcard(id: 'fc_arcloud_3', moduleId: 'mod_ar_cloud', front: 'Why does GPS fail for AR?', back: 'Lacks 6DoF orientation and centimeter-level precision; fails indoors.'),
+    const Flashcard(id: 'fc_arcloud_4', moduleId: 'mod_ar_cloud', front: 'Privacy concern of AR Cloud?', back: 'Uploading visual features/scans of private spaces to remote servers.'),
+  ],
+  'mod_slam_deepdive': [
+    const Flashcard(id: 'fc_slam_1', moduleId: 'mod_slam_deepdive', front: 'Sensors fused in mobile VIO?', back: 'Camera (visual features) and IMU (high-frequency inertial data).'),
+    const Flashcard(id: 'fc_slam_2', moduleId: 'mod_slam_deepdive', front: 'Keypoint vs. Descriptor?', back: 'Keypoint = pixel location. Descriptor = identity summary for matching.'),
+    const Flashcard(id: 'fc_slam_3', moduleId: 'mod_slam_deepdive', front: 'What is RANSAC?', back: 'Random Sample Consensus—mathematical technique to reject outlier feature matches.'),
+    const Flashcard(id: 'fc_slam_4', moduleId: 'mod_slam_deepdive', front: 'What is Bundle Adjustment?', back: 'Refining 3D coordinates and camera poses simultaneously to minimize reprojection error.'),
+  ],
+  'mod_performance': [
+    const Flashcard(id: 'fc_perf_1', moduleId: 'mod_performance', front: 'What is a Draw Call?', back: 'A command from CPU to GPU to render an object/material. Too many = CPU bottleneck.'),
+    const Flashcard(id: 'fc_perf_2', moduleId: 'mod_performance', front: 'How to reduce Draw Calls?', back: 'Combine multiple textures into a single Texture Atlas (batching).'),
+    const Flashcard(id: 'fc_perf_3', moduleId: 'mod_performance', front: 'What is Thermal Throttling?', back: 'Device lowers CPU/GPU speeds to prevent overheating, causing frame drops.'),
+    const Flashcard(id: 'fc_perf_4', moduleId: 'mod_performance', front: 'Why are transparencies bad for AR performance?', back: 'They cause "overdraw" where pixels are rendered multiple times per frame.'),
+  ],
 };

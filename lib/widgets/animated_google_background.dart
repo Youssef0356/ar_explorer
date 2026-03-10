@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../core/app_theme.dart';
+import '../services/theme_service.dart';
 
 class AnimatedGoogleBackground extends StatefulWidget {
   final Widget child;
@@ -14,7 +16,8 @@ class AnimatedGoogleBackground extends StatefulWidget {
   });
 
   @override
-  State<AnimatedGoogleBackground> createState() => _AnimatedGoogleBackgroundState();
+  State<AnimatedGoogleBackground> createState() =>
+      _AnimatedGoogleBackgroundState();
 }
 
 class _AnimatedGoogleBackgroundState extends State<AnimatedGoogleBackground>
@@ -24,10 +27,10 @@ class _AnimatedGoogleBackgroundState extends State<AnimatedGoogleBackground>
   @override
   void initState() {
     super.initState();
-    // 20 second loop for a very slow, relaxing, smooth animation
+    // Slow 30-second loop — the slower the cycle, the fewer meaningful repaints
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 20),
+      duration: const Duration(seconds: 30),
     )..repeat();
   }
 
@@ -39,93 +42,113 @@ class _AnimatedGoogleBackgroundState extends State<AnimatedGoogleBackground>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        // T goes from 0 to 2*PI smoothly wrapping around
-        final double t = _controller.value * 2 * math.pi;
+    final bool enableAnimations = context.watch<ThemeService>().enableAnimations;
+    final Color baseColor =
+        widget.isDark ? AppTheme.primaryDark : const Color(0xFFFAFCFF);
 
-        // Creating elegant, slow swirling motion paths mimicking ambient glow
-        final double x1 = math.sin(t) * 1.2;
-        final double y1 = math.cos(t) * 0.8;
-        
-        // Secondary glow moving at a slightly different phase/speed
-        final double x2 = math.cos(t * 1.3 + math.pi / 2) * 1.0;
-        final double y2 = math.sin(t * 1.3) * 1.2;
-        
-        // Tertiary glow for added depth
-        final double x3 = math.sin(t * 0.7 + math.pi) * 0.9;
-        final double y3 = math.cos(t * 0.9 + math.pi) * 1.0;
-
-        // Use a slightly softer base color in light mode to let the gradients blend gracefully
-        final Color baseColor =
-            widget.isDark ? AppTheme.primaryDark : const Color(0xFFFAFCFF);
-            
-        // The requested palette: Purple, Sky Blue, and Cyan
-        // Opacities are significantly reduced in light mode to be comforting and not dominating
-        final Color purpleGlow =
-            AppTheme.accentPurple.withValues(alpha: widget.isDark ? 0.30 : 0.08);
-        final Color blueGlow =
-            AppTheme.accentBlue.withValues(alpha: widget.isDark ? 0.25 : 0.06);
-        final Color cyanGlow =
-            AppTheme.accentCyan.withValues(alpha: widget.isDark ? 0.20 : 0.05);
-        final Color whiteGlow =
-            Colors.white.withValues(alpha: widget.isDark ? 0.05 : 0.30);
-
-        return Container(
-          color: baseColor,
-          child: Stack(
-            children: [
-              // Layer 1: Purple sweeping glow
-              Container(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment(x1, y1),
-                    radius: 1.8,
-                    colors: [
-                      purpleGlow,
-                      baseColor.withValues(alpha: 0.0),
-                    ],
-                    stops: const [0.0, 1.0],
-                  ),
-                ),
+    return Container(
+      color: baseColor,
+      child: Stack(
+        children: [
+          // Background gradient layer — isolated in its own RepaintBoundary
+          // so that its continuous repaints do NOT force the child to repaint.
+          if (enableAnimations)
+            RepaintBoundary(
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, _) {
+                  return CustomPaint(
+                    painter: _AmbientGlowPainter(
+                      t: _controller.value * 2 * math.pi,
+                      isDark: widget.isDark,
+                      baseColor: baseColor,
+                    ),
+                    size: Size.infinite,
+                  );
+                },
               ),
-              // Layer 2: Blue sweeping glow with a touch of white/brightness in the center
-              Container(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment(x2, y2),
-                    radius: 1.6,
-                    colors: [
-                      widget.isDark ? blueGlow : whiteGlow,
-                      widget.isDark ? baseColor.withValues(alpha: 0.0) : blueGlow,
-                      baseColor.withValues(alpha: 0.0),
-                    ],
-                    stops: const [0.0, 0.4, 1.0],
-                  ),
-                ),
-              ),
-              // Layer 3: Cyan sweeping glow
-              Container(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment(x3, y3),
-                    radius: 1.5,
-                    colors: [
-                      cyanGlow,
-                      baseColor.withValues(alpha: 0.0),
-                    ],
-                    stops: const [0.0, 1.0],
-                  ),
-                ),
-              ),
-              // Content payload
-              child!,
-            ],
+            ),
+          // Content payload — also isolated so scroll repaints stay local
+          RepaintBoundary(
+            child: widget.child,
           ),
-        );
-      },
-      child: widget.child,
+        ],
+      ),
     );
   }
+}
+
+/// A lightweight CustomPainter that draws the 3 ambient radial glows.
+/// Much cheaper than rebuilding 3 Container widgets with BoxDecoration
+/// every frame, since we skip the entire widget/element/render-object
+/// creation pipeline.
+class _AmbientGlowPainter extends CustomPainter {
+  final double t;
+  final bool isDark;
+  final Color baseColor;
+
+  _AmbientGlowPainter({
+    required this.t,
+    required this.isDark,
+    required this.baseColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+
+    // Glow positions — slow swirling orbits
+    final x1 = cx + math.sin(t) * cx * 0.6;
+    final y1 = cy + math.cos(t) * cy * 0.4;
+
+    final x2 = cx + math.cos(t * 1.3 + math.pi / 2) * cx * 0.5;
+    final y2 = cy + math.sin(t * 1.3) * cy * 0.6;
+
+    final x3 = cx + math.sin(t * 0.7 + math.pi) * cx * 0.45;
+    final y3 = cy + math.cos(t * 0.9 + math.pi) * cy * 0.5;
+
+    final radius = size.longestSide * 0.9;
+
+    // Purple glow
+    _drawGlow(
+      canvas,
+      Offset(x1, y1),
+      radius,
+      AppTheme.accentPurple.withValues(alpha: isDark ? 0.30 : 0.08),
+    );
+
+    // Blue glow
+    _drawGlow(
+      canvas,
+      Offset(x2, y2),
+      radius * 0.85,
+      AppTheme.accentBlue.withValues(alpha: isDark ? 0.25 : 0.06),
+    );
+
+    // Cyan glow
+    _drawGlow(
+      canvas,
+      Offset(x3, y3),
+      radius * 0.8,
+      AppTheme.accentCyan.withValues(alpha: isDark ? 0.20 : 0.05),
+    );
+  }
+
+  void _drawGlow(Canvas canvas, Offset center, double radius, Color color) {
+    final paint = Paint()
+      ..shader = RadialGradient(
+        colors: [color, color.withValues(alpha: 0.0)],
+        stops: const [0.0, 1.0],
+      ).createShader(
+        Rect.fromCircle(center: center, radius: radius),
+      );
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, center.dx * 2 + radius, center.dy * 2 + radius),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_AmbientGlowPainter old) => true; // t changes every frame
 }

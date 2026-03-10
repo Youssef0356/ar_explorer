@@ -6,6 +6,7 @@ import '../core/app_theme.dart';
 import '../models/quiz_model.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
+import '../services/ad_service.dart';
 import '../widgets/shareable_achievement_card.dart';
 
 class QuizResultsScreen extends StatefulWidget {
@@ -39,6 +40,11 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
     final progress = context.read<ProgressService>();
     await progress.saveQuizScore(widget.quiz.id, widget.scorePercent);
     setState(() => _saved = true);
+    
+    // Show interstitial ad with 1/3 probability
+    if (mounted) {
+      context.read<AdService>().showInterstitialAdWithProbability(0.33);
+    }
   }
 
   bool get _passed => widget.scorePercent >= widget.quiz.passingScore;

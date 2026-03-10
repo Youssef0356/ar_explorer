@@ -14,6 +14,7 @@ class ProgressService extends ChangeNotifier {
   static const _lastDailyChallengeKey = 'last_daily_challenge';
   static const _interviewBestKey = 'interview_best_score';
   static const _usernameKey = 'user_name';
+  static const _adUnlockedModulesKey = 'ad_unlocked_modules';
 
   SharedPreferences? _prefs;
   String _username = '';
@@ -23,6 +24,7 @@ class ProgressService extends ChangeNotifier {
   Set<String> _wrongAnswers = {}; // question IDs answered wrong
   Set<String> _bookmarks = {}; // topic keys (moduleId_topicId)
   Map<String, String> _notes = {}; // topic key -> note text
+  Set<String> _adUnlockedModules = {}; // module IDs unlocked via ads
   int _interviewBestScore = 0;
   bool _debugUnlockAll = false; // Testing: ignore module locks
 
@@ -67,6 +69,11 @@ class ProgressService extends ChangeNotifier {
       _notes = decoded.map((k, v) => MapEntry(k, v as String));
     }
 
+    final adUnlockedJson = _prefs?.getStringList(_adUnlockedModulesKey);
+    if (adUnlockedJson != null) {
+      _adUnlockedModules = adUnlockedJson.toSet();
+    }
+
     _interviewBestScore = _prefs?.getInt(_interviewBestKey) ?? 0;
     _username = _prefs?.getString(_usernameKey) ?? '';
   }
@@ -78,6 +85,7 @@ class ProgressService extends ChangeNotifier {
     await _prefs?.setStringList(_wrongAnswersKey, _wrongAnswers.toList());
     await _prefs?.setStringList(_bookmarksKey, _bookmarks.toList());
     await _prefs?.setString(_notesKey, jsonEncode(_notes));
+    await _prefs?.setStringList(_adUnlockedModulesKey, _adUnlockedModules.toList());
     await _prefs?.setInt(_interviewBestKey, _interviewBestScore);
     await _prefs?.setString(_usernameKey, _username);
   }
@@ -134,12 +142,19 @@ class ProgressService extends ChangeNotifier {
 
   // ── Module Unlock Logic ────────────────────────────────────────
   /// A module is unlocked if it has no requiredQuizId, or if the user
-  /// has scored ≥ 70% on the required quiz, OR if debug mode is ON.
-  bool isModuleUnlocked(String? requiredQuizId) {
+  /// has scored ≥ 70% on the required quiz, OR if they unlocked it via ad, OR if debug mode is ON.
+  bool isModuleUnlocked(String moduleId, String? requiredQuizId) {
     if (_debugUnlockAll) return true; // Debug mode bypass
     if (requiredQuizId == null) return true;
+    if (_adUnlockedModules.contains(moduleId)) return true;
     final score = _quizScores[requiredQuizId];
     return score != null && score >= 70;
+  }
+
+  Future<void> unlockModuleWithAd(String moduleId) async {
+    _adUnlockedModules.add(moduleId);
+    await _saveProgress();
+    notifyListeners();
   }
 
   // ── Testing/Debug ──────────────────────────────────────────────
@@ -248,6 +263,7 @@ class ProgressService extends ChangeNotifier {
     _wrongAnswers.clear();
     _bookmarks.clear();
     _notes.clear();
+    _adUnlockedModules.clear();
     _interviewBestScore = 0;
     await _saveProgress();
     notifyListeners();

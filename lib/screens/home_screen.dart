@@ -12,10 +12,12 @@ import '../data/modules_data.dart';
 import '../data/quiz_data.dart';
 import '../models/module_model.dart';
 import '../models/topic_model.dart';
-import '../services/progress_service.dart';
 import '../services/theme_service.dart';
 import '../services/sound_service.dart';
+import '../services/ad_service.dart';
+import '../services/progress_service.dart';
 import '../widgets/animated_google_background.dart';
+import '../widgets/banner_ad_widget.dart';
 import '../widgets/daily_keyword_card.dart';
 import '../widgets/module_card.dart';
 import 'achievements_screen.dart';
@@ -33,6 +35,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = context.watch<ThemeService>().isDarkMode;
+    final themeService = context.watch<ThemeService>(); // Get themeService here
 
     final soundService = context.read<SoundService>();
     
@@ -51,9 +54,12 @@ class HomeScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // ── Top Row: Logo + Action Buttons ──
-                      Row(
-                            children: [
-                              Container(
+                      () {
+                        final content = Row(
+                          children: [
+                            // ── Logo ──
+                            () {
+                              final logo = Container(
                                 width: 44,
                                 height: 44,
                                 decoration: BoxDecoration(
@@ -73,93 +79,98 @@ class HomeScreen extends StatelessWidget {
                                     fit: BoxFit.cover,
                                   ),
                                 ),
-                              )
-                                  .animate(
-                                    onPlay: (c) => c.repeat(reverse: true),
-                                  )
-                                  .shimmer(
-                                    duration: const Duration(seconds: 3),
-                                    color: AppTheme.accentCyan.withValues(
-                                      alpha: 0.3,
+                              );
+                              if (themeService.enableAnimations) {
+                                return logo
+                                    .animate(onPlay: (c) => c.repeat(reverse: true))
+                                    .shimmer(
+                                      duration: const Duration(seconds: 4),
+                                      color: AppTheme.accentCyan.withValues(alpha: 0.2),
+                                    );
+                              }
+                              return logo;
+                            }(),
+                            const SizedBox(width: 12),
+                            // ── Welcome Text ──
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      'AR Explorer',
+                                      style: AppTheme.headingLarge.copyWith(
+                                        color: AppTheme.textPrimaryC(isDark),
+                                      ),
+                                      maxLines: 1,
                                     ),
                                   ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    FittedBox(
+                                  const SizedBox(height: 2),
+                                  Consumer<ProgressService>(
+                                    builder: (context, progress, _) => FittedBox(
                                       fit: BoxFit.scaleDown,
                                       alignment: Alignment.centerLeft,
                                       child: Text(
-                                        'AR Explorer',
-                                        style: AppTheme.headingLarge.copyWith(
-                                          color: AppTheme.textPrimaryC(isDark),
+                                        'Welcome, ${progress.username}!',
+                                        style: AppTheme.bodySmall.copyWith(
+                                          color: AppTheme.accentCyan.withValues(alpha: 0.7),
+                                          letterSpacing: 1,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                         maxLines: 1,
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
-                                    Consumer<ProgressService>(
-                                      builder: (context, progress, _) => FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          'Welcome, ${progress.username}!',
-                                          style: AppTheme.bodySmall.copyWith(
-                                            color: AppTheme.accentCyan.withValues(
-                                              alpha: 0.7,
-                                            ),
-                                            letterSpacing: 1,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          maxLines: 1,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                              _buildIconButton(
-                                icon: Icons.calendar_today_rounded,
-                                tooltip: 'Daily Keyword',
-                                isDark: isDark,
-                                onTap: () {
-                                  soundService.playTap();
-                                  final keywordEntry = getDailyKeyword();
-                                  showDialog(
-                                    context: context,
-                                    builder: (_) => DailyKeywordCard(
-                                      keyword: keywordEntry.key,
-                                      definition: keywordEntry.value,
-                                    ),
-                                  );
-                                },
-                              ),
-                              _buildIconButton(
-                                icon: Icons.settings_rounded,
-                                tooltip: 'Parameters',
-                                isDark: isDark,
-                    onTap: () {
-                      soundService.playTap();
-                      _showSettingsModal(context, isDark);
-                    },
-          ),
-                            ],
-                          )
-                          .animate()
-                          .fadeIn(duration: const Duration(milliseconds: 600))
-                          .slideY(begin: -0.2, end: 0),
+                            ),
+                            // ── Action Buttons ──
+                            _buildIconButton(
+                              icon: Icons.calendar_today_rounded,
+                              tooltip: 'Daily Keyword',
+                              isDark: isDark,
+                              onTap: () {
+                                soundService.playTap();
+                                final keywordEntry = getDailyKeyword();
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => DailyKeywordCard(
+                                    keyword: keywordEntry.key,
+                                    definition: keywordEntry.value,
+                                  ),
+                                );
+                              },
+                            ),
+                            _buildIconButton(
+                              icon: Icons.settings_rounded,
+                              tooltip: 'Parameters',
+                              isDark: isDark,
+                              onTap: () {
+                                soundService.playTap();
+                                _showSettingsModal(context, isDark, themeService);
+                              },
+                            ),
+                          ],
+                        );
+                        if (themeService.enableAnimations) {
+                          return content
+                              .animate()
+                              .fadeIn(duration: const Duration(milliseconds: 500))
+                              .slideY(begin: -0.1, end: 0);
+                        }
+                        return content;
+                      }(),
 
                       const SizedBox(height: 24),
 
                       // ── XP & Level Card ──
-                      _buildLevelCard(context, isDark),
-
+                      _buildLevelCard(context, isDark, themeService.enableAnimations),
                       const SizedBox(height: 20),
 
                       // ── Quick Actions: Practice & Interview ──
-                      _buildQuickActions(context, isDark),
+                      _buildQuickActions(context, isDark, themeService.enableAnimations),
 
                       const SizedBox(height: 20),
 
@@ -186,12 +197,15 @@ class HomeScreen extends StatelessWidget {
               // ── Module Cards ──
               Consumer<ProgressService>(
                 builder: (context, progress, child) {
+                  final firstLockedIndex = allModules.indexWhere((m) => !progress.isModuleUnlocked(m.id, m.requiredQuizId));
+
                   return SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate((context, index) {
                         final module = allModules[index];
                         final isLocked = !progress.isModuleUnlocked(
+                          module.id,
                           module.requiredQuizId,
                         );
                         final moduleProgress = isLocked
@@ -213,6 +227,23 @@ class HomeScreen extends StatelessWidget {
                             isLocked: isLocked,
                             index: index,
                             isDark: isDark,
+                            enableAnimations: themeService.enableAnimations,
+                            onUnlockAd: (isLocked && index == firstLockedIndex) ? () async {
+                              soundService.playTap();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Loading Reward Ad...'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                              final success = await context.read<AdService>().showRewardedAd();
+                              if (success && context.mounted) {
+                                await progress.unlockModuleWithAd(module.id);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Module Unlocked! 🔓')),
+                                );
+                              }
+                            } : null,
                             onTap: () {
                               soundService.playTap();
                               if (isLocked) {
@@ -275,12 +306,18 @@ class HomeScreen extends StatelessWidget {
                   final isComplete = progress.isCurriculumComplete(totalTopics);
                   
                   return SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 48),
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
                     sliver: SliverToBoxAdapter(
                       child: _buildCertificateCard(context, isDark, isComplete),
                     ),
                   );
                 },
+              ),
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: 24.0),
+                  child: BannerAdWidget(),
+                ),
               ),
             ],
           ),
@@ -307,7 +344,10 @@ class HomeScreen extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: isUnlocked
                 ? [AppTheme.accentCyan.withValues(alpha: 0.2), AppTheme.accentCyan.withValues(alpha: 0.05)]
-                : [AppTheme.cardDark.withValues(alpha: 0.5), AppTheme.cardDark.withValues(alpha: 0.2)],
+                : [
+                    (isDark ? AppTheme.cardDark : AppTheme.cardLightAlt).withValues(alpha: 0.8),
+                    (isDark ? AppTheme.cardDark : AppTheme.cardLightAlt).withValues(alpha: 0.4),
+                  ],
           ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
@@ -393,7 +433,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   // ── Level / XP Card ─────────────────────────────────────────────
-  Widget _buildLevelCard(BuildContext context, bool isDark) {
+  Widget _buildLevelCard(BuildContext context, bool isDark, bool enableAnimations) {
     return Consumer<ProgressService>(
       builder: (context, progress, child) {
         final totalTopics = allModules.fold<int>(
@@ -413,7 +453,7 @@ class HomeScreen extends StatelessWidget {
         final levelTitle = AppTheme.getLevelTitle(overallProgress);
         final motivMsg = AppTheme.getMotivationalMessage(overallProgress);
 
-        return GestureDetector(
+        final card = GestureDetector(
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -497,19 +537,21 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-            )
-            .animate()
-            .fadeIn(
-              delay: const Duration(milliseconds: 300),
-              duration: const Duration(milliseconds: 500),
-            )
-            .slideY(begin: 0.1, end: 0);
+            );
+            
+            if (enableAnimations) {
+              return card
+                  .animate()
+                  .fadeIn(duration: const Duration(milliseconds: 500))
+                  .slideY(begin: 0.1, end: 0);
+            }
+            return card;
       },
     );
   }
 
   // ── Quick Actions (Practice, Interview, Roadmap, Bookmarks) ──────────
-  Widget _buildQuickActions(BuildContext context, bool isDark) {
+  Widget _buildQuickActions(BuildContext context, bool isDark, bool enableAnimations) {
     return Column(
       children: [
         IntrinsicHeight(
@@ -524,6 +566,7 @@ class HomeScreen extends StatelessWidget {
                   subtitle: 'Review & Daily',
                   icon: Icons.fitness_center_rounded,
                   iconColor: AppTheme.accentPink,
+                  enableAnimations: enableAnimations,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const PracticeScreen()),
@@ -540,6 +583,7 @@ class HomeScreen extends StatelessWidget {
                   subtitle: 'Mock Test',
                   icon: Icons.timer_rounded,
                   iconColor: AppTheme.accentAmber,
+                  enableAnimations: enableAnimations,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const InterviewScreen()),
@@ -563,6 +607,7 @@ class HomeScreen extends StatelessWidget {
                   subtitle: 'Learning Path',
                   icon: Icons.map_rounded,
                   iconColor: AppTheme.accentTeal,
+                  enableAnimations: enableAnimations,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const RoadmapScreen()),
@@ -579,6 +624,7 @@ class HomeScreen extends StatelessWidget {
                   subtitle: 'Saved Notes',
                   icon: Icons.bookmark_rounded,
                   iconColor: AppTheme.accentPurple,
+                  enableAnimations: enableAnimations,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const BookmarksScreen()),
@@ -600,10 +646,11 @@ class HomeScreen extends StatelessWidget {
     required String subtitle,
     required IconData icon,
     required Color iconColor,
+    required bool enableAnimations,
     required VoidCallback onTap,
     required int delay,
   }) {
-    return GestureDetector(
+    final card = GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -647,11 +694,16 @@ class HomeScreen extends StatelessWidget {
             ),
           ],
         ),
-      ).animate().fadeIn(
-        delay: Duration(milliseconds: delay),
-        duration: const Duration(milliseconds: 500),
       ),
     );
+
+    if (enableAnimations) {
+      return card.animate().fadeIn(
+        delay: Duration(milliseconds: delay),
+        duration: const Duration(milliseconds: 500),
+      );
+    }
+    return card;
   }
 
   // ── Locked Module Dialog ─────────────────────────────────────
@@ -664,41 +716,87 @@ class HomeScreen extends StatelessWidget {
     final quizTitle = quizId != null
         ? (allQuizzes[quizId]?.title ?? 'the previous quiz')
         : 'the previous quiz';
+        
+    bool isAdLoading = false;
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.cardC(isDark),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            const Text('🔒', style: TextStyle(fontSize: 24)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Module Locked',
-                style: AppTheme.headingSmall.copyWith(
-                  color: AppTheme.textPrimaryC(isDark),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          backgroundColor: AppTheme.cardC(isDark),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              const Text('🔒', style: TextStyle(fontSize: 24)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Module Locked',
+                  style: AppTheme.headingSmall.copyWith(
+                    color: AppTheme.textPrimaryC(isDark),
+                  ),
                 ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'To unlock "${module.title}", you need to score 70%+ on:\n\n'
+                '📝 $quizTitle\n\n'
+                'Alternatively, you can watch a short ad to unlock it immediately.',
+                style: AppTheme.bodyMedium.copyWith(
+                  color: AppTheme.textSecondaryC(isDark),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: isAdLoading
+                      ? null
+                      : () async {
+                          setState(() => isAdLoading = true);
+                          final adService = context.read<AdService>();
+                          final success = await adService.showRewardedAd();
+                          if (success && ctx.mounted) {
+                            await context.read<ProgressService>().unlockModuleWithAd(module.id);
+                            Navigator.pop(ctx);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Module Unlocked! 🎉')),
+                            );
+                          } else {
+                            if (ctx.mounted) {
+                              setState(() => isAdLoading = false);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Ad could not be loaded or was cancelled.')),
+                              );
+                            }
+                          }
+                        },
+                  icon: isAdLoading 
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) 
+                    : const Icon(Icons.play_circle_fill_rounded, size: 20),
+                  label: Text('Watch Ad to Unlock', style: AppTheme.buttonText),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.accentTeal,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                'Close',
+                style: AppTheme.bodyMedium.copyWith(color: AppTheme.accentCyan),
               ),
             ),
           ],
         ),
-        content: Text(
-          'To unlock "${module.title}", you need to score 70%+ on:\n\n'
-          '📝 $quizTitle',
-          style: AppTheme.bodyMedium.copyWith(
-            color: AppTheme.textSecondaryC(isDark),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Got it!',
-              style: AppTheme.bodyMedium.copyWith(color: AppTheme.accentCyan),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -728,7 +826,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   // ── Settings Modal ───────────────────────────────────────────
-  void _showSettingsModal(BuildContext context, bool isDark) {
+  void _showSettingsModal(BuildContext context, bool isDark, ThemeService themeService) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -757,6 +855,27 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
+                    // ── Enhanced Visuals Section ──
+                    Consumer<ThemeService>(
+                      builder: (context, theme, _) => SwitchListTile(
+                        secondary: const Icon(Icons.auto_awesome_rounded, color: AppTheme.accentPurple),
+                        title: Text(
+                          'Enhanced Visuals',
+                          style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                        ),
+                        subtitle: Text(
+                          'Enable animations and background glows (may reduce performance)',
+                          style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                        ),
+                        value: theme.enableAnimations,
+                        activeColor: AppTheme.accentPurple,
+                        onChanged: (val) {
+                          context.read<SoundService>().playTap();
+                          theme.toggleAnimations();
+                        },
+                      ),
+                    ),
+                    Divider(color: AppTheme.dividerC(isDark)),
                     ListTile(
                       leading: const Icon(Icons.person_outline_rounded, color: AppTheme.accentCyan),
                       title: Text(

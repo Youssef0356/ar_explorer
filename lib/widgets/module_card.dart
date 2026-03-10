@@ -13,6 +13,8 @@ class ModuleCard extends StatelessWidget {
   final VoidCallback onTap;
   final int index;
   final bool isDark;
+  final bool enableAnimations;
+  final VoidCallback? onUnlockAd; // Callback for unlocking via ad
 
   const ModuleCard({
     super.key,
@@ -25,11 +27,13 @@ class ModuleCard extends StatelessWidget {
     required this.onTap,
     required this.index,
     this.isDark = true,
+    required this.enableAnimations,
+    this.onUnlockAd,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final card = GestureDetector(
           onTap: isLocked ? null : onTap,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
@@ -170,26 +174,54 @@ class ModuleCard extends StatelessWidget {
                             color: AppTheme.warningAmber.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.info_outline_rounded,
-                                size: 14,
-                                color: AppTheme.warningAmber.withValues(
-                                  alpha: 0.7,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'Complete the previous quiz to unlock',
-                                style: AppTheme.bodySmall.copyWith(
-                                  color: AppTheme.warningAmber.withValues(
-                                    alpha: 0.7,
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.info_outline_rounded,
+                                    size: 14,
+                                    color: AppTheme.warningAmber.withValues(
+                                      alpha: 0.7,
+                                    ),
                                   ),
-                                  fontSize: 11,
-                                ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      'Complete previous quiz to unlock',
+                                      style: AppTheme.bodySmall.copyWith(
+                                        color: AppTheme.warningAmber.withValues(
+                                          alpha: 0.7,
+                                        ),
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
+                              if (onUnlockAd != null) ...[
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    onPressed: onUnlockAd,
+                                    icon: const Icon(Icons.play_circle_fill_rounded, size: 18),
+                                    label: const Text('WATCH AD TO UNLOCK'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.accentPurple,
+                                      foregroundColor: Colors.white,
+                                      textStyle: AppTheme.buttonText.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -200,18 +232,26 @@ class ModuleCard extends StatelessWidget {
               ],
             ),
           ),
-        )
-        .animate()
-        .fadeIn(
-          delay: Duration(milliseconds: 100 * index),
-          duration: const Duration(milliseconds: 500),
-        )
-        .slideX(
-          begin: 0.1,
-          end: 0,
-          delay: Duration(milliseconds: 100 * index),
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeOutCubic,
         );
+
+    // If animations are enabled, apply them
+    if (enableAnimations) {
+      return card
+          .animate()
+          .fadeIn(
+            delay: Duration(milliseconds: 50 * index),
+            duration: const Duration(milliseconds: 400),
+          )
+          .slideX(
+            begin: 0.05,
+            end: 0,
+            delay: Duration(milliseconds: 50 * index),
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOutCubic,
+          );
+    }
+    
+    // Otherwise return flat card
+    return card;
   }
 }

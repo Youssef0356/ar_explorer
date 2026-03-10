@@ -57,7 +57,7 @@ class RoadmapScreen extends StatelessWidget {
                   (context, index) {
                     final module = allModules[index];
                     final isLocked = !progress.isModuleUnlocked(
-                        module.requiredQuizId);
+                        module.id, module.requiredQuizId);
                     final moduleProg = isLocked
                         ? 0.0
                         : progress.moduleProgress(

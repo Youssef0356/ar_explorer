@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:gal/gal.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../core/app_theme.dart';
 import '../services/progress_service.dart';
 import '../services/sound_service.dart';
@@ -70,94 +71,70 @@ class _CertificateScreenState extends State<CertificateScreen> {
           children: [
             Screenshot(
               controller: _screenshotController,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF0F172A) : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppTheme.accentCyan.withValues(alpha: 0.5),
-                    width: 8,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    // Corner Decorations
-                    const _CertificateCorners(),
-                    
-                    const SizedBox(height: 20),
-                    const Icon(Icons.verified_rounded, size: 80, color: AppTheme.accentCyan),
-                    const SizedBox(height: 24),
-                    Text(
-                      'CERTIFICATE OF COMPLETION',
-                      style: AppTheme.headingLarge.copyWith(
-                        letterSpacing: 2,
-                        color: AppTheme.accentCyan,
-                        fontSize: 24,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'This certifies that',
-                      style: AppTheme.bodyLarge.copyWith(
-                        fontStyle: FontStyle.italic,
-                        color: AppTheme.textSecondaryC(isDark),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      username,
-                      style: AppTheme.headingLarge.copyWith(
-                        fontSize: 42,
-                        color: AppTheme.textPrimaryC(isDark),
-                        decoration: TextDecoration.underline,
-                        decorationColor: AppTheme.accentCyan.withValues(alpha: 0.3),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'has successfully completed the comprehensive curriculum of',
-                      style: AppTheme.bodyMedium.copyWith(
-                        color: AppTheme.textSecondaryC(isDark),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'AR EXPLORER',
-                      style: AppTheme.headingMedium.copyWith(
-                        letterSpacing: 1.5,
-                        color: AppTheme.accentCyan,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Mastering core definitions, coordinate systems, SLAM, hardware paradigms, and industrial AR applications.',
-                      style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.textMutedC(isDark),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 48),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: AspectRatio(
+                aspectRatio: 1.765, // Match images 1024x580 ratio
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final h = constraints.maxHeight;
+                    return Stack(
                       children: [
-                        _Signature(label: 'Date', value: _getFormattedDate()),
-                        _Signature(label: 'Authorized by', value: 'AR Explorer Academy'),
+                        // Background Image
+                        Positioned.fill(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.asset(
+                              'assets/images/Certificate.png',
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        
+                        // Username Positioned
+                        // Centered horizontally, about 44% from top
+                        Positioned(
+                          top: h * 0.41, 
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: Text(
+                              username.toUpperCase(),
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.outfit(
+                                fontSize: h * 0.08, // Dynamic font size
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.accentCyan, // Matching the cyan theme
+                                letterSpacing: 1.5,
+                                shadows: [
+                                  Shadow(
+                                    color: AppTheme.accentCyan.withValues(alpha: 0.5),
+                                    blurRadius: 10,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Date Positioned
+                        // Centered horizontally, about 72% from top
+                        Positioned(
+                          top: h * 0.69,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: Text(
+                              _getFormattedDate(),
+                              style: GoogleFonts.inter(
+                                fontSize: h * 0.035, // Dynamic font size
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.accentCyan.withValues(alpha: 0.8),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
-                    ),
-                    const SizedBox(height: 20),
-                  ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -191,64 +168,5 @@ class _CertificateScreenState extends State<CertificateScreen> {
   String _getFormattedDate() {
     final now = DateTime.now();
     return '${now.day}/${now.month}/${now.year}';
-  }
-}
-
-class _CertificateCorners extends StatelessWidget {
-  const _CertificateCorners();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 20,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _corner(0),
-          _corner(1.57),
-        ],
-      ),
-    );
-  }
-
-  Widget _corner(double angle) {
-    return Transform.rotate(
-      angle: angle,
-      child: const Icon(Icons.architecture_rounded, size: 24, color: AppTheme.accentCyan),
-    );
-  }
-}
-
-class _Signature extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _Signature({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          value,
-          style: AppTheme.bodyMedium.copyWith(
-            fontWeight: FontWeight.bold,
-            color: AppTheme.textPrimaryC(isDark),
-          ),
-        ),
-        Container(
-          width: 120,
-          height: 1,
-          color: AppTheme.textMutedC(isDark),
-          margin: const EdgeInsets.symmetric(vertical: 4),
-        ),
-        Text(
-          label,
-          style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-        ),
-      ],
-    );
   }
 }

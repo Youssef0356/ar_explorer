@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'core/app_theme.dart';
 import 'screens/home_screen.dart';
@@ -8,9 +9,11 @@ import 'screens/certificate_screen.dart';
 import 'services/progress_service.dart';
 import 'services/theme_service.dart';
 import 'services/sound_service.dart';
+import 'services/ad_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await MobileAds.instance.initialize();
 
   final progressService = ProgressService();
   await progressService.init();
@@ -21,12 +24,16 @@ void main() async {
   final soundService = SoundService();
   await soundService.init();
 
+  final adService = AdService();
+  adService.init();
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: progressService),
         ChangeNotifierProvider.value(value: themeService),
         ChangeNotifierProvider.value(value: soundService),
+        ChangeNotifierProvider.value(value: adService),
       ],
       child: const ARExplorerApp(),
     ),
@@ -39,7 +46,7 @@ class ARExplorerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = context.watch<ThemeService>().isDarkMode;
-    final progress = context.watch<ProgressService>();
+    final progress = context.read<ProgressService>();
 
     return MaterialApp(
       title: 'AR Explorer',
