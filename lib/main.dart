@@ -6,10 +6,12 @@ import 'core/app_theme.dart';
 import 'screens/home_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/certificate_screen.dart';
+import 'screens/privacy_policy_screen.dart';
 import 'services/progress_service.dart';
 import 'services/theme_service.dart';
 import 'services/sound_service.dart';
 import 'services/ad_service.dart';
+import 'services/review_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +29,9 @@ void main() async {
   final adService = AdService();
   adService.init();
 
+  final reviewService = ReviewService();
+  await reviewService.init();
+
   runApp(
     MultiProvider(
       providers: [
@@ -34,6 +39,7 @@ void main() async {
         ChangeNotifierProvider.value(value: themeService),
         ChangeNotifierProvider.value(value: soundService),
         ChangeNotifierProvider.value(value: adService),
+        ChangeNotifierProvider.value(value: reviewService),
       ],
       child: const ARExplorerApp(),
     ),
@@ -57,10 +63,13 @@ class ARExplorerApp extends StatelessWidget {
       routes: {
         '/home': (_) => const HomeScreen(),
         '/certificate': (_) => const CertificateScreen(),
+        '/onboarding': (_) => const OnboardingScreen(),
       },
-      home: progress.hasSeenOnboarding
-          ? const HomeScreen()
-          : const OnboardingScreen(),
+      home: !progress.hasAcceptedPrivacy
+          ? const PrivacyPolicyScreen(showConfirmButton: true)
+          : progress.hasSeenOnboarding
+              ? const HomeScreen()
+              : const OnboardingScreen(),
     );
   }
 }

@@ -15,6 +15,7 @@ class ProgressService extends ChangeNotifier {
   static const _interviewBestKey = 'interview_best_score';
   static const _usernameKey = 'user_name';
   static const _adUnlockedModulesKey = 'ad_unlocked_modules';
+  static const _privacyAcceptedKey = 'has_accepted_privacy';
 
   SharedPreferences? _prefs;
   String _username = '';
@@ -222,11 +223,33 @@ class ProgressService extends ChangeNotifier {
 
   Map<String, String> get allNotes => Map.unmodifiable(_notes);
 
+  // ── Privacy Policy ──────────────────────────────────────────────
+  bool get hasAcceptedPrivacy => _prefs?.getBool(_privacyAcceptedKey) ?? false;
+
+  Future<void> markPrivacyAccepted() async {
+    await _prefs?.setBool(_privacyAcceptedKey, true);
+  }
+
   // ── Onboarding ─────────────────────────────────────────────────
   bool get hasSeenOnboarding => _prefs?.getBool(_onboardingKey) ?? false;
 
   Future<void> markOnboardingSeen() async {
     await _prefs?.setBool(_onboardingKey, true);
+  }
+
+  // ── Module Completion Count ─────────────────────────────────────
+  /// Counts how many modules are fully completed (all topics done).
+  int completedModuleCount(List<dynamic> allModules) {
+    int count = 0;
+    for (final module in allModules) {
+      final totalTopics = module.topics.length;
+      if (totalTopics == 0) continue;
+      final completed = _completedTopics
+          .where((id) => id.startsWith('${module.id}_'))
+          .length;
+      if (completed >= totalTopics) count++;
+    }
+    return count;
   }
 
   // ── Username ───────────────────────────────────────────────────

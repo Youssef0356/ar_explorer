@@ -9,6 +9,7 @@ class AdService extends ChangeNotifier {
   
   bool _isInterstitialAdLoading = false;
   bool _isRewardedAdLoading = false;
+  Completer<bool>? _rewardedLoadCompleter;
 
   // Test Ad Unit IDs
   final String _interstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712';
@@ -42,6 +43,7 @@ class AdService extends ChangeNotifier {
   void _loadRewardedAd() {
     if (_isRewardedAdLoading) return;
     _isRewardedAdLoading = true;
+    _rewardedLoadCompleter = Completer<bool>();
 
     RewardedAd.load(
       adUnitId: _rewardedAdUnitId,
@@ -50,10 +52,16 @@ class AdService extends ChangeNotifier {
         onAdLoaded: (ad) {
           _rewardedAd = ad;
           _isRewardedAdLoading = false;
+          if (_rewardedLoadCompleter != null && !_rewardedLoadCompleter!.isCompleted) {
+            _rewardedLoadCompleter!.complete(true);
+          }
         },
         onAdFailedToLoad: (error) {
           debugPrint('RewardedAd failed to load: $error');
           _isRewardedAdLoading = false;
+          if (_rewardedLoadCompleter != null && !_rewardedLoadCompleter!.isCompleted) {
+            _rewardedLoadCompleter!.complete(false);
+          }
         },
       ),
     );
@@ -93,9 +101,20 @@ class AdService extends ChangeNotifier {
 
   Future<bool> showRewardedAd() async {
     if (_rewardedAd == null) {
-      debugPrint('Warning: attempt to show rewarded ad before loaded.');
-      _loadRewardedAd();
-      return false;
+      debugPrint('Warning: attempt to show rewarded ad before loaded. Waiting to load...');
+      if (!_isRewardedAdLoading) {
+        _loadRewardedAd();
+      }
+      
+      if (_rewardedLoadCompleter != null) {
+        final loaded = await _rewardedLoadCompleter!.future;
+        if (!loaded || _rewardedAd == null) {
+          debugPrint('Error: Rewarded ad failed to load.');
+          return false;
+        }
+      } else {
+        return false;
+      }
     }
 
     final completer = Completer<bool>();

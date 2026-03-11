@@ -4,7 +4,9 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../core/app_theme.dart';
 import '../data/ar_keywords_data.dart';
@@ -16,6 +18,7 @@ import '../services/theme_service.dart';
 import '../services/sound_service.dart';
 import '../services/ad_service.dart';
 import '../services/progress_service.dart';
+import '../services/review_service.dart'; // Added this import
 import '../widgets/animated_google_background.dart';
 import '../widgets/banner_ad_widget.dart';
 import '../widgets/daily_keyword_card.dart';
@@ -26,6 +29,7 @@ import 'credits_screen.dart';
 import 'interview_screen.dart';
 import 'module_detail_screen.dart';
 import 'practice_screen.dart';
+import 'privacy_policy_screen.dart';
 import 'roadmap_screen.dart';
 import 'topic_screen.dart';
 
@@ -219,6 +223,7 @@ class HomeScreen extends StatelessWidget {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 16),
                           child: ModuleCard(
+                            key: ValueKey(module.id),
                             title: module.title,
                             description: module.description,
                             icon: module.icon,
@@ -237,10 +242,15 @@ class HomeScreen extends StatelessWidget {
                                 ),
                               );
                               final success = await context.read<AdService>().showRewardedAd();
-                              if (success && context.mounted) {
+                              if (!context.mounted) return;
+                              if (success) {
                                 await progress.unlockModuleWithAd(module.id);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Module Unlocked! 🔓')),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Failed to load ad. Please try again later.')),
                                 );
                               }
                             } : null,
@@ -271,16 +281,15 @@ class HomeScreen extends StatelessWidget {
                                         return FadeTransition(
                                           opacity: anim,
                                           child: SlideTransition(
-                                            position:
-                                                Tween<Offset>(
-                                                  begin: const Offset(0.05, 0),
-                                                  end: Offset.zero,
-                                                ).animate(
-                                                  CurvedAnimation(
-                                                    parent: anim,
-                                                    curve: Curves.easeOutCubic,
-                                                  ),
-                                                ),
+                                            position: Tween<Offset>(
+                                              begin: const Offset(1, 0),
+                                              end: Offset.zero,
+                                            ).animate(
+                                              CurvedAnimation(
+                                                parent: anim,
+                                                curve: Curves.easeOutCubic,
+                                              ),
+                                            ),
                                             child: child,
                                           ),
                                         );
@@ -289,7 +298,14 @@ class HomeScreen extends StatelessWidget {
                                     milliseconds: 400,
                                   ),
                                 ),
-                              );
+                              ).then((_) {
+                                if (context.mounted) {
+                                  final p = context.read<ProgressService>();
+                                  context.read<ReviewService>().tryShowReviewPrompt(
+                                    completedModules: p.completedModuleCount(allModules),
+                                  );
+                                }
+                              });
                             },
                           ),
                         );
@@ -836,9 +852,9 @@ class HomeScreen extends StatelessWidget {
       ),
       builder: (ctx) {
         return DraggableScrollableSheet(
-          initialChildSize: 0.6,
+          initialChildSize: 0.75,
           minChildSize: 0.4,
-          maxChildSize: 0.9,
+          maxChildSize: 0.95,
           expand: false,
           builder: (context, scrollController) {
             return SafeArea(
@@ -847,41 +863,41 @@ class HomeScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Parameters',
-                      style: AppTheme.headingMedium.copyWith(
-                        color: AppTheme.textPrimaryC(isDark),
+                    // ── Header ──
+                    Center(
+                      child: Container(
+                        width: 40, height: 4,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: AppTheme.textMutedC(isDark).withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    Center(
+                      child: Text(
+                        'Settings',
+                        style: AppTheme.headingMedium.copyWith(
+                          color: AppTheme.textPrimaryC(isDark),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
-                    // ── Enhanced Visuals Section ──
-                    Consumer<ThemeService>(
-                      builder: (context, theme, _) => SwitchListTile(
-                        secondary: const Icon(Icons.auto_awesome_rounded, color: AppTheme.accentPurple),
-                        title: Text(
-                          'Enhanced Visuals',
-                          style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
-                        ),
-                        subtitle: Text(
-                          'Enable animations and background glows (may reduce performance)',
-                          style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-                        ),
-                        value: theme.enableAnimations,
-                        activeColor: AppTheme.accentPurple,
-                        onChanged: (val) {
-                          context.read<SoundService>().playTap();
-                          theme.toggleAnimations();
-                        },
-                      ),
-                    ),
-                    Divider(color: AppTheme.dividerC(isDark)),
+
+                    // ═══════════════════════════════════════════
+                    // ── GENERAL SECTION ──
+                    // ═══════════════════════════════════════════
+                    _settingsSectionHeader('General', Icons.tune_rounded, AppTheme.accentCyan, isDark),
+                    const SizedBox(height: 8),
                     ListTile(
                       leading: const Icon(Icons.person_outline_rounded, color: AppTheme.accentCyan),
                       title: Text(
                         'Change Name',
                         style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
                       ),
+                      trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
                       onTap: () {
                         context.read<SoundService>().playTap();
                         Navigator.pop(ctx);
@@ -897,27 +913,137 @@ class HomeScreen extends StatelessWidget {
                         isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
                         style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
                       ),
+                      trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
                       onTap: () {
                         context.read<SoundService>().playTap();
                         context.read<ThemeService>().toggleTheme();
                         Navigator.pop(ctx);
                       },
                     ),
+                    Consumer<ThemeService>(
+                      builder: (context, theme, _) => SwitchListTile(
+                        secondary: const Icon(Icons.auto_awesome_rounded, color: AppTheme.accentPurple),
+                        title: Text(
+                          'Enhanced Visuals',
+                          style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                        ),
+                        subtitle: Text(
+                          'Animations & background effects',
+                          style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                        ),
+                        value: theme.enableAnimations,
+                        activeColor: AppTheme.accentPurple,
+                        onChanged: (val) {
+                          context.read<SoundService>().playTap();
+                          theme.toggleAnimations();
+                        },
+                      ),
+                    ),
+                    Consumer<SoundService>(
+                      builder: (context, sound, _) => SwitchListTile(
+                        secondary: const Icon(Icons.vibration_rounded, color: AppTheme.accentCyan),
+                        title: Text(
+                          'Vibration',
+                          style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                        ),
+                        value: sound.isVibrationEnabled,
+                        activeColor: AppTheme.accentCyan,
+                        onChanged: (val) {
+                          sound.toggleVibration();
+                          sound.playTap();
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+                    Divider(color: AppTheme.dividerC(isDark)),
+                    const SizedBox(height: 8),
+
+                    // ═══════════════════════════════════════════
+                    // ── APP SECTION ──
+                    // ═══════════════════════════════════════════
+                    _settingsSectionHeader('App', Icons.apps_rounded, AppTheme.accentBlue, isDark),
+                    const SizedBox(height: 8),
                     ListTile(
-                      leading: const Icon(Icons.info_outline_rounded, color: AppTheme.accentBlue),
+                      leading: const Icon(Icons.star_rounded, color: AppTheme.accentAmber),
                       title: Text(
-                        'Credits',
+                        'Rate Us',
                         style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
                       ),
+                      subtitle: Text(
+                        'Love the app? Leave us a review!',
+                        style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                      ),
+                      trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                      onTap: () {
+                        context.read<SoundService>().playTap();
+                        context.read<ReviewService>().openStoreListing();
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.share_rounded, color: AppTheme.accentBlue),
+                      title: Text(
+                        'Share App',
+                        style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                      ),
+                      subtitle: Text(
+                        'Share AR Explorer with friends',
+                        style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                      ),
+                      trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                      onTap: () {
+                        context.read<SoundService>().playTap();
+                        Share.share(
+                          '🚀 Check out AR Explorer – the ultimate app to learn Augmented Reality concepts!\n\n'
+                          'Download it on Google Play:\n'
+                          'https://play.google.com/store/apps/details?id=com.example.ar_explorer',
+                          subject: 'AR Explorer – Learn Augmented Reality',
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.shield_outlined, color: AppTheme.accentPurple),
+                      title: Text(
+                        'Privacy Policy',
+                        style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                      ),
+                      trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
                       onTap: () {
                         context.read<SoundService>().playTap();
                         Navigator.pop(ctx);
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context2) => const CreditsScreen(),
+                            builder: (_) => const PrivacyPolicyScreen(),
                           ),
                         );
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
+                    Divider(color: AppTheme.dividerC(isDark)),
+                    const SizedBox(height: 8),
+
+                    // ═══════════════════════════════════════════
+                    // ── DANGER ZONE ──
+                    // ═══════════════════════════════════════════
+                    _settingsSectionHeader('Danger Zone', Icons.warning_amber_rounded, AppTheme.errorRed, isDark),
+                    const SizedBox(height: 8),
+                    ListTile(
+                      leading: const Icon(Icons.restart_alt_rounded, color: AppTheme.errorRed),
+                      title: Text(
+                        'Reset Progress',
+                        style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                      ),
+                      subtitle: Text(
+                        'Want to test your knowledge again?',
+                        style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                      ),
+                      trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                      onTap: () {
+                        context.read<SoundService>().playTap();
+                        Navigator.pop(ctx);
+                        _showResetProgressDialog(context, isDark);
                       },
                     ),
                     ListTile(
@@ -932,25 +1058,34 @@ class HomeScreen extends StatelessWidget {
                         _showQuitDialog(context, isDark);
                       },
                     ),
+
                     const SizedBox(height: 16),
                     Divider(color: AppTheme.dividerC(isDark)),
-                    // ── Vibration Section ──
-                    Consumer<SoundService>(
-                      builder: (context, sound, _) => SwitchListTile(
-                        secondary: const Icon(Icons.vibration_rounded, color: AppTheme.accentCyan),
-                        title: Text(
-                          'Vibration',
-                          style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
-                        ),
-                        value: sound.isVibrationEnabled,
-                        activeColor: AppTheme.accentCyan,
-                        onChanged: (val) {
-                          sound.toggleVibration();
-                          sound.playTap(); // Play feedback for the change
-                        },
+                    const SizedBox(height: 8),
+
+                    // ═══════════════════════════════════════════
+                    // ── ABOUT SECTION ──
+                    // ═══════════════════════════════════════════
+                    _settingsSectionHeader('About', Icons.info_outline_rounded, AppTheme.accentCyan, isDark),
+                    const SizedBox(height: 8),
+                    ListTile(
+                      leading: const Icon(Icons.info_outline_rounded, color: AppTheme.accentBlue),
+                      title: Text(
+                        'Credits',
+                        style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
                       ),
+                      trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                      onTap: () {
+                        context.read<SoundService>().playTap();
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context2) => const CreditsScreen(),
+                          ),
+                        );
+                      },
                     ),
-                    Divider(color: AppTheme.dividerC(isDark)),
                     // ── Testing Section ──
                     Consumer<ProgressService>(
                       builder: (context, progress, _) => SwitchListTile(
@@ -960,7 +1095,7 @@ class HomeScreen extends StatelessWidget {
                           style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
                         ),
                         subtitle: Text(
-                          'For testing - unlocks all modules',
+                          'For testing – unlocks all modules',
                           style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
                         ),
                         value: progress.debugUnlockAll,
@@ -968,18 +1103,28 @@ class HomeScreen extends StatelessWidget {
                         onChanged: (val) => progress.toggleDebugUnlock(),
                       ),
                     ),
-                    Divider(color: AppTheme.dividerC(isDark)),
-                    ListTile(
-                      leading: const Icon(Icons.arrow_back_rounded, color: AppTheme.textSecondary),
-                      title: Text(
-                        'Go Back',
-                        style: AppTheme.bodyLarge.copyWith(color: AppTheme.textSecondaryC(isDark)),
-                      ),
-                      onTap: () {
-                        context.read<SoundService>().playTap();
-                        Navigator.pop(ctx);
+                    const SizedBox(height: 16),
+                    // ── Version Label ──
+                    FutureBuilder<PackageInfo>(
+                      future: PackageInfo.fromPlatform(),
+                      builder: (context, snapshot) {
+                        final version = snapshot.hasData
+                            ? 'v${snapshot.data!.version} (${snapshot.data!.buildNumber})'
+                            : '...';
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Text(
+                              'AR Explorer $version',
+                              style: AppTheme.bodySmall.copyWith(
+                                color: AppTheme.textMutedC(isDark).withValues(alpha: 0.5),
+                              ),
+                            ),
+                          ),
+                        );
                       },
                     ),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
@@ -987,6 +1132,134 @@ class HomeScreen extends StatelessWidget {
           },
         );
       },
+    );
+  }
+
+  // ── Section Header Helper ──
+  Widget _settingsSectionHeader(String title, IconData icon, Color color, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, top: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 8),
+          Text(
+            title.toUpperCase(),
+            style: AppTheme.labelMedium.copyWith(
+              color: color,
+              fontSize: 12,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Reset Progress Dialog ──
+  void _showResetProgressDialog(BuildContext context, bool isDark) {
+    final progress = context.read<ProgressService>();
+    final controller = TextEditingController();
+    final soundService = context.read<SoundService>();
+    final username = progress.username;
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: AppTheme.cardC(isDark),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.restart_alt_rounded, color: AppTheme.errorRed),
+            const SizedBox(width: 12),
+            Text(
+              'Reset Progress',
+              style: AppTheme.headingSmall.copyWith(color: AppTheme.textPrimaryC(isDark)),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.errorRed.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.errorRed.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.lightbulb_outline_rounded, color: AppTheme.accentAmber, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Want to test your knowledge again? Reset your progress and start your learning journey fresh!',
+                      style: AppTheme.bodySmall.copyWith(
+                        color: AppTheme.textSecondaryC(isDark),
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Type your name "$username" to confirm:',
+              style: AppTheme.bodyMedium.copyWith(color: AppTheme.textSecondaryC(isDark)),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+              decoration: AppTheme.inputDecoration(
+                label: 'Your Name',
+                hint: username,
+                isDark: isDark,
+              ),
+              textCapitalization: TextCapitalization.words,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: Text(
+              'Cancel',
+              style: AppTheme.bodyMedium.copyWith(color: AppTheme.textMutedC(isDark)),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (controller.text.trim().toLowerCase() == username.toLowerCase()) {
+                soundService.playTap();
+                await progress.resetAll();
+                if (dialogCtx.mounted) {
+                  Navigator.pop(dialogCtx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Progress has been reset! Start fresh 🚀'),
+                    ),
+                  );
+                }
+              } else {
+                ScaffoldMessenger.of(dialogCtx).showSnackBar(
+                  SnackBar(
+                    content: Text('Please type "$username" to confirm'),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.errorRed,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Reset Everything'),
+          ),
+        ],
+      ),
     );
   }
 

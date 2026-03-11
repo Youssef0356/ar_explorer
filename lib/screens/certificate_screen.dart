@@ -72,10 +72,11 @@ class _CertificateScreenState extends State<CertificateScreen> {
             Screenshot(
               controller: _screenshotController,
               child: AspectRatio(
-                aspectRatio: 1.765, // Match images 1024x580 ratio
+                aspectRatio: 1.414, // Match A4 landscape ratio
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final h = constraints.maxHeight;
+                    final w = constraints.maxWidth;
                     return Stack(
                       children: [
                         // Background Image
@@ -83,51 +84,55 @@ class _CertificateScreenState extends State<CertificateScreen> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
                             child: Image.asset(
-                              'assets/images/Certificate.png',
+                              'assets/images/ARexplorerCertif.png',
                               fit: BoxFit.cover,
                             ),
                           ),
                         ),
                         
                         // Username Positioned
-                        // Centered horizontally, about 44% from top
                         Positioned(
-                          top: h * 0.41, 
-                          left: 0,
-                          right: 0,
+                          top: h * 0.45, 
+                          left: w * 0.1, // Added 10% margin on sides
+                          right: w * 0.1,
                           child: Center(
-                            child: Text(
-                              username.toUpperCase(),
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.outfit(
-                                fontSize: h * 0.08, // Dynamic font size
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.accentCyan, // Matching the cyan theme
-                                letterSpacing: 1.5,
-                                shadows: [
-                                  Shadow(
-                                    color: AppTheme.accentCyan.withValues(alpha: 0.5),
-                                    blurRadius: 10,
-                                  ),
-                                ],
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                username.toUpperCase(),
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.outfit(
+                                  fontSize: h * 0.08, // Dynamic font size
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.accentCyan, // Matching the cyan theme
+                                  letterSpacing: 1.5,
+                                  shadows: [
+                                    Shadow(
+                                      color: AppTheme.accentCyan.withValues(alpha: 0.5),
+                                      blurRadius: 10,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
 
                         // Date Positioned
-                        // Centered horizontally, about 72% from top
                         Positioned(
-                          top: h * 0.69,
-                          left: 0,
-                          right: 0,
+                          top: h * 0.65,
+                          left: w * 0.2, // Added margin on sides
+                          right: w * 0.2,
                           child: Center(
-                            child: Text(
-                              _getFormattedDate(),
-                              style: GoogleFonts.inter(
-                                fontSize: h * 0.035, // Dynamic font size
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.accentCyan.withValues(alpha: 0.8),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                _getFormattedDate(),
+                                style: GoogleFonts.inter(
+                                  fontSize: h * 0.035, // Dynamic font size
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.accentCyan.withValues(alpha: 0.8),
+                                ),
                               ),
                             ),
                           ),

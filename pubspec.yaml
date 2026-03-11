@@ -2,7 +2,7 @@ name: ar_explorer
 description: "AR Explorer – Interactive mobile learning platform for Augmented Reality concepts."
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
   sdk: ^3.11.0
@@ -20,6 +20,8 @@ dependencies:
   screenshot: ^3.0.0
   gal: ^2.3.2
   google_mobile_ads: ^7.0.0
+  in_app_review: ^2.0.11
+  package_info_plus: ^9.0.0
 
 dev_dependencies:
   flutter_test:
