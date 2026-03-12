@@ -79,21 +79,149 @@ class _CertificateScreenState extends State<CertificateScreen> {
                     final w = constraints.maxWidth;
                     return Stack(
                       children: [
-                        // Background Image
+                        // 1. Dark Blue Gradient Background
                         Positioned.fill(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.asset(
-                              'assets/images/ARexplorerCertif.png',
-                              fit: BoxFit.cover,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Color(0xFF0A0E21), // Prime Dark
+                                  Color(0xFF0F1B40), // Dark Blue
+                                  Color(0xFF050814), // Deep Dark
+                                ],
+                              ),
+                              border: Border.all(
+                                color: AppTheme.accentCyan.withValues(alpha: 0.3),
+                                width: 2,
+                              ),
                             ),
                           ),
                         ),
                         
-                        // Username Positioned
+                        // 2. Decorative Shapes (Corners & Background)
                         Positioned(
-                          top: h * 0.45, 
-                          left: w * 0.1, // Added 10% margin on sides
+                          top: -h * 0.3,
+                          left: -w * 0.15,
+                          child: Container(
+                            width: w * 0.6,
+                            height: w * 0.6,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: RadialGradient(
+                                colors: [
+                                  AppTheme.accentCyan.withValues(alpha: 0.15),
+                                  const Color(0x00000000),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: -h * 0.4,
+                          right: -w * 0.2,
+                          child: Container(
+                            width: w * 0.8,
+                            height: w * 0.8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: RadialGradient(
+                                colors: [
+                                  AppTheme.accentBlue.withValues(alpha: 0.12),
+                                  const Color(0x00000000),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Inner Border Line
+                        Positioned.fill(
+                          child: Container(
+                            margin: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: AppTheme.accentCyan.withValues(alpha: 0.15),
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                        
+                        // 3. App Logo
+                        Positioned(
+                          top: h * 0.12,
+                          left: w * 0.08,
+                          child: Image.asset(
+                            'assets/images/app_logoTransparent.png',
+                            height: h * 0.15,
+                            opacity: const AlwaysStoppedAnimation(0.9),
+                            errorBuilder: (context, error, stackTrace) =>
+                                const SizedBox.shrink(), // Graceful fallback
+                          ),
+                        ),
+
+                        // 4. Main Titles
+                        Positioned(
+                          top: h * 0.08,
+                          left: 0,
+                          right: 0,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'CERTIFICATE',
+                                style: GoogleFonts.outfit(
+                                  fontSize: h * 0.1,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  letterSpacing: 8,
+                                  shadows: [
+                                    Shadow(
+                                      color: Colors.black.withValues(alpha: 0.5),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                'OF ACHIEVEMENT',
+                                style: GoogleFonts.outfit(
+                                  fontSize: h * 0.035,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.accentCyan,
+                                  letterSpacing: 4,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // 5. Present to Phrase
+                        Positioned(
+                          top: h * 0.35,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: Text(
+                              'THIS IS TO CERTIFY THAT',
+                              style: GoogleFonts.inter(
+                                fontSize: h * 0.022,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white.withValues(alpha: 0.7),
+                                letterSpacing: 2,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // 6. Username Positioned
+                        Positioned(
+                          top: h * 0.44, 
+                          left: w * 0.1,
                           right: w * 0.1,
                           child: Center(
                             child: FittedBox(
@@ -102,9 +230,9 @@ class _CertificateScreenState extends State<CertificateScreen> {
                                 username.toUpperCase(),
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.outfit(
-                                  fontSize: h * 0.08, // Dynamic font size
+                                  fontSize: h * 0.08,
                                   fontWeight: FontWeight.bold,
-                                  color: AppTheme.accentCyan, // Matching the cyan theme
+                                  color: AppTheme.accentCyan,
                                   letterSpacing: 1.5,
                                   shadows: [
                                     Shadow(
@@ -118,23 +246,91 @@ class _CertificateScreenState extends State<CertificateScreen> {
                           ),
                         ),
 
-                        // Date Positioned
+                        // 7. Completion Text
                         Positioned(
-                          top: h * 0.65,
-                          left: w * 0.2, // Added margin on sides
-                          right: w * 0.2,
+                          top: h * 0.6,
+                          left: w * 0.15,
+                          right: w * 0.15,
                           child: Center(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                _getFormattedDate(),
-                                style: GoogleFonts.inter(
-                                  fontSize: h * 0.035, // Dynamic font size
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.accentCyan.withValues(alpha: 0.8),
-                                ),
+                            child: Text(
+                              'HAS SUCCESSFULLY COMPLETED THE AR EXPLORER JOURNEY',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.inter(
+                                fontSize: h * 0.018,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white.withValues(alpha: 0.8),
+                                letterSpacing: 1.5,
                               ),
                             ),
+                          ),
+                        ),
+
+                        // 8. Date and Signature
+                        Positioned(
+                          bottom: h * 0.08,
+                          left: w * 0.15,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                _getFormattedDate(),
+                                style: GoogleFonts.inter(
+                                  fontSize: h * 0.035,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(height: h * 0.01),
+                              Container(
+                                width: w * 0.2,
+                                height: 1,
+                                color: AppTheme.accentCyan.withValues(alpha: 0.5),
+                              ),
+                              SizedBox(height: h * 0.01),
+                              Text(
+                                'DATE',
+                                style: GoogleFonts.inter(
+                                  fontSize: h * 0.016,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                  letterSpacing: 2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        Positioned(
+                          bottom: h * 0.065, // slightly lower to gracefully fit cursive font
+                          right: w * 0.15,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                '356 Company',
+                                style: GoogleFonts.dancingScript(
+                                  fontSize: h * 0.055,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.accentCyan,
+                                ),
+                              ),
+                              SizedBox(height: h * 0.01),
+                              Container(
+                                width: w * 0.25,
+                                height: 1,
+                                color: AppTheme.accentCyan.withValues(alpha: 0.5),
+                              ),
+                              SizedBox(height: h * 0.01),
+                              Text(
+                                'AUTHORIZED SIGNATURE',
+                                style: GoogleFonts.inter(
+                                  fontSize: h * 0.016,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                  letterSpacing: 2,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
