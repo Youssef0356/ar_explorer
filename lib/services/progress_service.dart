@@ -166,6 +166,21 @@ class ProgressService extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> completeAllModules(List<dynamic> modules) async {
+    for (final module in modules) {
+      for (final topic in module.topics) {
+        _completedTopics.add('${module.id}_${topic.id}');
+      }
+      // Also pass any quizzes associated
+      if (module.requiredQuizId != null) {
+        _quizScores[module.requiredQuizId!] = 100;
+        _achievements.add('quiz_ace_${module.requiredQuizId}');
+      }
+    }
+    await _saveProgress();
+    notifyListeners();
+  }
+
   // ── Wrong Answer Tracking (Practice Mode) ─────────────────────
   Set<String> get wrongAnswers => Set.unmodifiable(_wrongAnswers);
 

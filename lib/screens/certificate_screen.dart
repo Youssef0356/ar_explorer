@@ -150,22 +150,10 @@ class _CertificateScreenState extends State<CertificateScreen> {
                           ),
                         ),
                         
-                        // 3. App Logo
-                        Positioned(
-                          top: h * 0.12,
-                          left: w * 0.08,
-                          child: Image.asset(
-                            'assets/images/app_logoTransparent.png',
-                            height: h * 0.15,
-                            opacity: const AlwaysStoppedAnimation(0.9),
-                            errorBuilder: (context, error, stackTrace) =>
-                                const SizedBox.shrink(), // Graceful fallback
-                          ),
-                        ),
 
-                        // 4. Main Titles
+                        // 3. Main Titles & Logo
                         Positioned(
-                          top: h * 0.08,
+                          top: h * 0.06,
                           left: 0,
                           right: 0,
                           child: Column(
@@ -196,13 +184,21 @@ class _CertificateScreenState extends State<CertificateScreen> {
                                   letterSpacing: 4,
                                 ),
                               ),
+                              SizedBox(height: h * 0.02),
+                              Image.asset(
+                                'assets/images/app_logoTransparent.png',
+                                height: h * 0.24,
+                                opacity: const AlwaysStoppedAnimation(0.9),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const SizedBox.shrink(),
+                              ),
                             ],
                           ),
                         ),
 
-                        // 5. Present to Phrase
+                        // 4. Present to Phrase
                         Positioned(
-                          top: h * 0.35,
+                          top: h * 0.48,
                           left: 0,
                           right: 0,
                           child: Center(
@@ -218,9 +214,9 @@ class _CertificateScreenState extends State<CertificateScreen> {
                           ),
                         ),
 
-                        // 6. Username Positioned
+                        // 5. Username Positioned
                         Positioned(
-                          top: h * 0.44, 
+                          top: h * 0.56, 
                           left: w * 0.1,
                           right: w * 0.1,
                           child: Center(
@@ -246,9 +242,9 @@ class _CertificateScreenState extends State<CertificateScreen> {
                           ),
                         ),
 
-                        // 7. Completion Text
+                        // 6. Completion Text
                         Positioned(
-                          top: h * 0.6,
+                          top: h * 0.72,
                           left: w * 0.15,
                           right: w * 0.15,
                           child: Center(

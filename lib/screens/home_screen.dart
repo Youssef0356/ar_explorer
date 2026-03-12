@@ -1088,19 +1088,43 @@ class HomeScreen extends StatelessWidget {
                     ),
                     // ── Testing Section ──
                     Consumer<ProgressService>(
-                      builder: (context, progress, _) => SwitchListTile(
-                        secondary: const Icon(Icons.bug_report_rounded, color: AppTheme.accentAmber),
-                        title: Text(
-                          'Bypass All Locks',
-                          style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
-                        ),
-                        subtitle: Text(
-                          'For testing – unlocks all modules',
-                          style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-                        ),
-                        value: progress.debugUnlockAll,
-                        activeColor: AppTheme.accentAmber,
-                        onChanged: (val) => progress.toggleDebugUnlock(),
+                      builder: (context, progress, _) => Column(
+                        children: [
+                          SwitchListTile(
+                            secondary: const Icon(Icons.bug_report_rounded, color: AppTheme.accentAmber),
+                            title: Text(
+                              'Bypass All Locks',
+                              style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                            ),
+                            subtitle: Text(
+                              'For testing – unlocks all modules',
+                              style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                            ),
+                            value: progress.debugUnlockAll,
+                            activeColor: AppTheme.accentAmber,
+                            onChanged: (val) => progress.toggleDebugUnlock(),
+                          ),
+                          SwitchListTile(
+                            secondary: const Icon(Icons.check_circle_outline_rounded, color: AppTheme.successGreen),
+                            title: Text(
+                              'Complete All Modules',
+                              style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                            ),
+                            subtitle: Text(
+                              'For testing – marks everything as done',
+                              style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                            ),
+                            value: progress.isCurriculumComplete(allModules.fold<int>(0, (sum, m) => sum + m.topics.length)),
+                            activeColor: AppTheme.successGreen,
+                            onChanged: (val) {
+                              if (val) {
+                                progress.completeAllModules(allModules);
+                              } else {
+                                progress.resetAll();
+                              }
+                            },
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 16),
