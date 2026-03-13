@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.the356company.arexplorer">
+    <uses-permission android:name="com.android.vending.BILLING" />
+
     <application
         android:label="AR Explorer"
         android:name="${applicationName}"
