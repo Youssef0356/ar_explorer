@@ -200,6 +200,28 @@ class ModuleCard extends StatelessWidget {
                                   ),
                                 ],
                               ),
+                              const SizedBox(height: 6),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.workspace_premium_rounded,
+                                    size: 14,
+                                    color: AppTheme.accentAmber,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      'Premium unlocks all modules',
+                                      style: AppTheme.bodySmall.copyWith(
+                                        color: AppTheme.accentAmber,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                               if (onUnlockAd != null) ...[
                                 const SizedBox(height: 12),
                                 SizedBox(

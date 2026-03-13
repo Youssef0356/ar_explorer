@@ -252,6 +252,13 @@ class AchievementsScreen extends StatelessWidget {
             ) ==
             1.0,
       ),
+      _BadgeData(
+        id: 'premium_member',
+        icon: Icons.workspace_premium_rounded,
+        label: 'Premium',
+        color: AppTheme.accentAmber,
+        condition: (p) => p.isPremium,
+      ),
     ];
 
     return GridView.builder(

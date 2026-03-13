@@ -18,7 +18,8 @@ import '../services/theme_service.dart';
 import '../services/sound_service.dart';
 import '../services/ad_service.dart';
 import '../services/progress_service.dart';
-import '../services/review_service.dart'; // Added this import
+import '../services/review_service.dart';
+import '../services/subscription_service.dart'; // Added this import
 import '../widgets/animated_google_background.dart';
 import '../widgets/banner_ad_widget.dart';
 import '../widgets/daily_keyword_card.dart';
@@ -28,6 +29,7 @@ import 'bookmarks_screen.dart';
 import 'credits_screen.dart';
 import 'interview_screen.dart';
 import 'module_detail_screen.dart';
+import 'paywall_screen.dart';
 import 'practice_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'roadmap_screen.dart';
@@ -567,6 +569,9 @@ class HomeScreen extends StatelessWidget {
 
   // ── Quick Actions (Practice, Interview, Roadmap, Bookmarks) ──────────
   Widget _buildQuickActions(BuildContext context, bool isDark, bool enableAnimations) {
+    final subscriptionService = context.watch<SubscriptionService>();
+    final isPremium = subscriptionService.isPremium;
+
     return Column(
       children: [
         IntrinsicHeight(
@@ -582,6 +587,7 @@ class HomeScreen extends StatelessWidget {
                   icon: Icons.fitness_center_rounded,
                   iconColor: AppTheme.accentPink,
                   enableAnimations: enableAnimations,
+                  isPremiumLocked: false,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const PracticeScreen()),
@@ -599,10 +605,17 @@ class HomeScreen extends StatelessWidget {
                   icon: Icons.timer_rounded,
                   iconColor: AppTheme.accentAmber,
                   enableAnimations: enableAnimations,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const InterviewScreen()),
-                  ),
+                  isPremiumLocked: !isPremium,
+                  onTap: () {
+                    if (!isPremium) {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
+                      return;
+                    }
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const InterviewScreen()),
+                    );
+                  },
                   delay: 500,
                 ),
               ),
@@ -623,6 +636,7 @@ class HomeScreen extends StatelessWidget {
                   icon: Icons.map_rounded,
                   iconColor: AppTheme.accentTeal,
                   enableAnimations: enableAnimations,
+                  isPremiumLocked: false,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const RoadmapScreen()),
@@ -640,6 +654,7 @@ class HomeScreen extends StatelessWidget {
                   icon: Icons.bookmark_rounded,
                   iconColor: AppTheme.accentPurple,
                   enableAnimations: enableAnimations,
+                  isPremiumLocked: false,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const BookmarksScreen()),
@@ -662,6 +677,7 @@ class HomeScreen extends StatelessWidget {
     required IconData icon,
     required Color iconColor,
     required bool enableAnimations,
+    required bool isPremiumLocked,
     required VoidCallback onTap,
     required int delay,
   }) {
@@ -672,14 +688,32 @@ class HomeScreen extends StatelessWidget {
         decoration: AppTheme.glassCard(isDark),
         child: Row(
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: iconColor, size: 20),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 20),
+                ),
+                if (isPremiumLocked)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: AppTheme.accentAmber,
+                        shape: BoxShape.circle,
+                      ),
+                      padding: const EdgeInsets.all(2),
+                      child: const Icon(Icons.lock_rounded, size: 10, color: Colors.white),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(width: 12),
             Expanded(

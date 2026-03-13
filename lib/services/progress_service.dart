@@ -2,8 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/subscription_service.dart';
 
 class ProgressService extends ChangeNotifier {
+  SubscriptionService? _subscriptionService;
+
   static const _completedTopicsKey = 'completed_topics';
   static const _quizScoresKey = 'quiz_scores';
   static const _achievementsKey = 'achievements';
@@ -20,16 +23,25 @@ class ProgressService extends ChangeNotifier {
   SharedPreferences? _prefs;
   String _username = '';
   Set<String> _completedTopics = {};
-  Map<String, int> _quizScores = {}; // quizId -> best score percentage
+  Map<String, int> _quizScores = {};
   Set<String> _achievements = {};
-  Set<String> _wrongAnswers = {}; // question IDs answered wrong
-  Set<String> _bookmarks = {}; // topic keys (moduleId_topicId)
-  Map<String, String> _notes = {}; // topic key -> note text
-  Set<String> _adUnlockedModules = {}; // module IDs unlocked via ads
+  Set<String> _wrongAnswers = {};
+  Set<String> _bookmarks = {};
+  Map<String, String> _notes = {};
+  Set<String> _adUnlockedModules = {};
   int _interviewBestScore = 0;
-  bool _debugUnlockAll = false; // Testing: ignore module locks
+  bool _debugUnlockAll = false;
 
   ProgressService();
+
+  void setSubscriptionService(SubscriptionService service) {
+    _subscriptionService = service;
+    _subscriptionService!.addListener(() {
+      notifyListeners();
+    });
+  }
+
+  bool get isPremium => _subscriptionService?.isPremium ?? false;
 
   // ── Initialization ─────────────────────────────────────────────
   Future<void> init() async {
@@ -143,13 +155,18 @@ class ProgressService extends ChangeNotifier {
 
   // ── Module Unlock Logic ────────────────────────────────────────
   /// A module is unlocked if it has no requiredQuizId, or if the user
-  /// has scored ≥ 70% on the required quiz, OR if they unlocked it via ad, OR if debug mode is ON.
+  /// has scored ≥ 70% on the required quiz, OR if they unlocked it via ad, OR if debug mode is ON, or if they are Premium.
   bool isModuleUnlocked(String moduleId, String? requiredQuizId) {
+    if (_subscriptionService?.isPremium ?? false) return true;
     if (_debugUnlockAll) return true; // Debug mode bypass
     if (requiredQuizId == null) return true;
     if (_adUnlockedModules.contains(moduleId)) return true;
     final score = _quizScores[requiredQuizId];
     return score != null && score >= 70;
+  }
+
+  bool canAccessModule(String moduleId, String? requiredQuizId) {
+    return isModuleUnlocked(moduleId, requiredQuizId);
   }
 
   Future<void> unlockModuleWithAd(String moduleId) async {

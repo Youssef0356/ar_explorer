@@ -2,8 +2,11 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../services/subscription_service.dart';
 
 class AdService extends ChangeNotifier {
+  SubscriptionService? _subscriptionService;
+
   InterstitialAd? _interstitialAd;
   RewardedAd? _rewardedAd;
   
@@ -15,12 +18,18 @@ class AdService extends ChangeNotifier {
   final String _interstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712';
   final String _rewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917';
 
+  void setSubscriptionService(SubscriptionService service) {
+    _subscriptionService = service;
+  }
+
   void init() {
+    if (_subscriptionService?.isPremium ?? false) return;
     _loadInterstitialAd();
     _loadRewardedAd();
   }
 
   void _loadInterstitialAd() {
+    if (_subscriptionService?.isPremium ?? false) return;
     if (_isInterstitialAdLoading) return;
     _isInterstitialAdLoading = true;
 
@@ -41,6 +50,7 @@ class AdService extends ChangeNotifier {
   }
 
   void _loadRewardedAd() {
+    if (_subscriptionService?.isPremium ?? false) return;
     if (_isRewardedAdLoading) return;
     _isRewardedAdLoading = true;
     _rewardedLoadCompleter = Completer<bool>();
@@ -68,6 +78,7 @@ class AdService extends ChangeNotifier {
   }
 
   Future<void> showInterstitialAdWithProbability(double probability) async {
+    if (_subscriptionService?.isPremium ?? false) return;
     final random = Random().nextDouble();
     if (random <= probability) {
       await showInterstitialAd();
@@ -75,6 +86,7 @@ class AdService extends ChangeNotifier {
   }
 
   Future<void> showInterstitialAd() async {
+    if (_subscriptionService?.isPremium ?? false) return;
     if (_interstitialAd == null) {
       debugPrint('Warning: attempt to show interstitial before loaded.');
       _loadInterstitialAd();
@@ -100,6 +112,7 @@ class AdService extends ChangeNotifier {
   }
 
   Future<bool> showRewardedAd() async {
+    if (_subscriptionService?.isPremium ?? false) return true; // Auto-success for premium
     if (_rewardedAd == null) {
       debugPrint('Warning: attempt to show rewarded ad before loaded. Waiting to load...');
       if (!_isRewardedAdLoading) {

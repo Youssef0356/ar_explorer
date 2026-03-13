@@ -12,13 +12,18 @@ import 'services/theme_service.dart';
 import 'services/sound_service.dart';
 import 'services/ad_service.dart';
 import 'services/review_service.dart';
+import 'services/subscription_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await MobileAds.instance.initialize();
 
+  final subscriptionService = SubscriptionService();
+  await subscriptionService.init();
+
   final progressService = ProgressService();
   await progressService.init();
+  progressService.setSubscriptionService(subscriptionService);
 
   final themeService = ThemeService();
   await themeService.init();
@@ -27,6 +32,7 @@ void main() async {
   await soundService.init();
 
   final adService = AdService();
+  adService.setSubscriptionService(subscriptionService);
   adService.init();
 
   final reviewService = ReviewService();
@@ -35,6 +41,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider.value(value: subscriptionService),
         ChangeNotifierProvider.value(value: progressService),
         ChangeNotifierProvider.value(value: themeService),
         ChangeNotifierProvider.value(value: soundService),
