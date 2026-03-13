@@ -27,11 +27,12 @@ class _AnimatedGoogleBackgroundState extends State<AnimatedGoogleBackground>
   @override
   void initState() {
     super.initState();
-    // Slow 30-second loop — the slower the cycle, the fewer meaningful repaints
+    // Slow 30-second loop
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 30),
-    )..repeat();
+    );
+    // Don't start yet, wait for build to check flags
   }
 
   @override
@@ -43,6 +44,12 @@ class _AnimatedGoogleBackgroundState extends State<AnimatedGoogleBackground>
   @override
   Widget build(BuildContext context) {
     final bool enableAnimations = context.watch<ThemeService>().enableAnimations;
+
+    if (enableAnimations && !_controller.isAnimating) {
+      _controller.repeat();
+    } else if (!enableAnimations && _controller.isAnimating) {
+      _controller.stop();
+    }
     final Color baseColor =
         widget.isDark ? AppTheme.primaryDark : const Color(0xFFFAFCFF);
 

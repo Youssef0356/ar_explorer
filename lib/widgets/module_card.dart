@@ -35,8 +35,7 @@ class ModuleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final card = GestureDetector(
           onTap: isLocked ? null : onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
+          child: Container(
             decoration: AppTheme.moduleCard(accentColor, isDark).copyWith(
               color: isLocked
                   ? AppTheme.cardC(isDark).withValues(alpha: isDark ? 0.5 : 0.7)

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'core/app_theme.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/certificate_screen.dart';
 import 'screens/privacy_policy_screen.dart';
@@ -61,14 +61,14 @@ class ARExplorerApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
       routes: {
-        '/home': (_) => const HomeScreen(),
+        '/home': (_) => const MainScreen(),
         '/certificate': (_) => const CertificateScreen(),
         '/onboarding': (_) => const OnboardingScreen(),
       },
       home: !progress.hasAcceptedPrivacy
           ? const PrivacyPolicyScreen(showConfirmButton: true)
           : progress.hasSeenOnboarding
-              ? const HomeScreen()
+              ? const MainScreen()
               : const OnboardingScreen(),
     );
   }

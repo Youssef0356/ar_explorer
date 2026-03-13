@@ -199,120 +199,119 @@ class HomeScreen extends StatelessWidget {
               ),
 
               // ── Module Cards ──
-              Consumer<ProgressService>(
-                builder: (context, progress, child) {
-                  final firstLockedIndex = allModules.indexWhere((m) => !progress.isModuleUnlocked(m.id, m.requiredQuizId));
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final module = allModules[index];
+                      final color = AppTheme.getModuleColor(index);
 
-                  return SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final module = allModules[index];
-                        final isLocked = !progress.isModuleUnlocked(
-                          module.id,
-                          module.requiredQuizId,
-                        );
-                        final moduleProgress = isLocked
-                            ? 0.0
-                            : progress.moduleProgress(
-                                module.id,
-                                module.totalTopics,
-                              );
-                        final color = AppTheme.getModuleColor(index);
+                      return Selector<ProgressService, ({bool isLocked, double progress, bool isFirstLocked})>(
+                        selector: (context, progress) {
+                          final isLocked = !progress.isModuleUnlocked(module.id, module.requiredQuizId);
+                          final moduleProgress = isLocked ? 0.0 : progress.moduleProgress(module.id, module.totalTopics);
+                          
+                          // Find first locked index for ad unlock logic
+                          final firstLockedIndex = allModules.indexWhere((m) => !progress.isModuleUnlocked(m.id, m.requiredQuizId));
+                          final isFirstLocked = index == firstLockedIndex;
 
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: ModuleCard(
-                            key: ValueKey(module.id),
-                            title: module.title,
-                            description: module.description,
-                            icon: module.icon,
-                            accentColor: color,
-                            progress: moduleProgress,
-                            isLocked: isLocked,
-                            index: index,
-                            isDark: isDark,
-                            enableAnimations: themeService.enableAnimations,
-                            onUnlockAd: (isLocked && index == firstLockedIndex) ? () async {
-                              soundService.playTap();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Loading Reward Ad...'),
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
-                              final success = await context.read<AdService>().showRewardedAd();
-                              if (!context.mounted) return;
-                              if (success) {
-                                await progress.unlockModuleWithAd(module.id);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Module Unlocked! 🔓')),
-                                );
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Failed to load ad. Please try again later.')),
-                                );
-                              }
-                            } : null,
-                            onTap: () {
-                              soundService.playTap();
-                              if (isLocked) {
-                                _showLockedDialog(
-                                  context,
-                                  isDark,
-                                  module,
-                                );
-                                return;
-                              }
-                              Navigator.push(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder:
-                                      (
-                                        context2,
-                                        animation,
-                                        secondaryAnimation,
-                                      ) => ModuleDetailScreen(
-                                        module: module,
-                                        accentColor: color,
-                                      ),
-                                  transitionsBuilder:
-                                      (context2, anim, secondaryAnim, child) {
-                                        return FadeTransition(
-                                          opacity: anim,
-                                          child: SlideTransition(
-                                            position: Tween<Offset>(
-                                              begin: const Offset(1, 0),
-                                              end: Offset.zero,
-                                            ).animate(
-                                              CurvedAnimation(
-                                                parent: anim,
-                                                curve: Curves.easeOutCubic,
-                                              ),
-                                            ),
-                                            child: child,
-                                          ),
+                          return (isLocked: isLocked, progress: moduleProgress, isFirstLocked: isFirstLocked);
+                        },
+                        builder: (context, data, child) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: ModuleCard(
+                              key: ValueKey(module.id),
+                              title: module.title,
+                              description: module.description,
+                              icon: module.icon,
+                              accentColor: color,
+                              progress: data.progress,
+                              isLocked: data.isLocked,
+                              index: index,
+                              isDark: isDark,
+                              enableAnimations: themeService.enableAnimations,
+                              onUnlockAd: (data.isLocked && data.isFirstLocked)
+                                  ? () async {
+                                      soundService.playTap();
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Loading Reward Ad...'),
+                                          duration: Duration(seconds: 2),
+                                        ),
+                                      );
+                                      final success = await context.read<AdService>().showRewardedAd();
+                                      if (!context.mounted) return;
+                                      if (success) {
+                                        await context.read<ProgressService>().unlockModuleWithAd(module.id);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Module Unlocked! 🔓')),
                                         );
-                                      },
-                                  transitionDuration: const Duration(
-                                    milliseconds: 400,
-                                  ),
-                                ),
-                              ).then((_) {
-                                if (context.mounted) {
-                                  final p = context.read<ProgressService>();
-                                  context.read<ReviewService>().tryShowReviewPrompt(
-                                    completedModules: p.completedModuleCount(allModules),
+                                      } else {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Failed to load ad. Please try again later.')),
+                                        );
+                                      }
+                                    }
+                                  : null,
+                              onTap: () {
+                                soundService.playTap();
+                                if (data.isLocked) {
+                                  _showLockedDialog(
+                                    context,
+                                    isDark,
+                                    module,
                                   );
+                                  return;
                                 }
-                              });
-                            },
-                          ),
-                        );
-                      }, childCount: allModules.length),
-                    ),
-                  );
-                },
+                                Navigator.push(
+                                  context,
+                                  PageRouteBuilder(
+                                    pageBuilder: (context2, animation, secondaryAnimation) => ModuleDetailScreen(
+                                      module: module,
+                                      accentColor: color,
+                                    ),
+                                    transitionsBuilder: (context2, anim, secondaryAnim, child) {
+                                      return FadeTransition(
+                                        opacity: anim,
+                                        child: SlideTransition(
+                                          position: Tween<Offset>(
+                                            begin: const Offset(1, 0),
+                                            end: Offset.zero,
+                                          ).animate(
+                                            CurvedAnimation(
+                                              parent: anim,
+                                              curve: Curves.easeOutCubic,
+                                            ),
+                                          ),
+                                          child: child,
+                                        ),
+                                      );
+                                    },
+                                    transitionDuration: const Duration(
+                                      milliseconds: 400,
+                                    ),
+                                  ),
+                                ).then((_) {
+                                  if (context.mounted) {
+                                    final p = context.read<ProgressService>();
+                                    context.read<ReviewService>().tryShowReviewPrompt(
+                                          completedModules: p.completedModuleCount(allModules),
+                                        );
+                                  }
+                                });
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    childCount: allModules.length,
+                    addAutomaticKeepAlives: false,
+                    addRepaintBoundaries: false,
+                  ),
+                ),
               ),
 
               // ── Certificate Achievement ──
