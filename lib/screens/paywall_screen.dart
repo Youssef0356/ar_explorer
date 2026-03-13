@@ -5,7 +5,9 @@ import '../services/subscription_service.dart';
 import '../services/theme_service.dart';
 
 class PaywallScreen extends StatelessWidget {
-  const PaywallScreen({super.key});
+  final Future<void> Function()? onUnlockAd;
+
+  const PaywallScreen({super.key, this.onUnlockAd});
 
   @override
   Widget build(BuildContext context) {
@@ -104,6 +106,33 @@ class PaywallScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              if (onUnlockAd != null) ...[
+                const SizedBox(height: 24),
+                Divider(color: AppTheme.dividerC(isDark)),
+                const SizedBox(height: 16),
+                Text(
+                  'Or, unlock just this module by watching a short ad.',
+                  textAlign: TextAlign.center,
+                  style: AppTheme.bodySmall.copyWith(color: AppTheme.textSecondaryC(isDark)),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton.icon(
+                    onPressed: onUnlockAd,
+                    icon: const Icon(Icons.play_circle_fill_rounded, size: 18),
+                    label: const Text('Watch Ad to Unlock'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.accentPurple,
+                      side: const BorderSide(color: AppTheme.accentPurple),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

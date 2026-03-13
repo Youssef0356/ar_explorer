@@ -56,8 +56,7 @@ class RoadmapScreen extends StatelessWidget {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final module = allModules[index];
-                    final isLocked = !progress.isModuleUnlocked(
-                        module.id, module.requiredQuizId);
+                    final isLocked = !progress.isModuleUnlocked(module);
                     final moduleProg = isLocked
                         ? 0.0
                         : progress.moduleProgress(

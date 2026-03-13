@@ -14,7 +14,7 @@ class ModuleCard extends StatelessWidget {
   final int index;
   final bool isDark;
   final bool enableAnimations;
-  final VoidCallback? onUnlockAd; // Callback for unlocking via ad
+  final bool isPremiumModule;
 
   const ModuleCard({
     super.key,
@@ -28,7 +28,7 @@ class ModuleCard extends StatelessWidget {
     required this.index,
     this.isDark = true,
     required this.enableAnimations,
-    this.onUnlockAd,
+    this.isPremiumModule = false,
   });
 
   @override
@@ -59,6 +59,25 @@ class ModuleCard extends StatelessWidget {
                             Colors.transparent,
                           ],
                         ),
+                      ),
+                    ),
+                  ),
+
+                // ── Crown Badge ──
+                if (isLocked && isPremiumModule)
+                  Positioned(
+                    top: 16,
+                    right: 16,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentAmber.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.workspace_premium_rounded,
+                        color: AppTheme.accentAmber,
+                        size: 20,
                       ),
                     ),
                   ),
@@ -170,7 +189,9 @@ class ModuleCard extends StatelessWidget {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: AppTheme.warningAmber.withValues(alpha: 0.1),
+                            color: isPremiumModule 
+                                ? AppTheme.accentAmber.withValues(alpha: 0.15)
+                                : AppTheme.warningAmber.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Column(
@@ -180,69 +201,27 @@ class ModuleCard extends StatelessWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    Icons.info_outline_rounded,
+                                    isPremiumModule ? Icons.workspace_premium_rounded : Icons.info_outline_rounded,
                                     size: 14,
-                                    color: AppTheme.warningAmber.withValues(
-                                      alpha: 0.7,
-                                    ),
+                                    color: isPremiumModule 
+                                        ? AppTheme.accentAmber
+                                        : AppTheme.warningAmber.withValues(alpha: 0.7),
                                   ),
                                   const SizedBox(width: 6),
                                   Expanded(
                                     child: Text(
-                                      'Complete previous quiz to unlock',
+                                      isPremiumModule ? 'Premium' : 'Complete previous quiz to unlock',
                                       style: AppTheme.bodySmall.copyWith(
-                                        color: AppTheme.warningAmber.withValues(
-                                          alpha: 0.7,
-                                        ),
+                                        color: isPremiumModule 
+                                            ? AppTheme.accentAmber
+                                            : AppTheme.warningAmber.withValues(alpha: 0.7),
                                         fontSize: 11,
+                                        fontWeight: isPremiumModule ? FontWeight.bold : FontWeight.normal,
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 6),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.workspace_premium_rounded,
-                                    size: 14,
-                                    color: AppTheme.accentAmber,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Text(
-                                      'Premium unlocks all modules',
-                                      style: AppTheme.bodySmall.copyWith(
-                                        color: AppTheme.accentAmber,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (onUnlockAd != null) ...[
-                                const SizedBox(height: 12),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton.icon(
-                                    onPressed: onUnlockAd,
-                                    icon: const Icon(Icons.play_circle_fill_rounded, size: 18),
-                                    label: const Text('WATCH AD TO UNLOCK'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppTheme.accentPurple,
-                                      foregroundColor: Colors.white,
-                                      textStyle: AppTheme.buttonText.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      elevation: 0,
-                                    ),
-                                  ),
-                                ),
-                              ],
                             ],
                           ),
                         ),

@@ -211,11 +211,11 @@ class HomeScreen extends StatelessWidget {
 
                       return Selector<ProgressService, ({bool isLocked, double progress, bool isFirstLocked})>(
                         selector: (context, progress) {
-                          final isLocked = !progress.isModuleUnlocked(module.id, module.requiredQuizId);
+                          final isLocked = !progress.isModuleUnlocked(module);
                           final moduleProgress = isLocked ? 0.0 : progress.moduleProgress(module.id, module.totalTopics);
                           
                           // Find first locked index for ad unlock logic
-                          final firstLockedIndex = allModules.indexWhere((m) => !progress.isModuleUnlocked(m.id, m.requiredQuizId));
+                          final firstLockedIndex = allModules.indexWhere((m) => !progress.isModuleUnlocked(m));
                           final isFirstLocked = index == firstLockedIndex;
 
                           return (isLocked: isLocked, progress: moduleProgress, isFirstLocked: isFirstLocked);
@@ -231,17 +231,18 @@ class HomeScreen extends StatelessWidget {
                               accentColor: color,
                               progress: data.progress,
                               isLocked: data.isLocked,
+                              isPremiumModule: module.unlockCost > 0,
                               index: index,
                               isDark: isDark,
                               enableAnimations: themeService.enableAnimations,
-                              onUnlockAd: (data.isLocked && data.isFirstLocked)
-                                  ? () async {
+                              onTap: () {
+                                soundService.playTap();
+                                if (data.isLocked) {
+                                  if (module.unlockCost > 0) {
+                                    final onUnlockAd = data.isFirstLocked ? () async {
                                       soundService.playTap();
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Loading Reward Ad...'),
-                                          duration: Duration(seconds: 2),
-                                        ),
+                                        const SnackBar(content: Text('Loading Reward Ad...'), duration: Duration(seconds: 2)),
                                       );
                                       final success = await context.read<AdService>().showRewardedAd();
                                       if (!context.mounted) return;
@@ -250,21 +251,21 @@ class HomeScreen extends StatelessWidget {
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           const SnackBar(content: Text('Module Unlocked! 🔓')),
                                         );
+                                        Navigator.of(context).pop(); // Close paywall
                                       } else {
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           const SnackBar(content: Text('Failed to load ad. Please try again later.')),
                                         );
                                       }
-                                    }
-                                  : null,
-                              onTap: () {
-                                soundService.playTap();
-                                if (data.isLocked) {
-                                  _showLockedDialog(
-                                    context,
-                                    isDark,
-                                    module,
-                                  );
+                                    } : null;
+                                    
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (_) => PaywallScreen(onUnlockAd: onUnlockAd as Future<void> Function()?)),
+                                    );
+                                  } else {
+                                    _showLockedDialog(context, isDark, module);
+                                  }
                                   return;
                                 }
                                 Navigator.push(

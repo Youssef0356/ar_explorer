@@ -606,7 +606,7 @@ final List<LearningModule> allModules = [
     description: 'How modern AR systems operate internally.',
     icon: Icons.memory_rounded,
     order: 3,
-    unlockCost: 0,
+    unlockCost: 1,
     requiredQuizId: 'quiz_intro',
     topics: [
       Topic(
@@ -898,7 +898,7 @@ final List<LearningModule> allModules = [
     description: 'Building AR apps with Vuforia, ARCore & AR Foundation.',
     icon: Icons.code_rounded,
     order: 4,
-    unlockCost: 0,
+    unlockCost: 1,
     requiredQuizId: 'quiz_tech',
     topics: [
       Topic(
@@ -1151,7 +1151,7 @@ final List<LearningModule> allModules = [
     description: 'Techniques for reliable, smooth, and efficient AR experiences.',
     icon: Icons.speed_rounded,
     order: 5,
-    unlockCost: 0,
+    unlockCost: 1,
     requiredQuizId: 'quiz_dev',
     topics: [
       Topic(
@@ -1401,7 +1401,7 @@ final List<LearningModule> allModules = [
     description: 'Deep-dive topics: Cloud Anchors, Depth API, and the future of AR.',
     icon: Icons.rocket_launch_rounded,
     order: 6,
-    unlockCost: 0,
+    unlockCost: 1,
     requiredQuizId: 'quiz_stab',
     topics: [
       Topic(
@@ -1542,7 +1542,7 @@ final List<LearningModule> allModules = [
     description: 'Bringing AR directly to the web browser — no app installation required.',
     icon: Icons.public_rounded,
     order: 7,
-    unlockCost: 0,
+    unlockCost: 1,
     requiredQuizId: 'quiz_advanced_ar',
     topics: [
       Topic(

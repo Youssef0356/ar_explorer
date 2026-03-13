@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/module_model.dart';
 import '../services/subscription_service.dart';
 
 class ProgressService extends ChangeNotifier {
@@ -154,19 +155,30 @@ class ProgressService extends ChangeNotifier {
   }
 
   // ── Module Unlock Logic ────────────────────────────────────────
-  /// A module is unlocked if it has no requiredQuizId, or if the user
-  /// has scored ≥ 70% on the required quiz, OR if they unlocked it via ad, OR if debug mode is ON, or if they are Premium.
-  bool isModuleUnlocked(String moduleId, String? requiredQuizId) {
+  /// A module is unlocked if:
+  /// 1. User is premium OR debug mode is ON
+  /// 2. Has passed required quiz (if any)
+  /// 3. If unlockCost > 0, must be in _adUnlockedModules
+  bool isModuleUnlocked(LearningModule module) {
     if (_subscriptionService?.isPremium ?? false) return true;
     if (_debugUnlockAll) return true; // Debug mode bypass
-    if (requiredQuizId == null) return true;
-    if (_adUnlockedModules.contains(moduleId)) return true;
-    final score = _quizScores[requiredQuizId];
-    return score != null && score >= 70;
+
+    // Check prerequisites
+    if (module.requiredQuizId != null) {
+      final score = _quizScores[module.requiredQuizId];
+      if (score == null || score < 70) return false;
+    }
+
+    // Check premium/ad requirement
+    if (module.unlockCost > 0) {
+      return _adUnlockedModules.contains(module.id);
+    }
+    
+    return true;
   }
 
-  bool canAccessModule(String moduleId, String? requiredQuizId) {
-    return isModuleUnlocked(moduleId, requiredQuizId);
+  bool canAccessModule(LearningModule module) {
+    return isModuleUnlocked(module);
   }
 
   Future<void> unlockModuleWithAd(String moduleId) async {
