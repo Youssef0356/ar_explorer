@@ -35,6 +35,8 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/AR vs VR vs MR vs XR/
+    - assets/images/Real World Examples vs Common Misconceptions/
 
 flutter_launcher_icons:
   android: true

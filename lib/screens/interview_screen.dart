@@ -11,6 +11,7 @@ import '../models/quiz_model.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
 import '../widgets/quiz_option_button.dart';
+import 'paywall_screen.dart';
 
 class InterviewScreen extends StatefulWidget {
   const InterviewScreen({super.key});
@@ -30,6 +31,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
   int? _selectedOption;
   bool _showResult = false;
   int _correctCount = 0;
+  bool _limitReached = false;
   int _secondsRemaining = _secondsPerQuestion;
   Timer? _timer;
   final Stopwatch _totalStopwatch = Stopwatch();
@@ -40,7 +42,15 @@ class _InterviewScreenState extends State<InterviewScreen> {
     super.dispose();
   }
 
-  void _startInterview() {
+  void _startInterview() async {
+    final progress = context.read<ProgressService>();
+    if (progress.interviewAttemptsLeft <= 0) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => PaywallScreen()));
+      return;
+    }
+
+    await progress.useInterviewAttempt();
+
     final all = allQuizzes.values
         .expand((quiz) => quiz.questions)
         .toList()
@@ -221,6 +231,20 @@ class _InterviewScreenState extends State<InterviewScreen> {
                     ),
                   ),
                 ],
+                const SizedBox(height: 12),
+                Consumer<ProgressService>(
+                  builder: (context, progress, _) {
+                    if (progress.isPremium) return const SizedBox.shrink();
+                    final left = progress.interviewAttemptsLeft;
+                    return Text(
+                      'Daily attempts: $left / 2',
+                      style: AppTheme.bodySmall.copyWith(
+                        color: left > 0 ? AppTheme.accentCyan : AppTheme.errorRed,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    );
+                  },
+                ),
                 const SizedBox(height: 32),
                 SizedBox(
                   width: 200,

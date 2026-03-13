@@ -36,6 +36,13 @@ final Map<String, List<Flashcard>> allFlashcards = {
     const Flashcard(id: 'fc_dev_3', moduleId: 'mod_dev', front: 'AR Foundation managers: ARPlaneManager does...', back: 'Detects planes and instantiates plane prefabs.'),
     const Flashcard(id: 'fc_dev_4', moduleId: 'mod_dev', front: 'Why filter hit results by trackable type?', back: 'Plane hits are more stable/reliable than feature point hits.'),
     const Flashcard(id: 'fc_dev_5', moduleId: 'mod_dev', front: 'AR Session Origin defines...', back: 'The world coordinate system\'s origin point and transform space for AR content placement.'),
+    const Flashcard(id: 'fc_dev_6', moduleId: 'mod_dev', front: 'ARCore min SDK version?', back: 'API 24 (Android 7.0) is the standard minimum for ARCore.'),
+    const Flashcard(id: 'fc_dev_7', moduleId: 'mod_dev', front: 'RealityKit vs SceneKit?', back: 'RealityKit is purpose-built for AR with native LiDAR and physics support; SceneKit is older/general purpose.'),
+    const Flashcard(id: 'fc_dev_8', moduleId: 'mod_dev', front: 'Vuforia Ground Plane?', back: 'Allows placing AR content on floors/tables without needing a physical marker.'),
+    const Flashcard(id: 'fc_dev_9', moduleId: 'mod_dev', front: 'ARCore Instant Placement?', back: 'Allows immediate object placement before a full plane is scanned.'),
+    const Flashcard(id: 'fc_dev_10', moduleId: 'mod_dev', front: 'arcore:required vs optional?', back: 'Required filters out non-AR phones from Google Play; Optional allows them.'),
+    const Flashcard(id: 'fc_dev_11', moduleId: 'mod_dev', front: 'People Occlusion (ARKit)?', back: 'Uses ML to render virtual objects behind humans in the camera view.'),
+    const Flashcard(id: 'fc_dev_12', moduleId: 'mod_dev', front: 'ARCore Geospatial API?', back: 'Uses Google Street View data to place AR content anywhere globally with GPS.'),
   ],
   'mod_stab': [
     const Flashcard(id: 'fc_stab_1', moduleId: 'mod_stab', front: 'Minimum FPS for comfortable AR?', back: '60 FPS — lower causes jitter and motion sickness.'),

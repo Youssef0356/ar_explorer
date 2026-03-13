@@ -394,6 +394,78 @@ final Map<String, Quiz> allQuizzes = {
         explanation:
             'When tracking is lost, the app should provide user guidance (e.g., "Point camera at the target") to help recover tracking.',
       ),
+      const QuizQuestion(
+        id: 'q3_7',
+        question: 'Which framework is Apple\'s modern standard for AR rendering?',
+        options: [
+          'SceneKit',
+          'RealityKit',
+          'Metal',
+          'UIKit',
+        ],
+        correctIndex: 1,
+        explanation: 'RealityKit is purpose-built for AR, offering native LiDAR support and physically-based rendering.',
+      ),
+      const QuizQuestion(
+        id: 'q3_8',
+        question: 'What does "arcore:required" in the AndroidManifest do?',
+        options: [
+          'Makes the app run faster',
+          'Filters out non-AR compatible devices from Google Play Store',
+          'Requests camera permission automatically',
+          'Enables 60 FPS mode',
+        ],
+        correctIndex: 1,
+        explanation: '"Required" ensures the app is only visible to users whose devices support ARCore.',
+      ),
+      const QuizQuestion(
+        id: 'q3_9',
+        question: 'What is the "AR Manager" pattern used for?',
+        options: [
+          'Managing user subscriptions',
+          'Separating spatial logic from UI logic',
+          'Scaling 3D models',
+          'Optimizing battery life',
+        ],
+        correctIndex: 1,
+        explanation: 'The AR Manager acts as a single controller for the AR session, keeping your UI code clean and decoupled.',
+      ),
+      const QuizQuestion(
+        id: 'q3_10',
+        question: 'Where must you define NSCameraUsageDescription on iOS?',
+        options: [
+          'AppDelegate.swift',
+          'Info.plist',
+          'Podfile',
+          'Assets.xcassets',
+        ],
+        correctIndex: 1,
+        explanation: 'iOS requires this string in the Info.plist to explain why the app needs camera access, or it will crash.',
+      ),
+      const QuizQuestion(
+        id: 'q3_11',
+        question: 'Which feature allows virtual objects to render BEHIND people?',
+        options: [
+          'Depth API / People Occlusion',
+          'Z-Fighting',
+          'LOD (Level of Detail)',
+          'Frustum Culling',
+        ],
+        correctIndex: 0,
+        explanation: 'People Occlusion uses ML or LiDAR to segment humans, allowing virtual content to be hidden behind them.',
+      ),
+      const QuizQuestion(
+        id: 'q3_12',
+        question: 'Can you test ARCore tracking in the standard Android Emulator?',
+        options: [
+          'Yes, it works perfectly',
+          'No, AR requires physical sensors and camera input',
+          'Yes, but only in grayscale',
+          'Yes, using a special "AR Mode" plugin',
+        ],
+        correctIndex: 1,
+        explanation: 'While basic logic can be tested in simulators, true AR tracking requires physical hardware sensors (IMU) and a real camera.',
+      ),
     ],
   ),
 

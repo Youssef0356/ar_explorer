@@ -20,6 +20,8 @@ class ProgressService extends ChangeNotifier {
   static const _usernameKey = 'user_name';
   static const _adUnlockedModulesKey = 'ad_unlocked_modules';
   static const _privacyAcceptedKey = 'has_accepted_privacy';
+  static const _interviewAttemptsDateKey = 'interview_attempts_date';
+  static const _interviewAttemptsCountKey = 'interview_attempts_count';
 
   SharedPreferences? _prefs;
   String _username = '';
@@ -159,8 +161,9 @@ class ProgressService extends ChangeNotifier {
   /// 1. User is premium OR debug mode is ON
   /// 2. Has passed required quiz (if any)
   /// 3. If unlockCost > 0, must be in _adUnlockedModules
-  bool isModuleUnlocked(LearningModule module) {
-    if (_subscriptionService?.isPremium ?? false) return true;
+  bool isModuleUnlocked(LearningModule module, {bool? isPremium}) {
+    final effectivePremium = isPremium ?? (_subscriptionService?.isPremium ?? false);
+    if (effectivePremium) return true;
     if (_debugUnlockAll) return true; // Debug mode bypass
 
     // Check prerequisites
@@ -177,8 +180,8 @@ class ProgressService extends ChangeNotifier {
     return true;
   }
 
-  bool canAccessModule(LearningModule module) {
-    return isModuleUnlocked(module);
+  bool canAccessModule(LearningModule module, {bool? isPremium}) {
+    return isModuleUnlocked(module, isPremium: isPremium);
   }
 
   Future<void> unlockModuleWithAd(String moduleId) async {
@@ -321,6 +324,37 @@ class ProgressService extends ChangeNotifier {
 
   bool hasAchievement(String achievementId) =>
       _achievements.contains(achievementId);
+
+  // ── Interview Daily Limits ──────────────────────────────────────
+  int get interviewAttemptsLeft {
+    if (isPremium) return 999;
+    
+    final lastDate = _prefs?.getString(_interviewAttemptsDateKey);
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    
+    if (lastDate != today) {
+      return 2; // Resets daily
+    }
+    
+    final count = _prefs?.getInt(_interviewAttemptsCountKey) ?? 0;
+    return (2 - count).clamp(0, 2);
+  }
+
+  Future<void> useInterviewAttempt() async {
+    if (isPremium) return;
+    
+    final lastDate = _prefs?.getString(_interviewAttemptsDateKey);
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    int count = 0;
+    
+    if (lastDate == today) {
+      count = _prefs?.getInt(_interviewAttemptsCountKey) ?? 0;
+    }
+    
+    await _prefs?.setString(_interviewAttemptsDateKey, today);
+    await _prefs?.setInt(_interviewAttemptsCountKey, count + 1);
+    notifyListeners();
+  }
 
   // ── Reset (for testing) ────────────────────────────────────────
   Future<void> resetAll() async {

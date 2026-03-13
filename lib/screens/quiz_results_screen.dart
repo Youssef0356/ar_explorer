@@ -8,6 +8,7 @@ import '../services/progress_service.dart';
 import '../services/theme_service.dart';
 import '../services/ad_service.dart';
 import '../widgets/shareable_achievement_card.dart';
+import 'paywall_screen.dart';
 
 class QuizResultsScreen extends StatefulWidget {
   final Quiz quiz;
@@ -283,6 +284,48 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                     ).animate().fadeIn(
                       delay: const Duration(milliseconds: 800),
                     ),
+                    if (widget.quiz.id == 'quiz_intro') ...[
+                      const SizedBox(height: 24),
+                      Divider(color: AppTheme.dividerC(isDark)),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: AppTheme.glassCard(isDark).copyWith(
+                          border: Border.all(color: AppTheme.accentCyan.withValues(alpha: 0.3)),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              '🚀 You\'ve Mastered the Basics!',
+                              style: AppTheme.headingSmall.copyWith(color: AppTheme.accentCyan),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Unlock Advanced AR modules (SLAM, Technical, WebAR) to continue your journey.',
+                              textAlign: TextAlign.center,
+                              style: AppTheme.bodySmall.copyWith(color: AppTheme.textSecondaryC(isDark)),
+                            ),
+                            const SizedBox(height: 20),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => PaywallScreen()),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.accentCyan,
+                                  foregroundColor: Colors.white,
+                                ),
+                                child: const Text('Unlock Everything'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ).animate().fadeIn(delay: const Duration(seconds: 1)),
+                    ],
                   ],
 
                   if (!_saved)

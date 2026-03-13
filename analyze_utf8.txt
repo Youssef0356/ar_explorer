@@ -1,4 +1,14 @@
-﻿Analyzing ar_explorer...                                        
+﻿Resolving dependencies...
+Downloading packages...
+  google_fonts 6.3.3 (8.0.2 available)
+  hooks 1.0.1 (1.0.2 available)
+  meta 1.17.0 (1.18.1 available)
+  native_toolchain_c 0.17.4 (0.17.5 available)
+  win32 5.15.0 (6.0.0 available)
+Got dependencies!
+5 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Analyzing ar_explorer...                                        
 
    info - Don't use 'BuildContext's across async gaps - lib\screens\home_screen.dart:251:62 - use_build_context_synchronously
    info - Don't use 'BuildContext's across async gaps - lib\screens\home_screen.dart:254:54 - use_build_context_synchronously

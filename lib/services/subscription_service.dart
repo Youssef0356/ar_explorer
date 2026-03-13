@@ -10,6 +10,7 @@ class SubscriptionService extends ChangeNotifier {
   bool _isPremium = false;
   bool _isLoading = false;
   String? _errorMessage;
+  String _localizedPrice = '\$4.99'; // fallback
 
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   late StreamSubscription<List<PurchaseDetails>> _subscription;
@@ -17,6 +18,7 @@ class SubscriptionService extends ChangeNotifier {
   bool get isPremium => _isPremium;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  String get localizedPrice => _localizedPrice;
 
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
@@ -65,6 +67,9 @@ class SubscriptionService extends ChangeNotifier {
     }
 
     final ProductDetails productDetails = response.productDetails.first;
+    _localizedPrice = productDetails.price;
+    notifyListeners();
+
     final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
     
     try {
@@ -82,15 +87,14 @@ class SubscriptionService extends ChangeNotifier {
     notifyListeners();
     try {
       await _inAppPurchase.restorePurchases();
-      // If no purchases were restored, the stream might not fire.
-      // We give it a brief delay to process stream events if any, then stop loading.
-      await Future.delayed(const Duration(milliseconds: 500));
-      if (!_isPremium && _errorMessage == null) {
-        _errorMessage = 'No purchases found to restore.';
-      }
+      // On slow connections, the purchase stream might not fire immediately.
+      await Future.delayed(const Duration(seconds: 3));
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
+      if (!_isPremium && _errorMessage == null) {
+        _errorMessage = 'No purchases found to restore.';
+      }
       _isLoading = false;
       notifyListeners();
     }

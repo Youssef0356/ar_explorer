@@ -1,6 +1,6 @@
 import 'dart:io' show Platform, exit;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -45,8 +45,9 @@ class HomeScreen extends StatelessWidget {
 
     final soundService = context.read<SoundService>();
     
-    return Scaffold(
-      body: AnimatedGoogleBackground(
+    return Material(
+      color: Colors.transparent,
+      child: AnimatedGoogleBackground(
         isDark: isDark,
         child: SafeArea(
           child: CustomScrollView(
@@ -118,14 +119,23 @@ class HomeScreen extends StatelessWidget {
                                     builder: (context, progress, _) => FittedBox(
                                       fit: BoxFit.scaleDown,
                                       alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        'Welcome, ${progress.username}!',
-                                        style: AppTheme.bodySmall.copyWith(
-                                          color: AppTheme.accentCyan.withValues(alpha: 0.7),
-                                          letterSpacing: 1,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                        maxLines: 1,
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'Welcome, ${progress.username}!',
+                                            style: AppTheme.bodySmall.copyWith(
+                                              color: AppTheme.accentCyan.withValues(alpha: 0.7),
+                                              letterSpacing: 1,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                            maxLines: 1,
+                                          ),
+                                          if (progress.isPremium) ...[
+                                            const SizedBox(width: 4),
+                                            const Icon(Icons.workspace_premium_rounded, size: 14, color: AppTheme.accentAmber),
+                                          ],
+                                        ],
                                       ),
                                     ),
                                   ),
@@ -149,6 +159,87 @@ class HomeScreen extends StatelessWidget {
                                 );
                               },
                             ),
+
+                            // ── Premium Crown Button ──
+                            Consumer<SubscriptionService>(
+                              builder: (context, subscription, _) {
+                                if (subscription.isPremium) {
+                                  // Show gold PREMIUM badge
+                                  return Tooltip(
+                                    message: 'Premium Active',
+                                    child: Container(
+                                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        gradient: const LinearGradient(
+                                          colors: [AppTheme.accentAmber, Color(0xFFFF8F00)],
+                                        ),
+                                        borderRadius: BorderRadius.circular(20),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppTheme.accentAmber.withValues(alpha: 0.4),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.workspace_premium_rounded,
+                                            color: Colors.white,
+                                            size: 14,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'PREMIUM',
+                                            style: AppTheme.bodySmall.copyWith(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                // Show crown icon button for non-premium users
+                                return Tooltip(
+                                  message: 'Unlock Premium',
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      soundService.playTap();
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const PaywallScreen()),
+                                      );
+                                    },
+                                    child: Container(
+                                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.accentAmber.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: AppTheme.accentAmber.withValues(alpha: 0.4),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: const Icon(
+                                        Icons.workspace_premium_rounded,
+                                        color: AppTheme.accentAmber,
+                                        size: 22,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+
                             _buildIconButton(
                               icon: Icons.settings_rounded,
                               tooltip: 'Parameters',
@@ -209,13 +300,13 @@ class HomeScreen extends StatelessWidget {
                       final module = allModules[index];
                       final color = AppTheme.getModuleColor(index);
 
-                      return Selector<ProgressService, ({bool isLocked, double progress, bool isFirstLocked})>(
-                        selector: (context, progress) {
-                          final isLocked = !progress.isModuleUnlocked(module);
+                      return Selector2<ProgressService, SubscriptionService, ({bool isLocked, double progress, bool isFirstLocked})>(
+                        selector: (context, progress, subscription) {
+                          final isLocked = !progress.isModuleUnlocked(module, isPremium: subscription.isPremium);
                           final moduleProgress = isLocked ? 0.0 : progress.moduleProgress(module.id, module.totalTopics);
                           
                           // Find first locked index for ad unlock logic
-                          final firstLockedIndex = allModules.indexWhere((m) => !progress.isModuleUnlocked(m));
+                          final firstLockedIndex = allModules.indexWhere((m) => !progress.isModuleUnlocked(m, isPremium: subscription.isPremium));
                           final isFirstLocked = index == firstLockedIndex;
 
                           return (isLocked: isLocked, progress: moduleProgress, isFirstLocked: isFirstLocked);
@@ -239,7 +330,7 @@ class HomeScreen extends StatelessWidget {
                                 soundService.playTap();
                                 if (data.isLocked) {
                                   if (module.unlockCost > 0) {
-                                    final onUnlockAd = data.isFirstLocked ? () async {
+                                    final Future<void> Function()? onUnlockAd = data.isFirstLocked ? () async {
                                       soundService.playTap();
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(content: Text('Loading Reward Ad...'), duration: Duration(seconds: 2)),
@@ -261,7 +352,10 @@ class HomeScreen extends StatelessWidget {
                                     
                                     Navigator.push(
                                       context,
-                                      MaterialPageRoute(builder: (_) => PaywallScreen(onUnlockAd: onUnlockAd as Future<void> Function()?)),
+                                      MaterialPageRoute(builder: (_) => PaywallScreen(
+                                        onUnlockAd: onUnlockAd,
+                                        moduleName: module.title,
+                                      )),
                                     );
                                   } else {
                                     _showLockedDialog(context, isDark, module);
@@ -597,28 +691,40 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Expanded(
-                child: _buildQuickActionButton(
-                  context: context,
-                  isDark: isDark,
-                  title: 'Interview',
-                  subtitle: 'Mock Test',
-                  icon: Icons.timer_rounded,
-                  iconColor: AppTheme.accentAmber,
-                  enableAnimations: enableAnimations,
-                  isPremiumLocked: !isPremium,
-                  onTap: () {
-                    if (!isPremium) {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
-                      return;
-                    }
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const InterviewScreen()),
-                    );
-                  },
-                  delay: 500,
-                ),
+              Consumer2<ProgressService, SubscriptionService>(
+                builder: (context, progress, subscription, _) {
+                  final trialsLeft = progress.interviewAttemptsLeft;
+                  final isLocked = !subscription.isPremium && trialsLeft <= 0;
+                  
+                  return Expanded(
+                    child: _buildQuickActionButton(
+                      context: context,
+                      isDark: isDark,
+                      title: 'Interview',
+                      subtitle: subscription.isPremium 
+                          ? 'Unlimited Practice' 
+                          : (trialsLeft > 0 ? '$trialsLeft Trials Left' : 'Trial Ended'),
+                      icon: Icons.timer_rounded,
+                      iconColor: AppTheme.accentAmber,
+                      enableAnimations: enableAnimations,
+                      isPremiumLocked: isLocked,
+                      onTap: () {
+                        if (isLocked) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const PaywallScreen()),
+                          );
+                          return;
+                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const InterviewScreen()),
+                        );
+                      },
+                      delay: 500,
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -1030,7 +1136,7 @@ class HomeScreen extends StatelessWidget {
                         Share.share(
                           '🚀 Check out AR Explorer – the ultimate app to learn Augmented Reality concepts!\n\n'
                           'Download it on Google Play:\n'
-                          'https://play.google.com/store/apps/details?id=com.example.ar_explorer',
+                          'https://play.google.com/store/apps/details?id=com.the356company.arexplorer',
                           subject: 'AR Explorer – Learn Augmented Reality',
                         );
                       },
@@ -1121,6 +1227,7 @@ class HomeScreen extends StatelessWidget {
                       },
                     ),
                     // ── Testing Section ──
+                    if (kDebugMode)
                     Consumer<ProgressService>(
                       builder: (context, progress, _) => Column(
                         children: [

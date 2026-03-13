@@ -261,6 +261,45 @@ class ContentRenderer extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Divider(color: AppTheme.dividerC(isDark)),
         );
+      case ContentBlockType.image:
+        return _buildImage(block.content, isDark);
     }
+  }
+
+  Widget _buildImage(String path, bool isDark) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Image.asset(
+          path,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              height: 200,
+              color: AppTheme.cardC(isDark),
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.broken_image_rounded, size: 48, color: Colors.grey),
+                  SizedBox(height: 12),
+                  Text('Image not found', style: TextStyle(color: Colors.grey)),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 }
