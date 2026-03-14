@@ -21,7 +21,7 @@ class InterviewScreen extends StatefulWidget {
   State<InterviewScreen> createState() => _InterviewScreenState();
 }
 
-class _InterviewScreenState extends State<InterviewScreen> {
+class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingObserver {
   static const _secondsPerQuestion = 90;
   static const _totalQuestions = 10;
 
@@ -39,9 +39,42 @@ class _InterviewScreenState extends State<InterviewScreen> {
   String? _selectedCategory;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!_started || _finished || _showResult) return;
+
+    if (state == AppLifecycleState.paused) {
+      _timer?.cancel();
+      _totalStopwatch.stop();
+    } else if (state == AppLifecycleState.resumed) {
+      _resumeTimer();
+      _totalStopwatch.start();
+    }
+  }
+
+  void _resumeTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return;
+      setState(() {
+        _secondsRemaining--;
+      });
+      if (_secondsRemaining <= 0) {
+        _timeUp();
+      }
+    });
   }
 
   void _startInterview() async {

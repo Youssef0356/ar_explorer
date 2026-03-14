@@ -7,6 +7,7 @@ import 'home_screen.dart';
 import 'roadmap_screen.dart';
 import 'bookmarks_screen.dart';
 import 'achievements_screen.dart';
+import 'game_map_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -21,6 +22,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = const [
     HomeScreen(),
     RoadmapScreen(),
+    GameMapScreen(),
     BookmarksScreen(),
     AchievementsScreen(),
   ];
@@ -74,6 +76,11 @@ class _MainScreenState extends State<MainScreen> {
                   icon: Icon(Icons.map_rounded),
                   activeIcon: Icon(Icons.map_rounded),
                   label: 'ROADMAP',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.terminal_rounded),
+                  activeIcon: Icon(Icons.terminal_rounded),
+                  label: 'ENGINEER',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.bookmark_rounded),

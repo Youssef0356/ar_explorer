@@ -13,40 +13,39 @@ import 'services/sound_service.dart';
 import 'services/ad_service.dart';
 import 'services/review_service.dart';
 import 'services/subscription_service.dart';
+import 'services/game_progress_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await MobileAds.instance.initialize();
 
   final subscriptionService = SubscriptionService();
-  await subscriptionService.init();
-
-  final progressService = ProgressService();
-  await progressService.init();
-  progressService.setSubscriptionService(subscriptionService);
-
   final themeService = ThemeService();
-  await themeService.init();
-
-  final soundService = SoundService();
-  await soundService.init();
-
+  final progressService = ProgressService();
   final adService = AdService();
+  final soundService = SoundService();
+  final reviewService = ReviewService();
+  final gameProgressService = GameProgressService();
+
+  // Initialize all services
+  await subscriptionService.init();
+  await themeService.init();
+  await progressService.init();
+  await gameProgressService.init();
   adService.setSubscriptionService(subscriptionService);
   adService.init();
-
-  final reviewService = ReviewService();
-  await reviewService.init();
+  progressService.setSubscriptionService(subscriptionService);
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: subscriptionService),
-        ChangeNotifierProvider.value(value: progressService),
         ChangeNotifierProvider.value(value: themeService),
-        ChangeNotifierProvider.value(value: soundService),
+        ChangeNotifierProvider.value(value: progressService),
         ChangeNotifierProvider.value(value: adService),
+        ChangeNotifierProvider.value(value: soundService),
         ChangeNotifierProvider.value(value: reviewService),
+        ChangeNotifierProvider.value(value: gameProgressService),
       ],
       child: const ARExplorerApp(),
     ),

@@ -149,8 +149,8 @@ class ProgressService extends ChangeNotifier {
   }
 
   Future<void> saveQuizScore(String quizId, int scorePercent) async {
-    final existing = _quizScores[quizId] ?? 0;
-    if (scorePercent > existing) {
+    final existing = _quizScores[quizId] ?? -1;
+    if (existing == -1 || scorePercent > existing) {
       _quizScores[quizId] = scorePercent;
     }
 

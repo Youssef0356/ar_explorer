@@ -8,7 +8,6 @@ class SubscriptionService extends ChangeNotifier {
   static const String _premiumProductId = 'ar_explorer_premium_lifetime';
 
   // DEBUG: Testing override for premium features
-  // TODO: Remove this before production release
   static const String _debugPremiumOverrideKey = 'debug_premium_override';
   bool _debugPremiumOverride = false;
 
@@ -19,13 +18,13 @@ class SubscriptionService extends ChangeNotifier {
 
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   late StreamSubscription<List<PurchaseDetails>> _subscription;
+  Completer<void>? _restoreCompleter;
 
   // DEBUG: Getter for debug override status
-  // TODO: Remove this before production release
-  bool get debugPremiumOverride => _debugPremiumOverride;
+  bool get debugPremiumOverride => kDebugMode && _debugPremiumOverride;
 
   // Modified isPremium getter to check debug override
-  bool get isPremium => _debugPremiumOverride || _isPremium;
+  bool get isPremium => (kDebugMode && _debugPremiumOverride) || _isPremium;
   bool get actualPremiumStatus => _isPremium; // Real purchase status
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -34,9 +33,10 @@ class SubscriptionService extends ChangeNotifier {
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     _isPremium = prefs.getBool(_premiumKey) ?? false;
-    // DEBUG: Load debug override setting
-    // TODO: Remove this before production release
-    _debugPremiumOverride = prefs.getBool(_debugPremiumOverrideKey) ?? false;
+    
+    if (kDebugMode) {
+      _debugPremiumOverride = prefs.getBool(_debugPremiumOverrideKey) ?? false;
+    }
     notifyListeners();
 
     final Stream<List<PurchaseDetails>> purchaseUpdated = _inAppPurchase.purchaseStream;
@@ -116,23 +116,35 @@ class SubscriptionService extends ChangeNotifier {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
+    
+    _restoreCompleter = Completer<void>();
+    
     try {
       await _inAppPurchase.restorePurchases();
-      // On slow connections, the purchase stream might not fire immediately.
-      await Future.delayed(const Duration(seconds: 3));
+      
+      // Wait for the stream to process restored purchases or timeout
+      await _restoreCompleter!.future.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          if (!_isPremium) {
+            _errorMessage = 'No purchases found to restore.';
+          }
+        },
+      );
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
-      if (!_isPremium && _errorMessage == null) {
-        _errorMessage = 'No purchases found to restore.';
-      }
       _isLoading = false;
+      _restoreCompleter = null;
       notifyListeners();
     }
   }
 
   void _onPurchaseUpdate(List<PurchaseDetails> purchaseDetailsList) {
     if (purchaseDetailsList.isEmpty) {
+      if (_restoreCompleter != null && !_restoreCompleter!.isCompleted) {
+        _restoreCompleter!.complete();
+      }
       _isLoading = false;
       notifyListeners();
       return;
@@ -147,6 +159,10 @@ class SubscriptionService extends ChangeNotifier {
         } else if (purchaseDetails.status == PurchaseStatus.purchased ||
                    purchaseDetails.status == PurchaseStatus.restored) {
           _setPremiumStatus(true);
+          // If we were restoring, we found something
+          if (_restoreCompleter != null && !_restoreCompleter!.isCompleted) {
+            _restoreCompleter!.complete();
+          }
         }
         
         if (purchaseDetails.pendingCompletePurchase) {
@@ -155,6 +171,13 @@ class SubscriptionService extends ChangeNotifier {
         _isLoading = false;
       }
     }
+    
+    // Fallback completion for empty or non-restoring updates
+    if (_restoreCompleter != null && !_restoreCompleter!.isCompleted && 
+        purchaseDetailsList.every((p) => p.status != PurchaseStatus.pending)) {
+       _restoreCompleter!.complete();
+    }
+
     notifyListeners();
   }
 
@@ -166,8 +189,8 @@ class SubscriptionService extends ChangeNotifier {
   }
 
   // DEBUG: Toggle premium override for testing
-  // TODO: Remove this before production release
   Future<void> toggleDebugPremiumOverride() async {
+    if (!kDebugMode) return;
     final prefs = await SharedPreferences.getInstance();
     _debugPremiumOverride = !_debugPremiumOverride;
     await prefs.setBool(_debugPremiumOverrideKey, _debugPremiumOverride);
@@ -175,8 +198,8 @@ class SubscriptionService extends ChangeNotifier {
   }
 
   // DEBUG: Reset all premium status (for testing cleanup)
-  // TODO: Remove this before production release
   Future<void> resetDebugPremiumStatus() async {
+    if (!kDebugMode) return;
     final prefs = await SharedPreferences.getInstance();
     _debugPremiumOverride = false;
     await prefs.setBool(_debugPremiumOverrideKey, false);
