@@ -63,25 +63,6 @@ class ModuleCard extends StatelessWidget {
                     ),
                   ),
 
-                // ── Crown Badge ──
-                if (isLocked && isPremiumModule)
-                  Positioned(
-                    top: 16,
-                    right: 16,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: AppTheme.accentAmber.withValues(alpha: 0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.workspace_premium_rounded,
-                        color: AppTheme.accentAmber,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-
                 // ── Content ──
                 Padding(
                   padding: const EdgeInsets.all(20),

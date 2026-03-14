@@ -100,7 +100,7 @@ class PaywallScreen extends StatelessWidget {
                     
                     // ── Social Proof ──
                     Text(
-                      'Trusted by AR developers in 172 countries',
+                      'Unlock premium AR learning content',
                       style: AppTheme.bodySmall.copyWith(
                         color: AppTheme.textMutedC(isDark),
                         fontStyle: FontStyle.italic,

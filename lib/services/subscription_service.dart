@@ -7,6 +7,11 @@ class SubscriptionService extends ChangeNotifier {
   static const String _premiumKey = 'is_premium';
   static const String _premiumProductId = 'ar_explorer_premium_lifetime';
 
+  // DEBUG: Testing override for premium features
+  // TODO: Remove this before production release
+  static const String _debugPremiumOverrideKey = 'debug_premium_override';
+  bool _debugPremiumOverride = false;
+
   bool _isPremium = false;
   bool _isLoading = false;
   String? _errorMessage;
@@ -15,7 +20,13 @@ class SubscriptionService extends ChangeNotifier {
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   late StreamSubscription<List<PurchaseDetails>> _subscription;
 
-  bool get isPremium => _isPremium;
+  // DEBUG: Getter for debug override status
+  // TODO: Remove this before production release
+  bool get debugPremiumOverride => _debugPremiumOverride;
+
+  // Modified isPremium getter to check debug override
+  bool get isPremium => _debugPremiumOverride || _isPremium;
+  bool get actualPremiumStatus => _isPremium; // Real purchase status
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   String get localizedPrice => _localizedPrice;
@@ -23,6 +34,9 @@ class SubscriptionService extends ChangeNotifier {
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     _isPremium = prefs.getBool(_premiumKey) ?? false;
+    // DEBUG: Load debug override setting
+    // TODO: Remove this before production release
+    _debugPremiumOverride = prefs.getBool(_debugPremiumOverrideKey) ?? false;
     notifyListeners();
 
     final Stream<List<PurchaseDetails>> purchaseUpdated = _inAppPurchase.purchaseStream;
@@ -131,6 +145,24 @@ class SubscriptionService extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_premiumKey, status);
     _isPremium = status;
+    notifyListeners();
+  }
+
+  // DEBUG: Toggle premium override for testing
+  // TODO: Remove this before production release
+  Future<void> toggleDebugPremiumOverride() async {
+    final prefs = await SharedPreferences.getInstance();
+    _debugPremiumOverride = !_debugPremiumOverride;
+    await prefs.setBool(_debugPremiumOverrideKey, _debugPremiumOverride);
+    notifyListeners();
+  }
+
+  // DEBUG: Reset all premium status (for testing cleanup)
+  // TODO: Remove this before production release
+  Future<void> resetDebugPremiumStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    _debugPremiumOverride = false;
+    await prefs.setBool(_debugPremiumOverrideKey, false);
     notifyListeners();
   }
 

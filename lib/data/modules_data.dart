@@ -1156,16 +1156,147 @@ final List<LearningModule> allModules = [
   ),
 
   // ───────────────────────────────────────────────────────────────
-  //  MODULE 5 — Stabilization & Performance
+  //  MODULE 5 — Spatial UX & Design
+  // ───────────────────────────────────────────────────────────────
+  LearningModule(
+    id: 'mod_spatial_ux',
+    title: 'Spatial UX & Design',
+    description: 'Designing intuitive, safe, and human-centered AR experiences.',
+    icon: Icons.design_services_rounded,
+    order: 5,
+    unlockCost: 0,
+    requiredQuizId: 'quiz_dev',
+    topics: [
+      Topic(
+        id: 'ux_fundamentals',
+        title: 'Spatial UX Fundamentals',
+        subtitle: 'The 5 Pillars of Spatial Interface Design',
+        contentBlocks: [
+          const ContentBlock.heading('Designing for Spatial Computing'),
+          const ContentBlock.body(
+            'AR is not a screen-based interface — it is a spatial one. Traditional UI patterns '              'do not translate directly to three-dimensional space. Understanding spatial UX principles '            'is essential before building any AR application.',
+          ),
+          const ContentBlock.subheading('The 5 Pillars of Spatial UX'),
+          const ContentBlock.bullet(
+            'Environment: UI must never cover real-world safety hazards or block the user\'s peripheral awareness.',
+          ),
+          const ContentBlock.bullet(
+            'Onboarding: Use visual motion hints (e.g., "scan floor animation") instead of lengthy text instructions.',
+          ),
+          const ContentBlock.bullet(
+            'Movement: Encourage physical movement to improve tracking without causing neck strain or disorientation.',
+          ),
+          const ContentBlock.bullet(
+            'Interface: Apply Progressive Disclosure — show summary information by default, reveal full detail only when the user requests it.',
+          ),
+          const ContentBlock.bullet(
+            'Interaction: Replace tap-and-hold menus with natural spatial gestures — Grab, Move, Pin, Resize.',
+          ),
+          const ContentBlock.subheading('Comfort & Safety Zones'),
+          const ContentBlock.body(
+            'Comfort zone for fixed UI elements: 1.25m–2m in front of the user at a slight downward angle. '            'Content too close causes eye strain; content too far is hard to read.',
+          ),
+          const ContentBlock.warning(
+            'Critical rule: never place virtual content directly over the ground plane at floor level — '            'it can hide physical steps, thresholds, or obstacles and create a safety hazard.',
+          ),
+          const ContentBlock.info(
+            'AR apps used while moving must dynamically simplify their UI when walking is detected.',
+          ),
+          const ContentBlock.quote(
+            'DESIGN TIP: Use "Billboarding" for floating UI. \n'
+            'This ensures that text panels always rotate to face the user, '
+            'regardless of their angle relative to the virtual object.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'gesture_interaction',
+        title: 'Gestures & Interaction Patterns',
+        subtitle: 'Natural input methods for spatial interfaces.',
+        contentBlocks: [
+          const ContentBlock.heading('Direct vs. Indirect Manipulation'),
+          const ContentBlock.body(
+            'AR supports both direct manipulation (touching virtual objects with your hand) '            'and indirect manipulation (using controllers or gaze-based selection). '            'Each approach has distinct UX implications.',
+          ),
+          const ContentBlock.subheading('Hand & Gesture Input'),
+          const ContentBlock.bullet(
+            'Air Tap: The universal "select" gesture. Index finger up, pinch with thumb.',
+          ),
+          const ContentBlock.bullet(
+            'Two-Hand Manipulation: Scale and rotate objects using both hands simultaneously.',
+          ),
+          const ContentBlock.bullet(
+            'Palm-up Menu: Display contextual options when the user shows their palm.',
+          ),
+          const ContentBlock.subheading('Gaze-Based Interaction'),
+          const ContentBlock.body(
+            'For hands-free scenarios (e.g., field technicians), dwell-based gaze selection '            'allows users to select objects by looking at them for a defined duration (typically 1-2 seconds).',
+          ),
+          const ContentBlock.code(
+            '// Pseudo-code: Dwell-based selection\n'
+            'if (gazeObject.dwellTime > 1.5f) {\n'
+            '    TriggerSelection(gazeObject);\n'
+            '}',
+          ),
+          const ContentBlock.info(
+            'Always provide audio or haptic feedback to confirm gesture recognition. '
+            'Users cannot see their own hands if tracked by a head-mounted device.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'visual_feedback',
+        title: 'Visual Feedback & Transitions',
+        subtitle: 'Communicating state changes in AR.',
+        contentBlocks: [
+          const ContentBlock.heading('Progressive Disclosure Techniques'),
+          const ContentBlock.body(
+            'Never overwhelm users with all available information at once. '            'Use progressive disclosure to reveal details based on context and proximity.',
+          ),
+          const ContentBlock.subheading('Proximity-Based UI'),
+          const ContentBlock.bullet(
+            'Far (3m+): Show minimal indicators (icons, simple labels).',
+          ),
+          const ContentBlock.bullet(
+            'Medium (1-3m): Display key information and action hints.',
+          ),
+          const ContentBlock.bullet(
+            'Near (<1m): Show full detail panels and interactive controls.',
+          ),
+          const ContentBlock.subheading('Tracking Quality Visual Cues'),
+          const ContentBlock.body(
+            'Use non-verbal visual cues to communicate tracking state:',
+          ),
+          const ContentBlock.bullet(
+            'TRACKING: Content renders at full opacity with shadows.',
+          ),
+          const ContentBlock.bullet(
+            'LIMITED: Content desaturates or shows ghosting effect.',
+          ),
+          const ContentBlock.bullet(
+            'NONE: Content fades out with a "searching" indicator.',
+          ),
+          const ContentBlock.quote(
+            'PRO TIP: Use "Visual Consistency" cues. \n'
+            'If tracking is LIMITED, desaturate the virtual content or show a ghosting effect. '
+            'This non-verbally communicates to the user that the alignment is currently approximate.',
+          ),
+        ],
+      ),
+    ],
+  ),
+
+  // ───────────────────────────────────────────────────────────────
+  //  MODULE 6 — Stabilization & Performance
   // ───────────────────────────────────────────────────────────────
   LearningModule(
     id: 'mod_stab',
     title: 'Stabilization & Performance',
     description: 'Techniques for reliable, smooth, and efficient AR experiences.',
     icon: Icons.speed_rounded,
-    order: 5,
+    order: 6,
     unlockCost: 1,
-    requiredQuizId: 'quiz_dev',
+    requiredQuizId: 'quiz_spatial_ux',
     topics: [
       Topic(
         id: 'anchor_stability',
@@ -1437,46 +1568,17 @@ final List<LearningModule> allModules = [
   ),
 
   // ───────────────────────────────────────────────────────────────
-  //  MODULE 6 — Advanced Topics
+  //  MODULE 12 — Advanced Topics
   // ───────────────────────────────────────────────────────────────
   LearningModule(
     id: 'mod_advanced',
     title: 'Advanced AR Knowledge',
-    description: 'Deep-dive topics: Cloud Anchors, Depth API, and the future of AR.',
+    description: 'Deep-dive topics: Depth API, Scene Semantics, and the future of AR.',
     icon: Icons.rocket_launch_rounded,
-    order: 6,
+    order: 12,
     unlockCost: 1,
-    requiredQuizId: 'quiz_stab',
+    requiredQuizId: 'quiz_ar_cloud',
     topics: [
-      Topic(
-        id: 'cloud_anchors',
-        title: 'Cloud Anchors & Shared AR',
-        subtitle: 'Multi-User Persistence.',
-        contentBlocks: [
-          const ContentBlock.heading('Cloud Anchors & Shared Experiences'),
-          const ContentBlock.body(
-            'Cloud Anchors allow multiple users to see the same virtual object in the same physical spot, even across iOS and Android.',
-          ),
-          const ContentBlock.subheading('Workflow & Reliability'),
-          const ContentBlock.numbered(
-            '1. Host device creates an anchor. Always check CloudAnchorState == SUCCESS before sharing the ID.',
-          ),
-          const ContentBlock.numbered(
-            '2. TTL (Time to Live): Anchors expire in 24h by default. Set ttlDays (up to 365) for long-term persistence.',
-          ),
-          const ContentBlock.numbered(
-            '3. Resolving: Guest devices call resolveCloudAnchorAsync(id) to align their coordinate systems.',
-          ),
-          const ContentBlock.info(
-            'ERROR_HOSTING_DATASET_PROCESSING_FAILED means the environment wasn\'t mapped richly enough. Move the device more to capture a better feature point cloud.',
-          ),
-          const ContentBlock.quote(
-            'INTERVIEW FOCUS: Shared AR Architecture\n'
-            'Q: "How do you build a multi-user AR app with 10 users?"\n'
-            'A: Use ARCore Cloud Anchors. One device hosts the anchor while scanning the surface. The resulting ID is shared via a background server (like Firebase). Other devices resolve that ID to synchronize their spatial coordinates.',
-          ),
-        ],
-      ),
       Topic(
         id: 'depth_occlusion',
         title: 'Depth API & Occlusion',
@@ -1620,9 +1722,9 @@ final List<LearningModule> allModules = [
     title: 'WebAR Fundamentals',
     description: 'Bringing AR directly to the web browser — no app installation required.',
     icon: Icons.public_rounded,
-    order: 7,
+    order: 8,
     unlockCost: 1,
-    requiredQuizId: 'quiz_advanced_ar',
+    requiredQuizId: 'quiz_perf',
     topics: [
       Topic(
         id: 'webar_intro',
@@ -1751,14 +1853,14 @@ final List<LearningModule> allModules = [
   ),
 
   // ───────────────────────────────────────────────────────────────
-  //  MODULE 8 — OpenXR Standard
+  //  MODULE 9 — OpenXR Standard
   // ───────────────────────────────────────────────────────────────
   LearningModule(
     id: 'openxr',
     title: 'OpenXR Standard',
     description: 'The open standard unifying XR development across all platforms and devices.',
     icon: Icons.link_rounded,
-    order: 8,
+    order: 9,
     unlockCost: 0,
     requiredQuizId: 'quiz_webar',
     topics: [
@@ -1889,139 +1991,6 @@ final List<LearningModule> allModules = [
   ),
 
   // ───────────────────────────────────────────────────────────────
-  //  MODULE 9 — The AR Cloud
-  // ───────────────────────────────────────────────────────────────
-  LearningModule(
-    id: 'ar_cloud',
-    title: 'The AR Cloud',
-    description: 'Persistent, shared, and city-scale spatial computing experiences.',
-    icon: Icons.cloud_rounded,
-    order: 9,
-    unlockCost: 0,
-    requiredQuizId: 'quiz_openxr',
-    topics: [
-      Topic(
-        id: 'arcloud_concept',
-        title: 'What Is the AR Cloud?',
-        subtitle: 'A persistent digital layer over the physical world.',
-        contentBlocks: [
-          const ContentBlock.heading('Beyond Single-User, Single-Session AR'),
-          const ContentBlock.body(
-            'Today\'s standard mobile AR is ephemeral: objects disappear when you close the app, '
-            'and no one else can see what you placed. The AR Cloud envisions a world where digital content '
-            'is persistent — it stays exactly where you left it — and shared — everyone with the right app sees it.',
-          ),
-          const ContentBlock.subheading('Core Properties'),
-          const ContentBlock.bullet(
-            'Persistence: Virtual objects remain anchored in the physical world across sessions, days, and device restarts.',
-          ),
-          const ContentBlock.bullet(
-            'Multiuser: Multiple users on different devices, in the same physical space, see the same virtual objects simultaneously.',
-          ),
-          const ContentBlock.bullet(
-            'World Scale: A sufficiently dense AR Cloud could map entire buildings, campuses, or cities.',
-          ),
-          const ContentBlock.info(
-            'The AR Cloud requires a high-precision 3D spatial map of the environment stored server-side, '
-            'combined with fast relocalization on the device — the ability to instantly recognise "where I am" '
-            'relative to the stored map.',
-          ),
-        ],
-      ),
-      Topic(
-        id: 'arcloud_platforms',
-        title: 'AR Cloud Platforms',
-        subtitle: 'Azure Spatial Anchors, Google Cloud Anchors, and Niantic Lightship.',
-        contentBlocks: [
-          const ContentBlock.heading('Current AR Cloud Solutions'),
-          const ContentBlock.subheading('Azure Spatial Anchors (ASA)'),
-          const ContentBlock.body(
-            'Microsoft\'s enterprise AR Cloud. Stores spatial anchors in Azure, supports iOS, Android, and HoloLens. '
-            'Designed for large industrial deployments: a factory floor, a hospital wing, a construction site.',
-          ),
-          const ContentBlock.bullet('Cross-platform and cross-device by design.'),
-          const ContentBlock.bullet('Supports "nearby anchors" queries to discover anchors in a physical area.'),
-          const ContentBlock.bullet('Integrates with Azure services for enterprise security and access control.'),
-          const ContentBlock.subheading('Google Cloud Anchors (ARCore)'),
-          const ContentBlock.body(
-            'Google\'s AR Cloud for consumer and developer use. Limited to ARCore-compatible Android devices. '
-            'Best suited for multi-user shared social or gaming experiences.',
-          ),
-          const ContentBlock.subheading('Niantic Lightship (VPS)'),
-          const ContentBlock.body(
-            'Niantic\'s Visual Positioning System uses crowdsourced scans from Pokémon GO and Ingress players '
-            'to build a global AR Cloud. Developers can access it through the Lightship SDK.',
-          ),
-          const ContentBlock.bullet('Covers tens of thousands of real-world locations.'),
-          const ContentBlock.bullet('Enables centimetre-accurate relocalization at street scale.'),
-          const ContentBlock.info(
-            'The AR Cloud is the infrastructure that transforms AR from a personal toy into a shared communication layer — '
-            'the equivalent of what the internet did for information, applied to physical space.',
-          ),
-          const ContentBlock.quote(
-            'PRO INSIGHT: The AR Cloud is "The Digital Twin of the World." \n'
-            'Companies like Google and Apple are building this not just for fun, '
-            'but because whoever owns the 3D map of the world owns the interface '
-            'for the next decade of spatial computing.',
-          ),
-          const ContentBlock.code(
-            '// Google Cloud Anchors: Hosting an anchor (Kotlin)\n'
-            'session.hostCloudAnchorAsync(anchor) { cloudAnchorId, state ->\n'
-            '    if (state == Anchor.CloudAnchorState.SUCCESS) {\n'
-            '        // Share cloudAnchorId to your backend (e.g. Firebase)\n'
-            '        saveToFirebase(cloudAnchorId)\n'
-            '    }\n'
-            '}',
-          ),
-        ],
-      ),
-      Topic(
-        id: 'arcloud_challenges',
-        title: 'AR Cloud Challenges',
-        subtitle: 'Privacy, scale, and technical hurdles.',
-        contentBlocks: [
-          const ContentBlock.heading('Unsolved Problems'),
-          const ContentBlock.body(
-            'The AR Cloud is technically achievable in controlled environments, but achieving '
-            'world-scale deployment presents formidable challenges.',
-          ),
-          const ContentBlock.subheading('Technical Challenges'),
-          const ContentBlock.bullet(
-            'Map Size: A dense 3D map of a city is enormously large. Efficient storage, indexing, and streaming are active research problems.',
-          ),
-          const ContentBlock.bullet(
-            'Map Freshness: The physical world changes constantly. Parked cars, new construction, and furniture rearrangement all invalidate stored maps.',
-          ),
-          const ContentBlock.bullet(
-            'Relocalization Speed: The device must identify its location in a global map within milliseconds to maintain tracking continuity.',
-          ),
-          const ContentBlock.subheading('Privacy Challenges'),
-          const ContentBlock.bullet(
-            'Always-On Spatial Scanning: Devices building the AR Cloud passively scan and upload their surroundings, raising serious surveillance concerns.',
-          ),
-          const ContentBlock.bullet(
-            'Biometric Data: High-resolution environment scans may incidentally capture faces and other identifiable information.',
-          ),
-          const ContentBlock.bullet(
-            'Data Ownership: Who owns the spatial map of a private building? The owner, the mapper, or the platform?',
-          ),
-          const ContentBlock.warning(
-            'Privacy regulation around spatial data is nascent and rapidly evolving. '
-            'AR Cloud platforms must design for privacy-by-default — anonymising scans, '
-            'minimising stored data, and implementing clear consent mechanisms.',
-          ),
-          const ContentBlock.quote(
-            'INTERVIEW QUESTION: "What is the biggest risk to the AR Cloud?" \n'
-            'Answer: Privacy and regulation. If a city bans private spatial mapping '
-            'due to privacy concerns, the AR Cloud becomes impossible to maintain or update '
-            'in those areas.',
-          ),
-        ],
-      ),
-    ],
-  ),
-
-  // ───────────────────────────────────────────────────────────────
   //  MODULE 10 — SLAM Deep Dive
   // ───────────────────────────────────────────────────────────────
   LearningModule(
@@ -2031,7 +2000,7 @@ final List<LearningModule> allModules = [
     icon: Icons.calculate_rounded,
     order: 10,
     unlockCost: 0,
-    requiredQuizId: 'quiz_ar_cloud',
+    requiredQuizId: 'quiz_openxr',
     topics: [
       Topic(
         id: 'slam_vio',
@@ -2168,16 +2137,139 @@ final List<LearningModule> allModules = [
   ),
 
   // ───────────────────────────────────────────────────────────────
-  //  MODULE 11 — Performance Profiling
+  //  MODULE 11 — The AR Cloud
+  // ───────────────────────────────────────────────────────────────
+  LearningModule(
+    id: 'mod_ar_cloud',
+    title: 'The AR Cloud',
+    description: 'Persistent, shared spatial maps enabling multi-user AR experiences.',
+    icon: Icons.cloud_rounded,
+    order: 11,
+    unlockCost: 0,
+    requiredQuizId: 'quiz_slam_deepdive',
+    topics: [
+      Topic(
+        id: 'arcloud_concept',
+        title: 'The AR Cloud Concept',
+        subtitle: 'A shared spatial understanding of the world.',
+        contentBlocks: [
+          const ContentBlock.heading('What Is the AR Cloud?'),
+          const ContentBlock.body(
+            'The AR Cloud is a persistent, real-time 3D map of the physical world that allows multiple devices '
+            'to share a common spatial understanding. It is the infrastructure that transforms AR '
+            'from a personal experience into a shared, persistent communication layer.',
+          ),
+          const ContentBlock.subheading('Core Capabilities'),
+          const ContentBlock.bullet(
+            'Relocalization: Devices can determine their precise position within a global coordinate system by matching their current view against the stored map.',
+          ),
+          const ContentBlock.bullet(
+            'Persistence: Virtual content remains anchored to physical locations across multiple sessions and devices.',
+          ),
+          const ContentBlock.bullet(
+            'Multi-User Synchronization: Multiple users see the same virtual content in the same physical position simultaneously.',
+          ),
+          const ContentBlock.info(
+            'The AR Cloud is conceptually similar to GPS, but for spatial computing: '
+            'it provides centimetre-accurate 6DoF positioning both indoors and outdoors.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'cloud_anchors',
+        title: 'Cloud Anchors & Shared AR',
+        subtitle: 'Multi-User Persistence.',
+        contentBlocks: [
+          const ContentBlock.heading('Cloud Anchors & Shared Experiences'),
+          const ContentBlock.body(
+            'Cloud Anchors allow multiple users to see the same virtual object in the same physical spot, even across iOS and Android.',
+          ),
+          const ContentBlock.subheading('Workflow & Reliability'),
+          const ContentBlock.numbered(
+            '1. Host device creates an anchor. Always check CloudAnchorState == SUCCESS before sharing the ID.',
+          ),
+          const ContentBlock.numbered(
+            '2. TTL (Time to Live): Anchors expire in 24h by default. Set ttlDays (up to 365) for long-term persistence.',
+          ),
+          const ContentBlock.numbered(
+            '3. Resolving: Guest devices call resolveCloudAnchorAsync(id) to align their coordinate systems.',
+          ),
+          const ContentBlock.info(
+            'ERROR_HOSTING_DATASET_PROCESSING_FAILED means the environment wasn\'t mapped richly enough. Move the device more to capture a better feature point cloud.',
+          ),
+          const ContentBlock.code(
+            '// Google Cloud Anchors: Hosting an anchor (Kotlin)\n'
+            'session.hostCloudAnchorAsync(anchor) { cloudAnchorId, state ->\n'
+            '    if (state == Anchor.CloudAnchorState.SUCCESS) {\n'
+            '        // Share cloudAnchorId to your backend (e.g. Firebase)\n'
+            '        saveToFirebase(cloudAnchorId)\n'
+            '    }\n'
+            '}',
+          ),
+          const ContentBlock.quote(
+            'INTERVIEW FOCUS: Shared AR Architecture\n'
+            'Q: "How do you build a multi-user AR app with 10 users?"\n'
+            'A: Use ARCore Cloud Anchors. One device hosts the anchor while scanning the surface. The resulting ID is shared via a background server (like Firebase). Other devices resolve that ID to synchronize their spatial coordinates.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'arcloud_challenges',
+        title: 'AR Cloud Challenges',
+        subtitle: 'Privacy, scale, and technical hurdles.',
+        contentBlocks: [
+          const ContentBlock.heading('Unsolved Problems'),
+          const ContentBlock.body(
+            'The AR Cloud is technically achievable in controlled environments, but achieving '
+            'world-scale deployment presents formidable challenges.',
+          ),
+          const ContentBlock.subheading('Technical Challenges'),
+          const ContentBlock.bullet(
+            'Map Size: A dense 3D map of a city is enormously large. Efficient storage, indexing, and streaming are active research problems.',
+          ),
+          const ContentBlock.bullet(
+            'Map Freshness: The physical world changes constantly. Parked cars, new construction, and furniture rearrangement all invalidate stored maps.',
+          ),
+          const ContentBlock.bullet(
+            'Relocalization Speed: The device must identify its location in a global map within milliseconds to maintain tracking continuity.',
+          ),
+          const ContentBlock.subheading('Privacy Challenges'),
+          const ContentBlock.bullet(
+            'Always-On Spatial Scanning: Devices building the AR Cloud passively scan and upload their surroundings, raising serious surveillance concerns.',
+          ),
+          const ContentBlock.bullet(
+            'Biometric Data: High-resolution environment scans may incidentally capture faces and other identifiable information.',
+          ),
+          const ContentBlock.bullet(
+            'Data Ownership: Who owns the spatial map of a private building? The owner, the mapper, or the platform?',
+          ),
+          const ContentBlock.warning(
+            'Privacy regulation around spatial data is nascent and rapidly evolving. '
+            'AR Cloud platforms must design for privacy-by-default — anonymising scans, '
+            'minimising stored data, and implementing clear consent mechanisms.',
+          ),
+          const ContentBlock.quote(
+            'INTERVIEW QUESTION: "What is the biggest risk to the AR Cloud?" \n'
+            'Answer: Privacy and regulation. If a city bans private spatial mapping '
+            'due to privacy concerns, the AR Cloud becomes impossible to maintain or update '
+            'in those areas.',
+          ),
+        ],
+      ),
+    ],
+  ),
+
+  // ───────────────────────────────────────────────────────────────
+  //  MODULE 7 — Performance Profiling
   // ───────────────────────────────────────────────────────────────
   LearningModule(
     id: 'performance',
     title: 'Performance Profiling',
     description: 'Systematically diagnosing and fixing AR app performance issues.',
     icon: Icons.bolt_rounded,
-    order: 11,
+    order: 7,
     unlockCost: 0,
-    requiredQuizId: 'quiz_slam_deepdive',
+    requiredQuizId: 'quiz_stab',
     topics: [
       Topic(
         id: 'perf_methodology',
