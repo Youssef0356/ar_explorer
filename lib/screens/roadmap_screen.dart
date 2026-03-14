@@ -303,6 +303,8 @@ class _RoadmapNode extends StatelessWidget {
                                 : AppTheme.textMutedC(isDark),
                             fontStyle: FontStyle.italic,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ],

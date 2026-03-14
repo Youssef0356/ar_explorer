@@ -19,61 +19,31 @@ class GameMapScreen extends StatefulWidget {
 }
 
 class _GameMapScreenState extends State<GameMapScreen> {
-  final ScrollController _scrollController = ScrollController();
+  final TransformationController _transformationController = TransformationController();
+  final double _mapSize = 1200.0;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToCurrentLevel());
+    _focusOnZone1();
   }
 
-  void _scrollToCurrentLevel() {
-    if (!_scrollController.hasClients) return;
-    
-    final progress = context.read<GameProgressService>();
-    int targetZoneIndex = -1;
-    
-    // Find first incomplete level
-    for (int i = 0; i < arGameZones.length; i++) {
-      final zone = arGameZones[i];
-      for (int j = 0; j < zone.levels.length; j++) {
-        if (!progress.isLevelCompleted(zone.levels[j].id)) {
-          targetZoneIndex = i;
-          break;
-        }
-      }
-      if (targetZoneIndex != -1) break;
-    }
-
-    // If all levels complete, scroll to top (Zone 5)
-    if (targetZoneIndex == -1) {
-      _scrollController.animateTo(
-        0,
-        duration: 1.seconds,
-        curve: Curves.easeInOut,
-      );
-      return;
-    }
-
-    // The zones are reversed in the Column: [Zone 5, Zone 4, Zone 3, Zone 2, Zone 1]
-    // Zone 1 is at the bottom, Zone 5 is at the top.
-    final totalZones = arGameZones.length;
-    final reversedZoneIndex = (totalZones - 1) - targetZoneIndex;
-    
-    // Estimation: Each zone is roughly 400-500px tall depending on level count
-    // Zone title + levels + spacers
-    double scrollPosition = reversedZoneIndex * 450.0;
-    
-    _scrollController.animateTo(
-      scrollPosition.clamp(0, _scrollController.position.maxScrollExtent),
-      duration: 1.seconds,
-      curve: Curves.easeInOut,
-    );
+  void _focusOnZone1() {
+    // Focus on Zone 1 (Bottom Region: roughly 600, 1000)
+    // We need to calculate the translation to center (600, 1000) in the viewport
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final size = MediaQuery.of(context).size;
+      final x = (size.width / 2) - 600;
+      final y = (size.height / 2) - 1000;
+      
+      _transformationController.value = Matrix4.identity()
+        ..setTranslationRaw(x, y, 0);
+    });
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _transformationController.dispose();
     super.dispose();
   }
 
@@ -86,30 +56,43 @@ class _GameMapScreenState extends State<GameMapScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // ── Background Grid ──
-          Positioned.fill(
-            child: Opacity(
-              opacity: 0.1,
-              child: Image.asset(
-                'assets/images/grid_pattern.png', // Fallback to a custom painter if missing
-                repeat: ImageRepeat.repeat,
-                errorBuilder: (context, error, stackTrace) => CustomPaint(
-                  painter: GridPainter(color: AppTheme.accentCyan.withValues(alpha: 0.2)),
-                ),
-              ),
-            ),
-          ),
+          // ── Interactive Map ──
+          InteractiveViewer(
+            transformationController: _transformationController,
+            minScale: 0.3,
+            maxScale: 2.0,
+            boundaryMargin: const EdgeInsets.all(500),
+            child: SizedBox(
+              width: _mapSize,
+              height: _mapSize,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // ── Map Background ──
+                  Positioned.fill(
+                    child: Image.asset(
+                      'assets/images/world_map_bg.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
 
-          // ── Scrollable Map Content ──
-          SingleChildScrollView(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            child: Column(
-              children: [
-                const SizedBox(height: 100), // Top padding
-                ...arGameZones.reversed.map((zone) => _buildZone(zone, progress, isDark)),
-                const SizedBox(height: 100), // Bottom padding
-              ],
+                  // ── Grid Overlay (Subtle) ──
+                  Positioned.fill(
+                    child: Opacity(
+                      opacity: 0.05,
+                      child: CustomPaint(
+                        painter: GridPainter(color: AppTheme.accentCyan),
+                      ),
+                    ),
+                  ),
+
+                  // ── Paths between Zones ──
+                  _buildZoneConnectionPaths(),
+
+                  // ── Zones and Levels ──
+                  ...arGameZones.map((zone) => _buildZoneContainer(zone, progress, isDark)),
+                ],
+              ),
             ),
           ),
 
@@ -175,6 +158,7 @@ class _GameMapScreenState extends State<GameMapScreen> {
                   border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
                     const SizedBox(width: 4),
@@ -192,58 +176,68 @@ class _GameMapScreenState extends State<GameMapScreen> {
     );
   }
 
-  Widget _buildZone(ARZone zone, GameProgressService progress, bool isDark) {
-    return Column(
+  Widget _buildZoneContainer(ARZone zone, GameProgressService progress, bool isDark) {
+    // Map Zone IDs to Coordinates on the 1200x1200px map
+    final Map<String, Offset> zoneCoords = {
+      'fundamentals': const Offset(600, 1000), // Zone 1
+      'tracking': const Offset(250, 600),     // Zone 2
+      'platforms': const Offset(950, 600),    // Zone 3
+      'advanced_standard': const Offset(600, 200), // Zone 4
+      'mastery': const Offset(600, 600),      // Zone 5
+    };
+
+    final center = zoneCoords[zone.id] ?? const Offset(600, 600);
+    
+    return Stack(
       children: [
         // Zone Title
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 40),
+        Positioned(
+          left: center.dx - 100,
+          top: center.dy - 120,
+          width: 200,
           child: Column(
             children: [
               Text(
                 zone.name.toUpperCase(),
                 textAlign: TextAlign.center,
-                style: AppTheme.headingSmall.copyWith(
+                style: AppTheme.labelMedium.copyWith(
                   color: zone.accentColor,
-                  letterSpacing: 1, // Reduced letter spacing
                   fontWeight: FontWeight.w900,
+                  fontSize: 10,
+                  letterSpacing: 2,
                   shadows: [
-                    Shadow(color: zone.accentColor.withValues(alpha: 0.5), blurRadius: 10),
+                    Shadow(color: zone.accentColor.withValues(alpha: 0.8), blurRadius: 10),
                   ],
                 ),
-              ).animate().fadeIn(),
-              const SizedBox(height: 8),
-              Container(
-                width: 60,
-                height: 2,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.transparent, zone.accentColor, Colors.transparent],
-                  ),
-                ),
-              ),
+              ).animate(onPlay: (c) => c.repeat(reverse: true))
+               .shimmer(duration: 3.seconds, color: Colors.white),
             ],
           ),
         ),
 
-        // Levels
+        // Levels within the zone
         ...List.generate(zone.levels.length, (index) {
           final level = zone.levels[index];
           final isLocked = progress.isLevelLocked(level.id);
           final stars = progress.getStars(level.id);
-          final isLastInZone = index == zone.levels.length - 1;
+          
+          // Position levels in a small organic cluster around the center
+          // Level 1: Left/Bottom-ish, Level 2: Right/Bottom-ish, Level 3: Center-ish
+          Offset offset;
+          if (index == 0) {
+            offset = const Offset(-40, 20);
+          } else if (index == 1) {
+            offset = const Offset(40, 20);
+          } else {
+            offset = const Offset(0, -30);
+          }
 
-          return Column(
-            children: [
-              _buildLevelNode(level, zone.accentColor, isLocked, stars),
-              if (!isLastInZone) _buildPath(zone.accentColor, isLocked),
-            ],
+          return Positioned(
+            left: center.dx + offset.dx - 40,
+            top: center.dy + offset.dy - 40,
+            child: _buildLevelNode(level, zone.accentColor, isLocked, stars),
           );
         }),
-        
-        // Path to next zone (if not the last zone in the reversed list)
-        if (zone.id != arGameZones.last.id)
-          _buildPath(Colors.white.withValues(alpha: 0.3), true, isLong: true),
       ],
     );
   }
@@ -254,8 +248,8 @@ class _GameMapScreenState extends State<GameMapScreen> {
       child: Column(
         children: [
           Container(
-            width: level.isBoss ? 100 : 80,
-            height: level.isBoss ? 100 : 80,
+            width: level.isBoss ? 70 : 60,
+            height: level.isBoss ? 70 : 60,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isLocked ? Colors.grey.withValues(alpha: 0.1) : Colors.black,
@@ -263,12 +257,12 @@ class _GameMapScreenState extends State<GameMapScreen> {
                 color: isLocked 
                     ? Colors.white.withValues(alpha: 0.1) 
                     : (level.isBoss ? Colors.red : accentColor),
-                width: level.isBoss ? 3 : 2,
+                width: 2,
               ),
               boxShadow: isLocked ? [] : [
                 BoxShadow(
-                  color: (level.isBoss ? Colors.red : accentColor).withValues(alpha: 0.3),
-                  blurRadius: 15,
+                  color: (level.isBoss ? Colors.red : accentColor).withValues(alpha: 0.5),
+                  blurRadius: 12,
                   spreadRadius: 2,
                 ),
               ],
@@ -280,26 +274,27 @@ class _GameMapScreenState extends State<GameMapScreen> {
                   Icon(
                     level.isBoss ? Icons.bolt_rounded : Icons.play_arrow_rounded,
                     color: level.isBoss ? Colors.red : accentColor,
-                    size: level.isBoss ? 40 : 30,
+                    size: level.isBoss ? 30 : 24,
                   ).animate(onPlay: (controller) => controller.repeat())
-                   .shimmer(duration: 2.seconds, color: Colors.white.withValues(alpha: 0.2)),
+                   .shimmer(duration: 2.seconds, color: Colors.white.withValues(alpha: 0.3)),
                 
-                if (level.isBoss && !isLocked)
-                  Icon(Icons.warning_amber_rounded, color: Colors.red, size: 20)
-                    .animate(onPlay: (controller) => controller.repeat())
-                    .shake(hz: 2, duration: 3.seconds),
-
                 if (isLocked)
-                  Icon(Icons.lock_outline_rounded, color: Colors.white.withValues(alpha: 0.2), size: 24),
+                  Icon(Icons.lock_outline_rounded, color: Colors.white.withValues(alpha: 0.2), size: 20),
               ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            level.title,
-            style: AppTheme.bodySmall.copyWith(
-              color: isLocked ? Colors.white.withValues(alpha: 0.3) : Colors.white,
-              fontWeight: FontWeight.bold,
+          const SizedBox(height: 4),
+          SizedBox(
+            width: 80,
+            child: Text(
+              level.title,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              style: AppTheme.bodySmall.copyWith(
+                color: isLocked ? Colors.white.withValues(alpha: 0.3) : Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 9,
+              ),
             ),
           ),
           if (!isLocked && stars > 0)
@@ -307,28 +302,21 @@ class _GameMapScreenState extends State<GameMapScreen> {
               mainAxisSize: MainAxisSize.min,
               children: List.generate(3, (i) => Icon(
                 Icons.star_rounded,
-                size: 16,
+                size: 10,
                 color: i < stars ? Colors.amber : Colors.white.withValues(alpha: 0.1),
               )),
             ),
         ],
       ).animate(target: isLocked ? 0 : 1)
-       .scale(begin: const Offset(0.9, 0.9), end: const Offset(1.0, 1.0))
        .fadeIn(),
     );
   }
 
-  Widget _buildPath(Color color, bool isLocked, {bool isLong = false}) {
-    return Container(
-      width: 2,
-      height: isLong ? 80 : 40,
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      child: CustomPaint(
-        painter: DottedLinePainter(
-          color: isLocked ? color.withValues(alpha: 0.1) : color,
-          animate: !isLocked,
-        ),
-      ),
+  Widget _buildZoneConnectionPaths() {
+    // Draw paths between regions of the map
+    return CustomPaint(
+      size: const Size(1200, 1200),
+      painter: MapPathPainter(),
     );
   }
 
@@ -460,23 +448,53 @@ class _GameMapScreenState extends State<GameMapScreen> {
   }
 }
 
-class DottedLinePainter extends CustomPainter {
-  final Color color;
-  final bool animate;
-
-  DottedLinePainter({required this.color, required this.animate});
-
+class MapPathPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2
+      ..color = AppTheme.accentCyan.withValues(alpha: 0.15)
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    double y = 0;
-    while (y < size.height) {
-      canvas.drawCircle(Offset(size.width / 2, y), 2, paint);
-      y += 10;
+    final dashPaint = Paint()
+      ..color = AppTheme.accentCyan.withValues(alpha: 0.3)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+
+    final center = const Offset(600, 600);
+    final bottom = const Offset(600, 1000);
+    final left = const Offset(250, 600);
+    final right = const Offset(950, 600);
+    final top = const Offset(600, 200);
+
+    // Draw main hub connections
+    _drawCurvedPath(canvas, bottom, center, paint);
+    _drawCurvedPath(canvas, left, center, paint);
+    _drawCurvedPath(canvas, right, center, paint);
+    _drawCurvedPath(canvas, top, center, paint);
+
+    // Draw some tech lines
+    _drawTechLines(canvas, size, dashPaint);
+  }
+
+  void _drawCurvedPath(Canvas canvas, Offset p1, Offset p2, Paint paint) {
+    final path = Path();
+    path.moveTo(p1.dx, p1.dy);
+    
+    // Calculate control points for a nice curve
+    final cp1 = Offset(p1.dx, (p1.dy + p2.dy) / 2);
+    final cp2 = Offset(p2.dx, (p1.dy + p2.dy) / 2);
+    
+    path.cubicTo(cp1.dx, cp1.dy, cp2.dx, cp2.dy, p2.dx, p2.dy);
+    canvas.drawPath(path, paint);
+  }
+
+  void _drawTechLines(Canvas canvas, Size size, Paint paint) {
+    for (int i = 0; i < 10; i++) {
+      final x = 200.0 + (i * 100);
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+      canvas.drawLine(Offset(0, x), Offset(size.width, x), paint);
     }
   }
 

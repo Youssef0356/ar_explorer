@@ -253,147 +253,74 @@ class HomeScreen extends StatelessWidget {
 
                             // DEBUG: Premium Override Toggle Button
                             // TODO: Remove this before production release
-                            Consumer<SubscriptionService>(
-                              builder: (context, subscription, _) {
-                                return Tooltip(
-                                  message: subscription.debugPremiumOverride 
-                                      ? 'DEBUG: Premium ON (Tap to OFF)' 
-                                      : 'DEBUG: Premium OFF (Tap to ON)',
-                                  child: GestureDetector(
-                                    onTap: () async {
-                                      soundService.playTap();
-                                      await subscription.toggleDebugPremiumOverride();
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              subscription.debugPremiumOverride 
-                                                ? 'DEBUG: Premium ENABLED for testing' 
-                                                : 'DEBUG: Premium DISABLED',
+                            if (kDebugMode)
+                              Consumer<SubscriptionService>(
+                                builder: (context, subscription, _) {
+                                  return Tooltip(
+                                    message: subscription.debugPremiumOverride 
+                                        ? 'DEBUG: Premium ON (Tap to OFF)' 
+                                        : 'DEBUG: Premium OFF (Tap to ON)',
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        soundService.playTap();
+                                        await subscription.toggleDebugPremiumOverride();
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                subscription.debugPremiumOverride 
+                                                  ? 'DEBUG: Premium ENABLED for testing' 
+                                                  : 'DEBUG: Premium DISABLED',
+                                              ),
+                                              backgroundColor: subscription.debugPremiumOverride 
+                                                ? Colors.green 
+                                                : Colors.orange,
+                                              duration: const Duration(seconds: 2),
                                             ),
-                                            backgroundColor: subscription.debugPremiumOverride 
-                                              ? Colors.green 
-                                              : Colors.orange,
-                                            duration: const Duration(seconds: 2),
-                                          ),
-                                        );
-                                      }
-                                    },
-                                    child: Container(
-                                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: subscription.debugPremiumOverride 
-                                          ? Colors.green.withValues(alpha: 0.3)
-                                          : Colors.red.withValues(alpha: 0.3),
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(
+                                          );
+                                        }
+                                      },
+                                      child: Container(
+                                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
                                           color: subscription.debugPremiumOverride 
-                                            ? Colors.green 
-                                            : Colors.red,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.bug_report_rounded,
+                                            ? Colors.green.withValues(alpha: 0.3)
+                                            : Colors.red.withValues(alpha: 0.3),
+                                          borderRadius: BorderRadius.circular(10),
+                                          border: Border.all(
                                             color: subscription.debugPremiumOverride 
                                               ? Colors.green 
                                               : Colors.red,
-                                            size: 18,
+                                            width: 2,
                                           ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            'TEST',
-                                            style: TextStyle(
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.bug_report_rounded,
                                               color: subscription.debugPremiumOverride 
                                                 ? Colors.green 
                                                 : Colors.red,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
+                                              size: 18,
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-
-                            // DEBUG: Premium Override Toggle Button
-                            // TODO: Remove this before production release
-                            Consumer<SubscriptionService>(
-                              builder: (context, subscription, _) {
-                                return Tooltip(
-                                  message: subscription.debugPremiumOverride 
-                                      ? 'DEBUG: Premium ON (Tap to OFF)' 
-                                      : 'DEBUG: Premium OFF (Tap to ON)',
-                                  child: GestureDetector(
-                                    onTap: () async {
-                                      soundService.playTap();
-                                      await subscription.toggleDebugPremiumOverride();
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              subscription.debugPremiumOverride 
-                                                ? 'DEBUG: Premium ENABLED for testing' 
-                                                : 'DEBUG: Premium DISABLED',
+                                            const SizedBox(width: 4),
+                                            const Text(
+                                              'TEST',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
-                                            backgroundColor: subscription.debugPremiumOverride 
-                                              ? Colors.green 
-                                              : Colors.orange,
-                                            duration: const Duration(seconds: 2),
-                                          ),
-                                        );
-                                      }
-                                    },
-                                    child: Container(
-                                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: subscription.debugPremiumOverride 
-                                          ? Colors.green.withValues(alpha: 0.3)
-                                          : Colors.red.withValues(alpha: 0.3),
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(
-                                          color: subscription.debugPremiumOverride 
-                                            ? Colors.green 
-                                            : Colors.red,
-                                          width: 2,
+                                          ],
                                         ),
                                       ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.bug_report_rounded,
-                                            color: subscription.debugPremiumOverride 
-                                              ? Colors.green 
-                                              : Colors.red,
-                                            size: 18,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            'TEST',
-                                            style: TextStyle(
-                                              color: subscription.debugPremiumOverride 
-                                                ? Colors.green 
-                                                : Colors.red,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
                                     ),
-                                  ),
-                                );
-                              },
-                            ),
+                                  );
+                                },
+                              ),
                           ],
                         );
                         if (themeService.enableAnimations) {
