@@ -243,11 +243,83 @@ class HomeScreen extends StatelessWidget {
 
                             _buildIconButton(
                               icon: Icons.settings_rounded,
-                              tooltip: 'Parameters',
+                              tooltip: 'Settings',
                               isDark: isDark,
                               onTap: () {
                                 soundService.playTap();
                                 _showSettingsModal(context, isDark, themeService);
+                              },
+                            ),
+
+                            // DEBUG: Premium Override Toggle Button
+                            // TODO: Remove this before production release
+                            Consumer<SubscriptionService>(
+                              builder: (context, subscription, _) {
+                                return Tooltip(
+                                  message: subscription.debugPremiumOverride 
+                                      ? 'DEBUG: Premium ON (Tap to OFF)' 
+                                      : 'DEBUG: Premium OFF (Tap to ON)',
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                      soundService.playTap();
+                                      await subscription.toggleDebugPremiumOverride();
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              subscription.debugPremiumOverride 
+                                                ? 'DEBUG: Premium ENABLED for testing' 
+                                                : 'DEBUG: Premium DISABLED',
+                                            ),
+                                            backgroundColor: subscription.debugPremiumOverride 
+                                              ? Colors.green 
+                                              : Colors.orange,
+                                            duration: const Duration(seconds: 2),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    child: Container(
+                                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: subscription.debugPremiumOverride 
+                                          ? Colors.green.withValues(alpha: 0.3)
+                                          : Colors.red.withValues(alpha: 0.3),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: subscription.debugPremiumOverride 
+                                            ? Colors.green 
+                                            : Colors.red,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.bug_report_rounded,
+                                            color: subscription.debugPremiumOverride 
+                                              ? Colors.green 
+                                              : Colors.red,
+                                            size: 18,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'TEST',
+                                            style: TextStyle(
+                                              color: subscription.debugPremiumOverride 
+                                                ? Colors.green 
+                                                : Colors.red,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
                               },
                             ),
 
@@ -1098,6 +1170,71 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
+
+                    // ═══════════════════════════════════════════
+                    // ── PREMIUM SECTION ──
+                    // ═══════════════════════════════════════════
+                    _settingsSectionHeader('Premium', Icons.workspace_premium_rounded, AppTheme.accentAmber, isDark),
+                    const SizedBox(height: 8),
+                    Consumer<SubscriptionService>(
+                      builder: (context, subscription, _) {
+                        final isPremium = subscription.isPremium;
+                        return Column(
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.star_rounded, color: AppTheme.accentAmber),
+                              title: Text(
+                                isPremium ? 'Premium Active' : 'Go Premium',
+                                style: AppTheme.bodyLarge.copyWith(
+                                  color: AppTheme.textPrimaryC(isDark),
+                                  fontWeight: isPremium ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                              subtitle: Text(
+                                isPremium 
+                                    ? 'Thank you for your support!' 
+                                    : 'Remove ads & unlock all content',
+                                style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                              ),
+                              trailing: isPremium 
+                                  ? const Icon(Icons.check_circle_rounded, color: Colors.green)
+                                  : Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                              onTap: () {
+                                context.read<SoundService>().playTap();
+                                if (!isPremium) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const PaywallScreen()),
+                                  );
+                                }
+                              },
+                            ),
+                            if (!isPremium)
+                              ListTile(
+                                leading: const Icon(Icons.restore_rounded, color: AppTheme.accentCyan),
+                                title: Text(
+                                  'Restore Purchase',
+                                  style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                                ),
+                                trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                                onTap: () async {
+                                  context.read<SoundService>().playTap();
+                                  await subscription.restorePurchases();
+                                  if (subscription.isPremium && context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Premium access restored! 🎉')),
+                                    );
+                                  }
+                                },
+                              ),
+                          ],
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
+                    Divider(color: AppTheme.dividerC(isDark)),
+                    const SizedBox(height: 8),
 
                     // ═══════════════════════════════════════════
                     // ── GENERAL SECTION ──

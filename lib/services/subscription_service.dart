@@ -50,6 +50,24 @@ class SubscriptionService extends ChangeNotifier {
         notifyListeners();
       },
     );
+    
+    // Initial product query to get localized price
+    _queryProduct();
+  }
+
+  Future<void> _queryProduct() async {
+    try {
+      final bool available = await _inAppPurchase.isAvailable();
+      if (!available) return;
+
+      final ProductDetailsResponse response = await _inAppPurchase.queryProductDetails({_premiumProductId});
+      if (response.productDetails.isNotEmpty) {
+        _localizedPrice = response.productDetails.first.price;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error querying product: $e');
+    }
   }
 
   Future<void> purchase() async {
@@ -57,36 +75,35 @@ class SubscriptionService extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
-    final bool available = await _inAppPurchase.isAvailable();
-    if (!available) {
-      _errorMessage = 'Store is not available.';
-      _isLoading = false;
-      notifyListeners();
-      return;
-    }
-
-    final ProductDetailsResponse response = await _inAppPurchase.queryProductDetails({_premiumProductId});
-    if (response.notFoundIDs.isNotEmpty) {
-      _errorMessage = 'Premium product not found.';
-      _isLoading = false;
-      notifyListeners();
-      return;
-    }
-
-    if (response.error != null) {
-      _errorMessage = response.error!.message;
-      _isLoading = false;
-      notifyListeners();
-      return;
-    }
-
-    final ProductDetails productDetails = response.productDetails.first;
-    _localizedPrice = productDetails.price;
-    notifyListeners();
-
-    final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
-    
     try {
+      final bool available = await _inAppPurchase.isAvailable();
+      if (!available) {
+        _errorMessage = 'Store is not available.';
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      final ProductDetailsResponse response = await _inAppPurchase.queryProductDetails({_premiumProductId});
+      if (response.notFoundIDs.isNotEmpty) {
+        _errorMessage = 'Premium product not found.';
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      if (response.error != null) {
+        _errorMessage = response.error!.message;
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      final ProductDetails productDetails = response.productDetails.first;
+      _localizedPrice = productDetails.price;
+      notifyListeners();
+
+      final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
       await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
     } catch (e) {
       _errorMessage = e.toString();

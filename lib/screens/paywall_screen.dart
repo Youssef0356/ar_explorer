@@ -148,24 +148,19 @@ class PaywallScreen extends StatelessWidget {
                               )
                             : Text(
                                 'Get Lifetime Access',
-                                style: AppTheme.buttonText.copyWith(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: AppTheme.buttonText.copyWith(fontSize: 16, fontWeight: FontWeight.bold),
                               ),
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
 
-                    // ── Secondary Options ──
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 8,
+                    // ── Restore & Ads ──
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         TextButton(
-                          onPressed: subscriptionService.isLoading ? null : () async {
+                          onPressed: () async {
                             await subscriptionService.restorePurchases();
                             if (subscriptionService.isPremium && context.mounted) {
                               Navigator.of(context).pop();
@@ -173,23 +168,32 @@ class PaywallScreen extends StatelessWidget {
                           },
                           child: Text(
                             'Restore Purchase',
-                            style: AppTheme.bodySmall.copyWith(color: AppTheme.accentPurple),
+                            style: AppTheme.bodySmall.copyWith(color: AppTheme.accentCyan),
                           ),
                         ),
                         if (onUnlockAd != null) ...[
-                          Text(
-                            '|',
-                            style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Text('|', style: TextStyle(color: AppTheme.textMutedC(isDark))),
                           ),
                           TextButton(
                             onPressed: onUnlockAd,
                             child: Text(
-                              'Watch ad for this module',
-                              style: AppTheme.bodySmall.copyWith(color: AppTheme.accentCyan),
+                              'Watch Ad to Unlock',
+                              style: AppTheme.bodySmall.copyWith(color: AppTheme.accentPink),
                             ),
                           ),
                         ],
                       ],
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // ── Terms & Privacy ──
+                    Text(
+                      'By continuing, you agree to our Terms of Service and Privacy Policy.',
+                      textAlign: TextAlign.center,
+                      style: AppTheme.bodySmall.copyWith(fontSize: 10, color: AppTheme.textMutedC(isDark)),
                     ),
                   ],
                 ),
@@ -203,38 +207,44 @@ class PaywallScreen extends StatelessWidget {
 
   Widget _buildFeatureList(bool isDark) {
     final features = [
-      'All 5 advanced modules (Technical, Dev, etc.)',
-      'Unlimited mock interviews with timers',
-      'Drag & Drop AR Coding Practice Game',
-      'Professional Completion Certificate',
-      'Detailed Quiz analytics & performance tracking',
-      'Cloud storage for all your AR Notes',
-      'Zero Ads. Zero distractions. Forever.',
+      ('No More Ads', 'Remove all banner and rewarded ads forever.', Icons.block_rounded),
+      ('Skip Quiz Gates', 'Access any module without passing previous quizzes.', Icons.vibration_rounded),
+      ('Unlimited Interviews', 'Practice the job interview mode without trial limits.', Icons.timer_rounded),
+      ('Exclusive Modules', 'Get instant access to all present and future modules.', Icons.auto_awesome_rounded),
     ];
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: AppTheme.glassCard(isDark),
-      child: Column(
-        children: features.map((feature) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Row(
-            children: [
-              const Icon(Icons.check_circle_outline_rounded, size: 18, color: AppTheme.accentCyan),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  feature,
-                  style: AppTheme.bodyMedium.copyWith(
-                    color: AppTheme.textPrimaryC(isDark),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+    return Column(
+      children: features.map((f) => Padding(
+        padding: const EdgeInsets.only(bottom: 20),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.accentCyan.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
               ),
-            ],
-          ),
-        )).toList(),
-      ),
+              child: Icon(f.$3, color: AppTheme.accentCyan, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    f.$1,
+                    style: AppTheme.headingSmall.copyWith(fontSize: 15, color: AppTheme.textPrimaryC(isDark)),
+                  ),
+                  Text(
+                    f.$2,
+                    style: AppTheme.bodySmall.copyWith(color: AppTheme.textSecondaryC(isDark)),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      )).toList(),
     );
   }
 }

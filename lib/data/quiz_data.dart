@@ -78,6 +78,54 @@ final Map<String, Quiz> allQuizzes = {
   ),
 
   // ───────────────────────────────────────────────────────────────
+  //  QUIZ — Spatial UX & Design
+  // ───────────────────────────────────────────────────────────────
+  'quiz_spatial_ux': Quiz(
+    id: 'quiz_spatial_ux',
+    moduleId: 'mod_spatial_ux',
+    title: 'Checkup: Spatial UX & Design',
+    passingScore: 70,
+    questions: [
+      const QuizQuestion(
+        id: 'q_ux_1',
+        question: 'Which of the following is NOT one of the 5 pillars of spatial UX?',
+        options: [
+          'Environment Safety',
+          'Progressive Disclosure',
+          'Keyboard-only Navigation',
+          'Natural Gestures',
+        ],
+        correctIndex: 2,
+        explanation: 'Spatial UX focuses on natural interactions (gestures, movement) and environmental safety rather than traditional 2D input methods.',
+      ),
+      const QuizQuestion(
+        id: 'q_ux_2',
+        question: 'What is the recommended "comfort zone" for fixed AR UI elements?',
+        options: [
+          '0.5m - 1m',
+          '1.25m - 2m',
+          '3m - 5m',
+          'Directly on the floor',
+        ],
+        correctIndex: 1,
+        explanation: 'Placing UI between 1.25m and 2m at a slight downward angle prevents eye strain and maintains comfort.',
+      ),
+      const QuizQuestion(
+        id: 'q_ux_3',
+        question: 'What does "Billboarding" do for a virtual UI panel?',
+        options: [
+          'It makes the panel as large as a billboard',
+          'It forces the panel to always rotate to face the user',
+          'It sticks the panel to a physical wall',
+          'It hides the panel when the user moves away',
+        ],
+        correctIndex: 1,
+        explanation: 'Billboarding ensures that floating text or UI remains readable regardless of the user\'s position relative to the object.',
+      ),
+    ],
+  ),
+
+  // ───────────────────────────────────────────────────────────────
   //  QUIZ 1 — Introduction to AR
   // ───────────────────────────────────────────────────────────────
   'quiz_intro': Quiz(
