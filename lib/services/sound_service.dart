@@ -26,7 +26,28 @@ class SoundService extends ChangeNotifier {
   void playTap() {
     if (_isVibrationEnabled) {
       SystemSound.play(SystemSoundType.click);
-      HapticFeedback.lightImpact(); // Add haptic feedback for tactile response
+      HapticFeedback.lightImpact();
+    }
+  }
+
+  void playSuccess() {
+    if (_isVibrationEnabled) {
+      SystemSound.play(SystemSoundType.click);
+      HapticFeedback.mediumImpact();
+    }
+  }
+
+  void playFailure() {
+    if (_isVibrationEnabled) {
+      SystemSound.play(SystemSoundType.click);
+      HapticFeedback.heavyImpact();
+    }
+  }
+
+  void playAchievement() {
+    if (_isVibrationEnabled) {
+      SystemSound.play(SystemSoundType.click);
+      HapticFeedback.vibrate();
     }
   }
 }

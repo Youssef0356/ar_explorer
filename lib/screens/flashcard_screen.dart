@@ -6,8 +6,11 @@ import 'package:provider/provider.dart';
 
 import '../core/app_theme.dart';
 import '../data/flashcard_data.dart';
+import '../data/quiz_data.dart';
 import '../models/flashcard_model.dart';
+import '../services/progress_service.dart';
 import '../services/theme_service.dart';
+import 'paywall_screen.dart';
 
 class FlashcardScreen extends StatefulWidget {
   final String moduleId;
@@ -36,7 +39,52 @@ class _FlashcardScreenState extends State<FlashcardScreen>
   @override
   void initState() {
     super.initState();
-    _cards = (allFlashcards[widget.moduleId] ?? []).toList()..shuffle(Random());
+    final progress = context.read<ProgressService>();
+    final isPremium = progress.isPremium;
+
+    var rawCards = (allFlashcards[widget.moduleId] ?? []).toList();
+
+    if (isPremium) {
+       // Spaced Repetition (SRS): Prioritize cards related to wrong quiz answers
+       final wrongIds = progress.wrongAnswers;
+       List<Flashcard> priorityCards = [];
+       List<Flashcard> standardCards = [];
+
+       for (var card in rawCards) {
+          bool addedToPriority = false;
+          // Suboptimal heuristic but effective without deep NLP:
+          // Check if any wrong question text contains words from the flashcard front
+          for (var wrongId in wrongIds) {
+             final parts = wrongId.split('_');
+             if (parts.length >= 2) {
+                final quizId = '${parts[0]}_${parts[1]}';
+                final quiz = allQuizzes[quizId];
+                if (quiz != null) {
+                   final qIndex = int.tryParse(parts.last) ?? -1;
+                   if (qIndex >= 0 && qIndex < quiz.questions.length) {
+                      final qText = quiz.questions[qIndex].question.toLowerCase();
+                      final frontKeywords = card.front.toLowerCase().split(' ').where((w) => w.length > 4);
+                      
+                      if (frontKeywords.any((kw) => qText.contains(kw))) {
+                         priorityCards.add(card);
+                         addedToPriority = true;
+                         break;
+                      }
+                   }
+                }
+             }
+          }
+          if (!addedToPriority) standardCards.add(card);
+       }
+       priorityCards.shuffle(Random());
+       standardCards.shuffle(Random());
+       _cards = [...priorityCards, ...standardCards];
+    } else {
+       // Free limits to 3 cards
+       rawCards.shuffle(Random());
+       _cards = rawCards.take(3).toList();
+    }
+
     _flipController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
@@ -71,6 +119,15 @@ class _FlashcardScreenState extends State<FlashcardScreen>
         _showBack = false;
       });
       _flipController.reset();
+    } else {
+       final isPremium = context.read<ProgressService>().isPremium;
+       if (!isPremium && (allFlashcards[widget.moduleId]?.length ?? 0) > 3) {
+          // Hit the 3 card limit
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
+       } else {
+          // Finished all
+          Navigator.pop(context);
+       }
     }
   }
 

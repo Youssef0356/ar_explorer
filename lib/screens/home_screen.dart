@@ -34,6 +34,7 @@ import 'practice_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'roadmap_screen.dart';
 import 'topic_screen.dart';
+import 'premium_space_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -738,15 +739,15 @@ class HomeScreen extends StatelessWidget {
                 child: _buildQuickActionButton(
                   context: context,
                   isDark: isDark,
-                  title: 'Roadmap',
-                  subtitle: 'Learning Path',
-                  icon: Icons.map_rounded,
-                  iconColor: AppTheme.accentTeal,
+                  title: 'Premium Space',
+                  subtitle: 'Exclusive Tools',
+                  icon: Icons.workspace_premium_rounded,
+                  iconColor: AppTheme.accentPurple,
                   enableAnimations: enableAnimations,
                   isPremiumLocked: false,
                   onTap: () => Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const RoadmapScreen()),
+                    MaterialPageRoute(builder: (_) => const PremiumSpaceScreen()),
                   ),
                   delay: 600,
                 ),

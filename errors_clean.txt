@@ -1,0 +1,109 @@
+﻿
+  error - The method 
+'playAchievement' isn't defined for 
+the type 'SoundService' - lib\screens
+\advanced_notes_screen.dart:37:20 - 
+undefined_method
+  error - The named parameter 
+'child' is required, but there's no 
+corresponding argument - lib\screens\
+advanced_notes_screen.dart:91:11 - 
+missing_required_argument
+  error - The method 'playSuccess' 
+isn't defined for the type 
+'SoundService' - 
+lib\screens\game_screen.dart:94:36 - 
+undefined_method
+  error - The method 'playError' 
+isn't defined for the type 
+'SoundService' - 
+lib\screens\game_screen.dart:105:36 
+- undefined_method
+  error - The method 
+'playAchievement' isn't defined for 
+the type 'SoundService' - 
+lib\screens\game_screen.dart:131:36 
+- undefined_method
+  error - The named parameter 
+'child' is required, but there's no 
+corresponding argument - 
+lib\screens\game_screen.dart:175:11 
+- missing_required_argument
+  error - The getter 'accentEmerald' 
+isn't defined for the type 
+'AppTheme' - 
+lib\screens\game_screen.dart:519:49 
+- undefined_getter
+  error - The getter 'quizId' isn't 
+defined for the type 'Topic' - lib\sc
+reens\interview_screen.dart:65:60 - 
+undefined_getter
+  error - The getter 'quizId' isn't 
+defined for the type 'Topic' - lib\sc
+reens\interview_screen.dart:65:100 - 
+undefined_getter
+  error - The getter 'accentEmerald' 
+isn't defined for the type 
+'AppTheme' - lib\screens\interview_sc
+reen.dart:258:46 - undefined_getter
+  error - Arguments of a constant 
+creation must be constant 
+expressions - lib\screens\interview_s
+creen.dart:264:44 - 
+const_with_non_constant_argument
+  error - The getter 
+'infinity_rounded' isn't defined for 
+the type 'Icons' - lib\screens\interv
+iew_screen.dart:264:50 - 
+undefined_getter
+  error - Invalid constant value - li
+b\screens\interview_screen.dart:264:7
+5 - invalid_constant
+  error - The getter 'accentEmerald' 
+isn't defined for the type 
+'AppTheme' - lib\screens\interview_sc
+reen.dart:264:84 - undefined_getter
+  error - The getter 'accentEmerald' 
+isn't defined for the type 
+'AppTheme' - lib\screens\interview_sc
+reen.dart:268:89 - undefined_getter
+  error - The named parameter 
+'child' is required, but there's no 
+corresponding argument - lib\screens\
+premium_space_screen.dart:29:11 - 
+missing_required_argument
+  error - The getter 'accentEmerald' 
+isn't defined for the type 
+'AppTheme' - lib\screens\premium_spac
+e_screen.dart:160:37 - 
+undefined_getter
+  error - The named parameter 
+'child' is required, but there's no 
+corresponding argument - lib\screens\
+quiz_analytics_screen.dart:42:11 - 
+missing_required_argument
+  error - The getter 'accentEmerald' 
+isn't defined for the type 
+'AppTheme' - lib\screens\quiz_analyti
+cs_screen.dart:176:59 - 
+undefined_getter
+  error - The getter 'accentEmerald' 
+isn't defined for the type 
+'AppTheme' - lib\screens\quiz_analyti
+cs_screen.dart:207:45 - 
+undefined_getter
+  error - Invalid constant value - li
+b\screens\quiz_analytics_screen.dart:
+211:58 - invalid_constant
+  error - The getter 'accentEmerald' 
+isn't defined for the type 
+'AppTheme' - lib\screens\quiz_analyti
+cs_screen.dart:211:67 - 
+undefined_getter
+  error - The name 'LearningModule' 
+isn't a type, so it can't be used as 
+a type argument - lib\services\pdf_ex
+port_service.dart:16:15 - 
+non_type_as_type_argument
+
+

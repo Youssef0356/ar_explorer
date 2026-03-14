@@ -132,12 +132,14 @@ class Topic {
   final String title;
   final String subtitle;
   final List<ContentBlock> contentBlocks;
+  final String? quizId;
 
   const Topic({
     required this.id,
     required this.title,
     required this.subtitle,
     required this.contentBlocks,
+    this.quizId,
   });
 
   factory Topic.fromJson(Map<String, dynamic> json) {
@@ -149,6 +151,7 @@ class Topic {
           .map((blockJson) =>
               ContentBlock.fromJson(blockJson as Map<String, dynamic>))
           .toList(),
+      quizId: json['quizId'] as String?,
     );
   }
 
@@ -157,5 +160,6 @@ class Topic {
         'title': title,
         'subtitle': subtitle,
         'contentBlocks': contentBlocks.map((b) => b.toJson()).toList(),
+        'quizId': quizId,
       };
 }

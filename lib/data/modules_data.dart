@@ -53,6 +53,14 @@ final List<LearningModule> allModules = [
             'If the digital content does not react to your movement or environment — it is closer '
             'to a "screen overlay" or video effect than true AR. Registration is the defining characteristic.',
           ),
+          const ContentBlock.code(
+            '// Conceptual AR Initialization\n'
+            'ARSession session = new ARSession();\n'
+            'session.run(ARWorldTrackingConfiguration());\n'
+            '\n'
+            '// The session now continuously updates the camera pose\n'
+            '// against the real-world environment.',
+          ),
           const ContentBlock.quote(
             'INTERVIEW FOCUS: If asked for a technical definition, use the 3 pillars by Ronald Azuma: '
             '1) Combines real and virtual, 2) Interactive in real time, 3) Registered in 3D.',
@@ -141,6 +149,14 @@ final List<LearningModule> allModules = [
             'As an aspiring AR professional, precision matters. Being sloppy about AR vs VR vs MR — or OST vs VST — '
             'is your first credibility test in any technical interview.',
           ),
+          const ContentBlock.code(
+            '// Example: Detecting if a face is tracked (Snapchat-style AR)\n'
+            'void Update() {\n'
+            '  if (faceManager.trackables.count > 0) {\n'
+            '    renderFaceMesh(faceManager.trackables[0]);\n'
+            '  }\n'
+            '}',
+          ),
           const ContentBlock.quote(
             'INTERVIEW QUESTION: "Is a TikTok filter true AR?" \n'
             'Answer: Yes, because it performs real-time facial tracking (registration) and '
@@ -218,6 +234,16 @@ final List<LearningModule> allModules = [
             'Each virtual object has its own local origin and axes. '
             'Rotating an object in local space rotates it around its own centre, '
             'regardless of where it sits in world space.',
+          ),
+          const ContentBlock.code(
+            '// Converting Screen Space (2D Tap) to World Space (3D Ray)\n'
+            'Vector2 screenTap = Input.GetTouch(0).position;\n'
+            'Ray ray = arCamera.ScreenPointToRay(screenTap);\n'
+            '\n'
+            'if (Physics.Raycast(ray, out hit)) {\n'
+            '    // hit.point is now in WORLD SPACE\n'
+            '    PlaceObject(hit.point);\n'
+            '}',
           ),
           const ContentBlock.info(
             'In most AR SDKs, a "pose" is a transform from one space to another — '
@@ -441,7 +467,16 @@ final List<LearningModule> allModules = [
             'ARCore (Google): Cross-device Android AR. Supports Geospatial API, Depth API, and Cloud Anchors.',
           ),
           const ContentBlock.bullet(
-            'OpenXR: The Khronos Group open standard that unifies XR development across platforms (covered in a dedicated module).',
+            'OpenXR: The Khronos Group open standard that unifies XR development across platforms.',
+          ),
+          const ContentBlock.code(
+            '// Unity AR Foundation: Checking for AR support dynamically\n'
+            'IEnumerator CheckAR() {\n'
+            '    yield return ARSession.CheckAvailability();\n'
+            '    if (ARSession.state == ARSessionState.Supported) {\n'
+            '        // Start the AR Session safely\n'
+            '    }\n'
+            '}',
           ),
         ],
       ),
@@ -509,6 +544,11 @@ final List<LearningModule> allModules = [
             'Z-Fighting: A rendering artifact that occurs when two surfaces share the same depth value, '
             'causing them to flicker as the GPU cannot determine which is in front. '
             'Fix by adding a small depth offset between coplanar surfaces.',
+          ),
+          const ContentBlock.code(
+            '// Unity Shader Graph: Z-Fighting mitigation on planes\n'
+            '// In the Material settings, change the "Render Queue" \n'
+            '// or add a "ZTest LEqual" with a slight Z-Offset.',
           ),
           const ContentBlock.subheading('Persistence & Spatial Anchors'),
           const ContentBlock.body(
@@ -657,6 +697,16 @@ final List<LearningModule> allModules = [
             'IMUs provide very high-frequency (200Hz+) updates that are nearly instant, '
             'filling the gaps between camera frames for smooth tracking.',
           ),
+          const ContentBlock.code(
+            '// Conceptual VIO Loop\n'
+            'while (sessionLive) {\n'
+            '   Pose IMUPose = readHighFrequencyIMU(); \n'
+            '   Pose CameraPose = readLowFrequencyCamera();\n'
+            '   \n'
+            '   // Kalman Filter merges both for final frame pose\n'
+            '   currentPose = KalmanFilter.fuse(IMUPose, CameraPose);\n'
+            '}',
+          ),
         ],
       ),
       Topic(
@@ -748,6 +798,16 @@ final List<LearningModule> allModules = [
             'Textured, matte surfaces detect fastest and most reliably. '
             'Smooth, reflective, or transparent surfaces (glass tables, mirrors, white walls) '
             'provide few trackable features and are the most common cause of failed plane detection.',
+          ),
+          const ContentBlock.code(
+            '// AR Foundation: Detecting when a new plane is found\n'
+            'void OnPlanesChanged(ARPlanesChangedEventArgs args) {\n'
+            '    foreach (var addedPlane in args.added) {\n'
+            '        if (addedPlane.alignment == PlaneAlignment.HorizontalUp) {\n'
+            '            Debug.Log("Found floor at " + addedPlane.center);\n'
+            '        }\n'
+            '    }\n'
+            '}',
           ),
           const ContentBlock.quote(
             'INTERVIEW QUESTION: "How can you detect planes on a white wall?" \n'
@@ -910,253 +970,185 @@ final List<LearningModule> allModules = [
       Topic(
         id: 'vuforia_dev',
         title: 'Vuforia Development',
-        subtitle: 'ImageTarget, Ground Plane, and Cloud Databases.',
+        subtitle: 'ImageTarget, Ground Plane, and Professional Callbacks.',
         contentBlocks: [
           const ContentBlock.heading('Vuforia-Based Development'),
           const ContentBlock.body(
-            'Vuforia Engine is the gold standard for enterprise AR, offering tracking robustness that generic SDKs often lack. '
-            'It excels in industrial environments where lighting and textures are challenging.',
+            'Vuforia Engine is the enterprise standard for AR. Beyond basic targets, senior developers must master its callback system and surface detection capabilities.',
           ),
-          const ContentBlock.subheading('Advanced Tracking Features'),
+          const ContentBlock.subheading('Core Callbacks & Target Quality'),
           const ContentBlock.bullet(
-            'Ground Plane (Surface Detection): Allows placement of AR content on horizontal surfaces (floors, tables) without needing a marker. Uses the device\'s IMU and camera for SLAM.',
-          ),
-          const ContentBlock.bullet(
-            'Device Tracker: Maintains content position even when the target is out of view. Crucial for "walking around" large AR models.',
+            'DefaultTrackableEventHandler: Master OnTrackingFound() and OnTrackingLost(). These are called automatically when a target enters or leaves the camera view.',
           ),
           const ContentBlock.bullet(
-            'Cloud vs. Device Databases: Device databases (local) are faster and work offline but are limited to ~1,000 targets. Cloud databases scale to millions of targets, ideal for retail or large catalogs.',
+            'Star Rating System (1–5): High-contrast, asymmetric images get 4-5 stars. Never ship an app with targets rated below 3 stars — they will drift and fail in real-world lighting.',
           ),
-          const ContentBlock.subheading('ImageTarget Setup Workflow'),
-          const ContentBlock.numbered(
-            '1. Create a License Key on the Vuforia Developer Portal.',
+          const ContentBlock.bullet(
+            'Initialization: Use VuforiaARController.Instance.RegisterVuforiaStartedCallback() to hook into the engine start sequence before activating AR objects.',
           ),
-          const ContentBlock.numbered(
-            '2. Upload reference images to a Target Database. Aim for a 4-5 star rating.',
+          const ContentBlock.subheading('Ground Plane (Surface Detection)'),
+          const ContentBlock.bullet(
+            'GroundPlaneStageController: Places virtual content on detected flat surfaces without any printed marker.',
           ),
-          const ContentBlock.numbered(
-            '3. Import the Unity package and add a VuforiaConfiguration asset.',
+          const ContentBlock.bullet(
+            'PlaneFinderBehaviour: Triggers the real-time hit test that scans the floor/environment for valid placement points.',
           ),
-          const ContentBlock.numbered(
-            '4. Drag an ImageTarget or GroundPlaneStage prefab into your scene.',
+          const ContentBlock.warning(
+            'Ground Plane and Image Targets cannot run simultaneously in the same Vuforia session. You must choose one mode per scene.',
           ),
-          const ContentBlock.info(
-            'Extended Tracking (Device Tracking) is what enables Vuforia content to stay fixed '
-            'when the camera looks away from the marker. It is a key technical distinction in interviews.',
+          const ContentBlock.subheading('Extended Tracking vs Device Tracker'),
+          const ContentBlock.bullet(
+            'Extended Tracking: A free feature where content stays fixed even if the camera looks away from the marker, using SLAM in the background.',
           ),
-          const ContentBlock.code(
-            '// Vuforia 10+ Status Check\n'
-            'void OnTargetStatusChanged(ObserverBehaviour behaviour, TargetStatus status) {\n'
-            '  if (status.Status == Status.TRACKED || status.Status == Status.EXTENDED_TRACKED) {\n'
-            '    ShowUI();\n'
-            '  }\n'
-            '}',
+          const ContentBlock.bullet(
+            'Device Tracker: A persistent world-tracking mode. Start it via TrackerManager.Instance.GetTracker<PositionalDeviceTracker>().Start() for long sessions where users walk away from the markers.',
+          ),
+          const ContentBlock.subheading('Production: License Keys'),
+          const ContentBlock.body(
+            'Never hardcode your license key. Store it in a ScriptableObject. Note that the "Basic" free license shuts down silently after 1,000 recognitions per month.',
+          ),
+          const ContentBlock.quote(
+            'INTERVIEW FOCUS: Vuforia Target Quality\n'
+            'Q: "A client\'s ImageTarget tracks poorly — what do you check first?"\n'
+            'A: Check the target star rating in Vuforia Target Manager. Below 3 stars indicates insufficient feature points. Recommend a different image — high contrast, asymmetric, and rich in detail.',
           ),
         ],
       ),
       Topic(
         id: 'arcore_dev',
         title: 'ARCore Development',
-        subtitle: 'Geospatial API, Depth API, and Session Management.',
+        subtitle: 'Depth API, Instant Placement, and Geospatial VPS.',
         contentBlocks: [
           const ContentBlock.heading('ARCore Development (Android)'),
           const ContentBlock.body(
-            'ARCore is Google\'s platform for building augmented reality experiences. '
-            'It provides APIs for tracking, environment understanding, and light estimation.',
+            'ARCore provides the world-tracking backbone for Android. To build flagship apps, you must go beyond simple plane detection.',
           ),
-          const ContentBlock.subheading('Modern ARCore Features'),
-          const ContentBlock.bullet(
-            'Geospatial API: Uses GPS and Google Street View data to place AR content anywhere in the world with global coordinates. This is the "AR Cloud" in action.',
-          ),
-          const ContentBlock.bullet(
-            'Depth API: Generates a real-time depth map using just a single RGB camera. Enables occlusion (objects hiding behind real walls) and realistic physics.',
-          ),
-          const ContentBlock.bullet(
-            'Instant Placement: Allows users to place objects immediately without waiting for ARCore to finish scanning a full plane.',
-          ),
-          const ContentBlock.subheading('Session & Anchor Management'),
+          const ContentBlock.subheading('Depth API (Native Occlusion)'),
           const ContentBlock.body(
-            'Every ARCore interaction happens within a Session. You must handle the lifecycle (onPause/onResume) and check for device availability.',
+            'Generates per-pixel depth maps using depth-from-motion — no LiDAR hardware required. Enable via config.depthMode = Config.DepthMode.AUTOMATIC.',
+          ),
+          const ContentBlock.bullet(
+            'Occlusion: Compare virtual pixel depth against real-world depth (frame.acquireDepthImage16Bits()). If the real-world depth is closer, discard the virtual pixel.',
+          ),
+          const ContentBlock.bullet(
+            'Accuracy: Most accurate between 0.5m and 5m. Best for e-commerce (e.g., Houzz) to ensure furniture doesn\'t "float" over real objects.',
+          ),
+          const ContentBlock.subheading('Instant Placement'),
+          const ContentBlock.body(
+            'Allows users to place objects immediately without waiting for plane scanning. Initial tracking uses estimated distance and "jumps" to full tracking once a plane is confirmed.',
+          ),
+          const ContentBlock.subheading('Geospatial API (VPS)'),
+          const ContentBlock.body(
+            'Uses Google Street View data to place AR content anywhere globally with GPS precision. VPS matches camera pixels against a global neural network point cloud.',
+          ),
+          const ContentBlock.bullet(
+            'Anchor Types: WGS84 (Lat/Long/Alt), Terrain (lat/long only), and Rooftop anchors.',
           ),
           const ContentBlock.code(
-            '// Check if ARCore is supported and installed\n'
-            'ArCoreApk.getInstance().checkAvailability(context).isSupported',
-          ),
-          const ContentBlock.info(
-            'An Anchor is a "sticky" point in space that ARCore corrects over time. '
-            'Always attach long-term virtual objects to an Anchor to prevent them from "drifting" '
-            'as the environment map is refined.',
+            '// Check VPS availability before hosting\n'
+            'session.checkVpsAvailabilityAsync(lat, lng) { availability ->\n'
+            '  if (availability == VpsAvailability.AVAILABLE) { /* Safe to host */ }\n'
+            '}',
           ),
           const ContentBlock.quote(
-            'INTERVIEW QUESTION: "How do you check for ARCore compatibility?" \n'
-            'Answer: Use checkAvailability(). You must also determine if ARCore is "Required" '
-            'or "Optional" in your AndroidManifest to filter app store visibility.',
-          ),
-        ],
-      ),
-      Topic(
-        id: 'ar_foundation_dev',
-        title: 'AR Foundation (Unity)',
-        subtitle: 'The Cross-Platform Gold Standard.',
-        contentBlocks: [
-          const ContentBlock.heading('AR Foundation — Write Once, Deploy Twice'),
-          const ContentBlock.body(
-            'AR Foundation abstracts ARKit and ARCore into a single API. '
-            'It is the most common way to build commercial AR apps for both iOS and Android.',
-          ),
-          const ContentBlock.subheading('Setup & XR Plugin Management'),
-          const ContentBlock.numbered(
-            '1. Install "AR Foundation" and platform-specific providers (ARCore XR Plugin / ARKit XR Plugin) from the Package Manager.',
-          ),
-          const ContentBlock.numbered(
-            '2. In Project Settings -> XR Plugin Management, enable the providers for each target platform.',
-          ),
-          const ContentBlock.numbered(
-            '3. Create an "XR Origin" (or AR Session Origin) in your scene. This holds the AR Camera.',
-          ),
-          const ContentBlock.subheading('Graceful Degradation'),
-          const ContentBlock.body(
-            'Since features like LiDAR or Body Tracking vary by device, use "Descriptor" checks to see if a feature is available before activating it.',
-          ),
-          const ContentBlock.code(
-            '// Check for depth support at runtime\n'
-            'var depthManager = GetComponent<AROcclusionManager>();\n'
-            'if (depthManager.descriptor?.supportsEnvironmentDepthImage ?? false) {\n'
-            '    // Enable high-quality occlusion\n'
-            '}',
+            'INTERVIEW FOCUS: Depth API\n'
+            'Q: "How do you implement realistic occlusion in ARCore?"\n'
+            'A: Enable Depth API in config. Acquire the 16-bit depth image per frame. In your shader, compare virtual depth vs real depth — if real is closer, discard the virtual fragment.',
           ),
         ],
       ),
       Topic(
         id: 'arkit_dev',
         title: 'ARKit & RealityKit (iOS)',
-        subtitle: 'Modern Apple AR Development.',
+        subtitle: 'LiDAR, People Occlusion, and 4K Capture.',
         contentBlocks: [
           const ContentBlock.heading('The Apple AR Stack'),
           const ContentBlock.body(
-            'For iOS, Apple provides two layers: ARKit (the engine that handles tracking) '
-            'and RealityKit (the modern renderer optimized for AR). For new projects, RealityKit is the standard.',
+            'Apple\'s stack is optimized for the A-series chips. RealityKit is built from the ground up for AR with physically-based rendering (PBR), automatic environment reflections, grounding shadows, and spatial audio.',
           ),
-          const ContentBlock.subheading('Key Professional Features'),
+          const ContentBlock.subheading('RealityKit vs SceneKit — The Modern Choice'),
           const ContentBlock.bullet(
-            'RealityKit vs SceneKit: RealityKit is purpose-built for AR with physical-based rendering (PBR), physics, and native LiDAR support. SceneKit is older and not AR-specific.',
-          ),
-          const ContentBlock.bullet(
-            'People Occlusion: Uses ML to segment humans in the scene so virtual objects render behind them correctly.',
+            'RealityKit: Uses Entity Component System (ECS). Entity holds Components (ModelComponent, PhysicsBodyComponent), and Systems process them. Unified across iOS, macOS, and visionOS.',
           ),
           const ContentBlock.bullet(
-            'LiDAR Scene Reconstruction: Generates a dense 3D mesh of the room instantly. Used for measurement, physics, and instant plane detection.',
+            'SceneKit: General-purpose 3D engine. No longer recommended for new AR projects unless maintaining old code.',
+          ),
+          const ContentBlock.code(
+            '// RealityKit: Placing a USDZ model\n'
+            'let anchor = AnchorEntity(.plane(.horizontal, classification: .floor, minimumBounds: [0.2, 0.2]))\n'
+            'let modelEntity = try! ModelEntity.load(named: "toy_car.usdz")\n'
+            'anchor.addChild(modelEntity)\n'
+            'arView.scene.anchors.append(anchor)',
+          ),
+          const ContentBlock.subheading('People Occlusion'),
+          const ContentBlock.body(
+            'Segments real people so virtual content renders behind them correctly. Only available on A12 chip and later.',
+          ),
+          const ContentBlock.code(
+            'config.frameSemantics = .personSegmentationWithDepth // Enable occlusion',
+          ),
+          const ContentBlock.subheading('LiDAR-Specific Features'),
+          const ContentBlock.bullet(
+            'Scene Reconstruction: Enables precise occlusion and physics collisions with real surfaces. Virtual balls can literally bounce off real tables.',
           ),
           const ContentBlock.bullet(
-            'Body Tracking (A12+): 3D joint tracking of a person in the camera view.',
+            'ARMeshGeometry: LiDAR generates a live dense mesh of the real environment instantly.',
           ),
-          const ContentBlock.info(
-            'ARKit 6 introduced 4K video support and enhanced Plane Detection, '
-            'enabling more realistic background integration for high-end mobile AR.',
+          const ContentBlock.quote(
+            'INTERVIEW FOCUS: RealityKit vs SceneKit\n'
+            'Q: "Would you use SceneKit or RealityKit for a new AR project in 2025?"\n'
+            'A: RealityKit. It includes PBR rendering, automatic lighting, grounding shadows, and spatial audio with no extra code. SceneKit is a general engine that predates AR and requires manual implementation of these features.',
           ),
         ],
       ),
       Topic(
-        id: 'debugging_testing_dev',
-        title: 'Debugging & Testing AR Apps',
-        subtitle: 'Solving the "Black Screen" and Drift.',
+        id: 'ar_foundation_dev',
+        title: 'AR Foundation (Unity)',
+        subtitle: 'Cross-Platform Management.',
         contentBlocks: [
-          const ContentBlock.heading('The AR Debugging Mindset'),
+          const ContentBlock.heading('AR Foundation — The Industry Standard'),
+          const ContentBlock.subheading('Setup & XR Plugin Management'),
+          const ContentBlock.bullet(
+            'Plugins: You must install com.unity.xr.arcore and com.unity.xr.arkit separately. Forgetting one is the #1 cause of "black screens" on one platform.',
+          ),
+          const ContentBlock.bullet(
+            'Build Settings: iOS requires Camera Usage Description in Info.plist or the app will crash on launch.',
+          ),
+          const ContentBlock.subheading('Graceful Degradation'),
           const ContentBlock.body(
-            'AR is uniquely hard to debug because it relies on the physical environment. '
-            'You cannot test "Tracking Loss" purely in a simulator.',
+            'Never assume a feature exists. Use "Descriptor" checks to see if hardware (like LiDAR) supports your desired feature before activating it.',
           ),
-          const ContentBlock.subheading('Tools of the Trade'),
-          const ContentBlock.bullet(
-            'ARCore Scene Viewer / Quick Look: Test 3D models instantly on a device without a full app build.',
+          const ContentBlock.code(
+            'if (planeManager.descriptor?.supportsBoundaryVertices == true) {\n'
+            '    // Use high-fidelity boundary points\n'
+            '}',
           ),
-          const ContentBlock.bullet(
-            'Unity AR Simulation: Play your scene in the editor using a "Simulated Environment" (no device needed for basic logic).',
-          ),
-          const ContentBlock.bullet(
-            'Console Logs: Filter for "ARCore" or "ARKit" tags to see low-level tracking errors or hardware incompatibility reports.',
-          ),
-          const ContentBlock.subheading('Common Bug Checklist'),
-          const ContentBlock.bullet(
-            'Z-fighting: Virtual surface is too close to a real wall; add a small offset.',
-          ),
-          const ContentBlock.bullet(
-            'Anchor Drift: Ensure objects are attached to Anchors, not just raw world positions.',
-          ),
-          const ContentBlock.bullet(
-            'Tracking Loss: Check if environmental light is too low or surface has no texture (e.g. glass).',
+          const ContentBlock.subheading('AROcclusionManager'),
+          const ContentBlock.body(
+            'The central component for Depth in AR Foundation. Must be explicitly added to the AR Camera to enable real-world occlusion.',
           ),
         ],
       ),
       Topic(
-        id: 'ar_architecture_dev',
-        title: 'AR App Architecture Patterns',
-        subtitle: 'Separating the Spatial from the UI.',
+        id: 'permissions_publishing',
+        title: 'Permissions & Build Config',
+        subtitle: 'Shipping a 5-Star App.',
         contentBlocks: [
-          const ContentBlock.heading('How to Build a Professional AR App'),
-          const ContentBlock.body(
-            'Senior developers don\'t put AR logic inside their UI classes. '
-            'A clean AR app separates "Spatial Logic" from "Application Logic."',
-          ),
-          const ContentBlock.subheading('The "AR Manager" Pattern'),
-          const ContentBlock.body(
-            'Create a single entry point (ARManager) that handles the session, events, and asset spawning. '
-            'UI components should only talk to this manager through high-level commands like "PlaceAt(screenPos)".',
-          ),
-          const ContentBlock.subheading('Handling App State'),
+          const ContentBlock.heading('Production Readiness'),
+          const ContentBlock.subheading('Android Permissions'),
           const ContentBlock.bullet(
-            'Backgrounding: What happens if the phone rings mid-session? AR sessions usually pause. Your app must decide whether to attempt recovery (Relocalization) or reset.',
+            'CAMERA and ACCESS_FINE_LOCATION (for Geospatial) are mandatory runtime requests.',
           ),
           const ContentBlock.bullet(
-            'Persistent State: Save the World-locked coordinates of objects to a database so they appear in the same spot tomorrow.',
+            'arcore:required vs optional: "Required" filters out non-AR phones from Google Play store automatically.',
           ),
-        ],
-      ),
-      Topic(
-        id: 'permissions_dev',
-        title: 'Permissions & User Flow',
-        subtitle: 'Getting the Green Light for the Camera.',
-        contentBlocks: [
-          const ContentBlock.heading('Privacy & Setup'),
-          const ContentBlock.body(
-            'Your AR code won\'t run without the Camera. Handling this flow is critical for a good user experience.',
-          ),
-          const ContentBlock.subheading('Platform Requirements'),
+          const ContentBlock.subheading('iOS Privacy'),
           const ContentBlock.bullet(
-            'iOS: You MUST include NSCameraUsageDescription in your Info.plist. If missing, the app will crash on launch.',
+            'NSCameraUsageDescription in Info.plist is the most critical item. Missing it = Instant App Store rejection.',
           ),
+          const ContentBlock.subheading('Build Size Tips'),
           const ContentBlock.bullet(
-            'Android: Handle the runtime permission request. If denied, show a helpful screen explaining WHY AR needs the camera (transparency building).',
-          ),
-          const ContentBlock.subheading('Compatibility Check'),
-          const ContentBlock.body(
-            'Before asking for permission, check if the device supports AR at all. Use ARCore\'s checkAvailability() or ARKit\'s support check to avoid dead-end flows.',
-          ),
-        ],
-      ),
-      Topic(
-        id: 'publishing_dev',
-        title: 'Publishing & Build Configuration',
-        subtitle: 'Shipping a 5-Star AR App.',
-        contentBlocks: [
-          const ContentBlock.heading('Configuration Checklist'),
-          const ContentBlock.subheading('Android (AndroidManifest.xml)'),
-          const ContentBlock.bullet(
-            'minSdkVersion: Usually 24 (Android 7.0) for ARCore.',
-          ),
-          const ContentBlock.bullet(
-            'Required vs Optional: "Required" filters out non-AR phones from Google Play. "Optional" lets older phones download the app without AR features.',
-          ),
-          const ContentBlock.subheading('iOS (Xcode Support)'),
-          const ContentBlock.bullet(
-            'Build for "Arm64" (A-series chips). ARKit does not run on Intel-based simulators.',
-          ),
-          const ContentBlock.bullet(
-            'Deployment Target: iOS 11.0 is the minimum for ARKit, but iOS 15+ is recommended for modern features.',
-          ),
-          const ContentBlock.info(
-            'App Size Tip: AR libraries are heavy (Vuforia adds ~30MB). '
-            'Use Addressables (Unity) to download 3D models only when needed to keep the initial APK small.',
+            'Vuforia adds ~30MB to your build. Use texture compression (ETC2/ASTC) and Unity Addressables to keep your initial APK small.',
           ),
         ],
       ),
@@ -1215,6 +1207,17 @@ final List<LearningModule> allModules = [
           const ContentBlock.info(
             'On ARCore: Anchor.getTrackingState(). On AR Foundation: ARAnchor.trackingState. '
             'On ARKit: ARAnchor does not have a tracking state directly — monitor via ARSessionDelegate.',
+          ),
+          const ContentBlock.code(
+            '// Unity AR Foundation: Handling Anchor States\n'
+            'void OnAnchorsChanged(ARAnchorsChangedEventArgs args) {\n'
+            '    foreach (var updatedAnchor in args.updated) {\n'
+            '        if (updatedAnchor.trackingState == TrackingState.None) {\n'
+            '            // Anchor lost: optionally hide the attached 3D model\n'
+            '            updatedAnchor.gameObject.SetActive(false);\n'
+            '        }\n'
+            '    }\n'
+            '}',
           ),
           const ContentBlock.quote(
             'INTERVIEW FOCUS: Why use multiple anchors? \n'
@@ -1360,6 +1363,15 @@ final List<LearningModule> allModules = [
             'Mobile GPU characteristics, thermal throttling, and camera pipeline overhead differ dramatically '
             'from desktop hardware. Use Xcode Instruments (iOS) or Android GPU Inspector for accurate profiling.',
           ),
+          const ContentBlock.code(
+            '// Unity: Dynamic resolution scaling based on frame rate\n'
+            'void Update() {\n'
+            '    if (1.0f / Time.deltaTime < 30f) {\n'
+            '        // FPS dropped below 30, reduce render scale\n'
+            '        ScalableBufferManager.ResizeBuffers(0.5f, 0.5f);\n'
+            '    }\n'
+            '}',
+          ),
           const ContentBlock.quote(
             'PRO INSIGHT: The "Draw Call" bottleneck in AR. \n'
             'In AR, the CPU is often the bottleneck because it has to manage the camera pipeline, '
@@ -1401,6 +1413,17 @@ final List<LearningModule> allModules = [
             'For long-duration industrial AR sessions (30+ minutes), thermal management is as critical '
             'as tracking quality. A device that throttles to 15 FPS after 20 minutes makes the app unusable.',
           ),
+          const ContentBlock.code(
+            '// iOS Swift: Monitoring Thermal State\n'
+            'NotificationCenter.default.addObserver(self, selector: #selector(thermalStateChanged), '
+            'name: ProcessInfo.thermalStateDidChangeNotification, object: nil)\n\n'
+            '@objc func thermalStateChanged() {\n'
+            '    let state = ProcessInfo.processInfo.thermalState\n'
+            '    if state == .serious || state == .critical {\n'
+            '        // Disable heavy post-processing / particles\n'
+            '    }\n'
+            '}',
+          ),
           const ContentBlock.quote(
             'INTERVIEW FOCUS: Thermal Management. \n'
             'Question: "How do you detect and react to overheating?" \n'
@@ -1428,79 +1451,114 @@ final List<LearningModule> allModules = [
       Topic(
         id: 'cloud_anchors',
         title: 'Cloud Anchors & Shared AR',
-        subtitle: 'Multi-user AR experiences.',
+        subtitle: 'Multi-User Persistence.',
         contentBlocks: [
-          const ContentBlock.heading('Cloud Anchors'),
+          const ContentBlock.heading('Cloud Anchors & Shared Experiences'),
           const ContentBlock.body(
-            'Cloud Anchors allow multiple users on different devices to share the same AR experience '
-            'by resolving a common real-world anchor from the cloud. A host device creates and uploads the anchor; '
-            'other devices download and resolve it to position content at the exact same physical location.',
+            'Cloud Anchors allow multiple users to see the same virtual object in the same physical spot, even across iOS and Android.',
           ),
-          const ContentBlock.subheading('ARCore Cloud Anchor Workflow'),
+          const ContentBlock.subheading('Workflow & Reliability'),
           const ContentBlock.numbered(
-            '1. Host creates a local anchor on a well-mapped surface and calls session.hostCloudAnchorAsync().',
+            '1. Host device creates an anchor. Always check CloudAnchorState == SUCCESS before sharing the ID.',
           ),
           const ContentBlock.numbered(
-            '2. ARCore processes the visual environment data and returns a Cloud Anchor ID (a string token).',
+            '2. TTL (Time to Live): Anchors expire in 24h by default. Set ttlDays (up to 365) for long-term persistence.',
           ),
           const ContentBlock.numbered(
-            '3. The host distributes this ID to other users (via your own server, a QR code, or a shared room code).',
-          ),
-          const ContentBlock.numbered(
-            '4. Resolving devices call session.resolveCloudAnchorAsync(id). ARCore matches their current environment scan to the stored map and returns the anchor pose.',
+            '3. Resolving: Guest devices call resolveCloudAnchorAsync(id) to align their coordinate systems.',
           ),
           const ContentBlock.info(
-            'For best results, the host should walk around the anchor for several seconds to build a rich local feature map before hosting. '
-            'Sparse mapping causes slow or failed resolution on other devices.',
+            'ERROR_HOSTING_DATASET_PROCESSING_FAILED means the environment wasn\'t mapped richly enough. Move the device more to capture a better feature point cloud.',
           ),
-          const ContentBlock.subheading('Azure Spatial Anchors (ASA)'),
-          const ContentBlock.body(
-            'ASA is Microsoft\'s enterprise-grade cloud anchor solution. It supports iOS, Android, and HoloLens '
-            'simultaneously — allowing a mixed fleet of devices to share the same spatial anchors at industrial scale.',
+          const ContentBlock.quote(
+            'INTERVIEW FOCUS: Shared AR Architecture\n'
+            'Q: "How do you build a multi-user AR app with 10 users?"\n'
+            'A: Use ARCore Cloud Anchors. One device hosts the anchor while scanning the surface. The resulting ID is shared via a background server (like Firebase). Other devices resolve that ID to synchronize their spatial coordinates.',
           ),
         ],
       ),
       Topic(
         id: 'depth_occlusion',
         title: 'Depth API & Occlusion',
-        subtitle: 'Making virtual objects interact with real geometry.',
+        subtitle: 'Realistic Environment Interaction.',
         contentBlocks: [
-          const ContentBlock.heading('Depth API & Environmental Occlusion'),
+          const ContentBlock.heading('How the Depth API Works'),
           const ContentBlock.body(
-            'Without occlusion, virtual objects render in front of everything — including real objects that should '
-            'be in front of them. This breaks the core illusion of AR. The Depth API provides a per-pixel depth map '
-            'of the real environment, enabling correct occlusion.',
+            'The Depth-from-motion algorithm takes multiple RGB frames from different angles and compares pixel displacement to compute distance per pixel. Depth accuracy is best between 0.5m and 5m.',
           ),
-          const ContentBlock.subheading('Depth Sources'),
+          const ContentBlock.subheading('Occlusion Rendering — Two Approaches'),
           const ContentBlock.bullet(
-            'LiDAR (Hardware Depth): Direct, hardware-measured depth. Very accurate. Available on iPad Pro and iPhone 12 Pro+.',
+            'Per-Object Forward-Pass: Each material shader reads depth and clips occluded pixels. Best for simple scenes.',
           ),
           const ContentBlock.bullet(
-            'ML-Estimated Depth (ARCore Depth API): Machine learning predicts depth from the RGB camera on non-LiDAR devices. Less accurate but widely available.',
+            'Two-Pass Rendering: Renders virtual content to a buffer, and then composites onto camera feed. Better for complex scenes.',
           ),
-          const ContentBlock.subheading('Occlusion Types'),
+          const ContentBlock.subheading('Depth for Hit Testing'),
+          const ContentBlock.body(
+            'Depth hit tests find the actual surface geometry (e.g. carpet fibers), not just the estimated plane. frame.hitTest() uses this automatically when enabled.',
+          ),
+          const ContentBlock.code(
+            '// Acquire depth image (Kotlin)\n'
+            'config.depthMode = Config.DepthMode.AUTOMATIC\n'
+            'frame.acquireDepthImage16Bits().use { depthImage ->\n'
+            '    val width = depthImage.width\n'
+            '    val height = depthImage.height\n'
+            '    // Each pixel is uint16 in millimetres\n'
+            '}',
+          ),
+          const ContentBlock.quote(
+            'INTERVIEW FOCUS: Depth API\n'
+            'Q: "How would you implement realistic occlusion in an ARCore app?"\n'
+            'A: Enable Depth API in session config (Config.DepthMode.AUTOMATIC). Acquire the depth image per frame and pass it to your fragment shader. Compare virtual depth vs real depth and discard pixels if real depth is closer.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'scene_semantics',
+        title: 'Scene Semantics API',
+        subtitle: 'Giving the World Meaning.',
+        contentBlocks: [
+          const ContentBlock.heading('Understanding Your Environment\'s Meaning'),
+          const ContentBlock.body(
+            'Scene Semantics classifies each pixel of the camera image into labels like Sky, Building, Tree, Road, and Water.',
+          ),
+          const ContentBlock.subheading('Practical Applications'),
           const ContentBlock.bullet(
-            'Environmental Occlusion: Real objects in the foreground (walls, furniture, people) correctly hide virtual objects behind them.',
+            'Sky Replacement: Swap "Sky" pixels with custom textures.',
           ),
           const ContentBlock.bullet(
-            'Self-Occlusion: Different parts of a complex virtual object correctly occlude each other.',
+            'Terrain-Aware Placement: Ensure objects only spawn on "Sidewalk" or "Terrain" labels.',
           ),
-          const ContentBlock.subheading('Implementation Steps'),
-          const ContentBlock.numbered(
-            '1. Enable the Depth API in your AR session configuration.',
+          const ContentBlock.code(
+            'frame.acquireSemanticImage().use { semanticImage ->\n'
+            '    val label = semanticImage.getSemanticLabelAt(x, y)\n'
+            '    if (label == SemanticLabel.SKY) { /* Replace Sky */ }\n'
+            '}',
           ),
-          const ContentBlock.numbered(
-            '2. Access the depth texture from each camera frame.',
+          const ContentBlock.subheading('Scene Semantics + Geospatial Depth'),
+          const ContentBlock.body(
+            'When combined, Geospatial Depth API improves accuracy up to 65 metres — far beyond the 5m limit of motion-based depth.',
           ),
-          const ContentBlock.numbered(
-            '3. In the fragment shader, compare the virtual object\'s projected depth against the real-world depth map.',
+        ],
+      ),
+      Topic(
+        id: 'recording_playback',
+        title: 'Recording & Playback API',
+        subtitle: 'The Developer\'s Time Machine.',
+        contentBlocks: [
+          const ContentBlock.heading('Record AR Sessions for Debugging'),
+          const ContentBlock.body(
+            'The Recording API captures camera feed, IMU, and tracking data to an MP4 file. You can replay this file in Android Studio as if it were a live session.',
           ),
-          const ContentBlock.numbered(
-            '4. Discard (clip) virtual fragments where the real-world depth is closer than the virtual object.',
+          const ContentBlock.subheading('Why This Is Transformative'),
+          const ContentBlock.bullet(
+            'Remote Testing: Record a unique physical space and share it with remote teammates who can\'t travel to that location.',
           ),
-          const ContentBlock.warning(
-            'ML-estimated depth has accuracy limitations, especially on edges, thin objects, and transparent surfaces. '
-            'Expect some "depth bleeding" artefacts at occlusion boundaries on non-LiDAR devices.',
+          const ContentBlock.bullet(
+            'Automated Testing: Use Playback to run CI/CD tests against known environment datasets.',
+          ),
+          const ContentBlock.bullet(
+            'No Device Needed: Once recorded, you can debug logic without holding the phone or being in the AR space.',
           ),
         ],
       ),
@@ -1786,6 +1844,13 @@ final List<LearningModule> allModules = [
             'Instead of coding "If the A button is pressed," you code "If the Select action is triggered." '
             'The runtime then maps "Select" to whatever button or gesture makes sense for that hardware.',
           ),
+          const ContentBlock.code(
+            '// OpenXR: Creating an Action (C++)\n'
+            'XrActionCreateInfo actionInfo{XR_TYPE_ACTION_CREATE_INFO};\n'
+            'strcpy(actionInfo.actionName, "grab_object");\n'
+            'actionInfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;\n'
+            'xrCreateAction(actionSet, &actionInfo, &grabAction);',
+          ),
         ],
       ),
       Topic(
@@ -1898,6 +1963,15 @@ final List<LearningModule> allModules = [
             'Companies like Google and Apple are building this not just for fun, '
             'but because whoever owns the 3D map of the world owns the interface '
             'for the next decade of spatial computing.',
+          ),
+          const ContentBlock.code(
+            '// Google Cloud Anchors: Hosting an anchor (Kotlin)\n'
+            'session.hostCloudAnchorAsync(anchor) { cloudAnchorId, state ->\n'
+            '    if (state == Anchor.CloudAnchorState.SUCCESS) {\n'
+            '        // Share cloudAnchorId to your backend (e.g. Firebase)\n'
+            '        saveToFirebase(cloudAnchorId)\n'
+            '    }\n'
+            '}',
           ),
         ],
       ),
@@ -2035,6 +2109,14 @@ final List<LearningModule> allModules = [
           const ContentBlock.warning(
             'Loop closure is computationally expensive. In mobile AR SDKs, it runs on a background thread '
             'asynchronously to avoid blocking the rendering loop.',
+          ),
+          const ContentBlock.code(
+            '// SLAM Loop Closure Concept (Pseudo-code)\n'
+            'if (Map.containsSimilarKeyframe(currentFrame)) {\n'
+            '    Transform driftCorrection = calculateDrift(currentFrame, oldKeyframe);\n'
+            '    Map.ApplyGlobalCorrection(driftCorrection);\n'
+            '    TriggerEvent("OnMapSnapped");\n'
+            '}',
           ),
         ],
       ),
@@ -2182,6 +2264,16 @@ final List<LearningModule> allModules = [
             'In C# (Unity), code like `text = "Value: " + val;` creates a new string object every frame. '
             'Use `StringBuilder` or pre-generate strings to avoid "Garbage Collection Hell."',
           ),
+          const ContentBlock.code(
+            '// Unity Object Pooling: Avoid Instantiate() during gameplay\n'
+            'GameObject GetBullet() {\n'
+            '    foreach (var b in bulletPool) {\n'
+            '        if (!b.activeInHierarchy) return b;\n'
+            '    }\n'
+            '    // Only allocate if pool is empty\n'
+            '    return Instantiate(bulletPrefab);\n'
+            '}',
+          ),
         ],
       ),
       Topic(
@@ -2220,6 +2312,11 @@ final List<LearningModule> allModules = [
           const ContentBlock.subheading('Render Resolution'),
           const ContentBlock.bullet(
             'Scale the render target to 75–85% of native resolution. On most AR apps, users cannot perceive the difference, but GPU load drops significantly.',
+          ),
+          const ContentBlock.code(
+            '// Unity URP: Downscaling Render Resolution dynamically\n'
+            'var cameraData = camera.GetUniversalAdditionalCameraData();\n'
+            'cameraData.renderScale = 0.8f; // Renders at 80% to save GPU\n',
           ),
           const ContentBlock.info(
             'On AR specifically: the camera feed texture itself occupies significant GPU bandwidth. '

@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../core/app_theme.dart';
+import '../data/modules_data.dart';
 import '../data/quiz_data.dart';
 import '../models/quiz_model.dart';
 import '../services/progress_service.dart';
@@ -35,6 +36,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
   int _secondsRemaining = _secondsPerQuestion;
   Timer? _timer;
   final Stopwatch _totalStopwatch = Stopwatch();
+  String? _selectedCategory;
 
   @override
   void dispose() {
@@ -44,20 +46,34 @@ class _InterviewScreenState extends State<InterviewScreen> {
 
   void _startInterview() async {
     final progress = context.read<ProgressService>();
-    if (progress.interviewAttemptsLeft <= 0) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => PaywallScreen()));
+    if (progress.interviewAttemptsLeft <= 0 && !progress.isPremium) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
       return;
     }
 
-    await progress.useInterviewAttempt();
+    if (!progress.isPremium) {
+       await progress.useInterviewAttempt();
+    }
 
-    final all = allQuizzes.values
-        .expand((quiz) => quiz.questions)
-        .toList()
-      ..shuffle(Random());
+    Iterable<QuizQuestion> all = [];
+    if (_selectedCategory == null) {
+       // All topics
+       all = allQuizzes.values.expand((quiz) => quiz.questions);
+    } else {
+       // Filtered by Module title
+       final module = allModules.firstWhere((m) => m.title == _selectedCategory);
+       final relatedQuizzes = module.topics.where((t) => t.quizId != null).map((t) => allQuizzes[t.quizId!]);
+       all = relatedQuizzes.where((q) => q != null).expand((quiz) => quiz!.questions);
+    }
+
+    final shuffled = all.toList()..shuffle(Random());
+    if (shuffled.isEmpty) {
+        // Fallback safety
+        shuffled.addAll(allQuizzes.values.expand((quiz) => quiz.questions).toList()..shuffle(Random()));
+    }
 
     setState(() {
-      _questions = all.take(_totalQuestions).toList();
+      _questions = shuffled.take(min(_totalQuestions, shuffled.length)).toList();
       _started = true;
       _finished = false;
       _currentIndex = 0;
@@ -234,7 +250,27 @@ class _InterviewScreenState extends State<InterviewScreen> {
                 const SizedBox(height: 12),
                 Consumer<ProgressService>(
                   builder: (context, progress, _) {
-                    if (progress.isPremium) return const SizedBox.shrink();
+                    if (progress.isPremium) {
+                       return Container(
+                          margin: const EdgeInsets.only(top: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                          decoration: BoxDecoration(
+                             color: AppTheme.successGreen.withValues(alpha: 0.15),
+                             borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                             mainAxisSize: MainAxisSize.min,
+                             children: [
+                                const Icon(Icons.all_inclusive_rounded, color: AppTheme.successGreen, size: 16),
+                                const SizedBox(width: 8),
+                                Text(
+                                   'Unlimited Premium Attempts',
+                                   style: AppTheme.labelMedium.copyWith(color: AppTheme.successGreen),
+                                )
+                             ],
+                          ),
+                       );
+                    }
                     final left = progress.interviewAttemptsLeft;
                     return Text(
                       'Daily attempts: $left / 2',
@@ -245,7 +281,40 @@ class _InterviewScreenState extends State<InterviewScreen> {
                     );
                   },
                 ),
-                const SizedBox(height: 32),
+                Consumer<ProgressService>(
+                   builder: (context, progress, _) {
+                      if (!progress.isPremium) return const SizedBox(height: 32);
+                      return Padding(
+                         padding: const EdgeInsets.symmetric(vertical: 24.0),
+                         child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                               Text('Topic Focus (Premium)', style: AppTheme.labelMedium.copyWith(color: AppTheme.textSecondaryC(isDark))),
+                               const SizedBox(height: 8),
+                               Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  decoration: AppTheme.glassCard(isDark),
+                                  child: DropdownButtonHideUnderline(
+                                     child: DropdownButton<String>(
+                                        value: _selectedCategory,
+                                        isExpanded: true,
+                                        hint: Text('All Modules (Mixed)', style: AppTheme.bodySmall.copyWith(color: AppTheme.textPrimaryC(isDark))),
+                                        dropdownColor: AppTheme.cardC(isDark),
+                                        style: AppTheme.bodySmall.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                                        icon: Icon(Icons.arrow_drop_down_rounded, color: AppTheme.textMutedC(isDark)),
+                                        items: [
+                                           DropdownMenuItem(value: null, child: Text('All Modules (Mixed)')),
+                                           ...allModules.map((m) => DropdownMenuItem(value: m.title, child: Text(m.title, maxLines: 1, overflow: TextOverflow.ellipsis))),
+                                        ],
+                                        onChanged: (val) => setState(() => _selectedCategory = val),
+                                     ),
+                                  ),
+                               )
+                            ],
+                         ),
+                      );
+                   },
+                ),
                 SizedBox(
                   width: 200,
                   child: ElevatedButton(

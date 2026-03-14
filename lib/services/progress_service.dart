@@ -17,6 +17,7 @@ class ProgressService extends ChangeNotifier {
   static const _onboardingKey = 'has_seen_onboarding';
   static const _lastDailyChallengeKey = 'last_daily_challenge';
   static const _interviewBestKey = 'interview_best_score';
+  static const _interviewHistoryKey = 'interview_history';
   static const _usernameKey = 'user_name';
   static const _adUnlockedModulesKey = 'ad_unlocked_modules';
   static const _privacyAcceptedKey = 'has_accepted_privacy';
@@ -33,6 +34,7 @@ class ProgressService extends ChangeNotifier {
   Map<String, String> _notes = {};
   Set<String> _adUnlockedModules = {};
   int _interviewBestScore = 0;
+  List<int> _interviewHistory = [];
   bool _debugUnlockAll = false;
 
   ProgressService();
@@ -91,6 +93,10 @@ class ProgressService extends ChangeNotifier {
     }
 
     _interviewBestScore = _prefs?.getInt(_interviewBestKey) ?? 0;
+    
+    final historyStrings = _prefs?.getStringList(_interviewHistoryKey) ?? [];
+    _interviewHistory = historyStrings.map((e) => int.tryParse(e) ?? 0).toList();
+    
     _username = _prefs?.getString(_usernameKey) ?? '';
   }
 
@@ -103,6 +109,7 @@ class ProgressService extends ChangeNotifier {
     await _prefs?.setString(_notesKey, jsonEncode(_notes));
     await _prefs?.setStringList(_adUnlockedModulesKey, _adUnlockedModules.toList());
     await _prefs?.setInt(_interviewBestKey, _interviewBestScore);
+    await _prefs?.setStringList(_interviewHistoryKey, _interviewHistory.map((e) => e.toString()).toList());
     await _prefs?.setString(_usernameKey, _username);
   }
 
@@ -315,9 +322,18 @@ class ProgressService extends ChangeNotifier {
     if (scorePercent > _interviewBestScore) {
       _interviewBestScore = scorePercent;
     }
+    
+    _interviewHistory.add(scorePercent);
+    // Keep last 15 scores for chart
+    if (_interviewHistory.length > 15) {
+      _interviewHistory.removeAt(0);
+    }
+    
     await _saveProgress();
     notifyListeners();
   }
+  
+  List<int> get interviewHistory => List.unmodifiable(_interviewHistory);
 
   // ── Achievements ───────────────────────────────────────────────
   Set<String> get achievements => Set.unmodifiable(_achievements);
