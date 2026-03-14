@@ -81,8 +81,8 @@ class GameProgressService extends ChangeNotifier {
   Future<void> completeLevel(String levelId, int stars) async {
     _completedLevelIds.add(levelId);
     
-    final existingStars = _levelStars[levelId] ?? 0;
-    if (stars > existingStars) {
+    final existingStars = _levelStars[levelId] ?? -1;
+    if (existingStars == -1 || stars > existingStars) {
       _levelStars[levelId] = stars;
     }
 

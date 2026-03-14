@@ -22,6 +22,56 @@ class _GameMapScreenState extends State<GameMapScreen> {
   final ScrollController _scrollController = ScrollController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToCurrentLevel());
+  }
+
+  void _scrollToCurrentLevel() {
+    if (!_scrollController.hasClients) return;
+    
+    final progress = context.read<GameProgressService>();
+    int targetZoneIndex = -1;
+    
+    // Find first incomplete level
+    for (int i = 0; i < arGameZones.length; i++) {
+      final zone = arGameZones[i];
+      for (int j = 0; j < zone.levels.length; j++) {
+        if (!progress.isLevelCompleted(zone.levels[j].id)) {
+          targetZoneIndex = i;
+          break;
+        }
+      }
+      if (targetZoneIndex != -1) break;
+    }
+
+    // If all levels complete, scroll to top (Zone 5)
+    if (targetZoneIndex == -1) {
+      _scrollController.animateTo(
+        0,
+        duration: 1.seconds,
+        curve: Curves.easeInOut,
+      );
+      return;
+    }
+
+    // The zones are reversed in the Column: [Zone 5, Zone 4, Zone 3, Zone 2, Zone 1]
+    // Zone 1 is at the bottom, Zone 5 is at the top.
+    final totalZones = arGameZones.length;
+    final reversedZoneIndex = (totalZones - 1) - targetZoneIndex;
+    
+    // Estimation: Each zone is roughly 400-500px tall depending on level count
+    // Zone title + levels + spacers
+    double scrollPosition = reversedZoneIndex * 450.0;
+    
+    _scrollController.animateTo(
+      scrollPosition.clamp(0, _scrollController.position.maxScrollExtent),
+      duration: 1.seconds,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
@@ -76,6 +126,16 @@ class _GameMapScreenState extends State<GameMapScreen> {
   }
 
   Widget _buildHeader(bool isDark) {
+    final progress = context.watch<GameProgressService>();
+    int totalStars = 0;
+    int maxStars = 0;
+    for (final zone in arGameZones) {
+      for (final level in zone.levels) {
+        totalStars += progress.getStars(level.id);
+        maxStars += 3;
+      }
+    }
+
     return ClipRRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -92,18 +152,38 @@ class _GameMapScreenState extends State<GameMapScreen> {
                 onPressed: () => Navigator.pop(context),
               ),
               const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'AR SYSTEMS ENGINEER',
-                    style: AppTheme.labelMedium.copyWith(color: AppTheme.accentCyan, letterSpacing: 2),
-                  ),
-                  Text(
-                    'World Pipeline Map',
-                    style: AppTheme.headingSmall.copyWith(color: Colors.white),
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'AR SYSTEMS ENGINEER',
+                      style: AppTheme.labelMedium.copyWith(color: AppTheme.accentCyan, letterSpacing: 2),
+                    ),
+                    Text(
+                      'World Pipeline Map',
+                      style: AppTheme.headingSmall.copyWith(color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
+                    const SizedBox(width: 4),
+                    Text(
+                      '$totalStars / $maxStars',
+                      style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 12),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -122,15 +202,16 @@ class _GameMapScreenState extends State<GameMapScreen> {
             children: [
               Text(
                 zone.name.toUpperCase(),
+                textAlign: TextAlign.center,
                 style: AppTheme.headingSmall.copyWith(
                   color: zone.accentColor,
-                  letterSpacing: 4,
+                  letterSpacing: 1, // Reduced letter spacing
                   fontWeight: FontWeight.w900,
                   shadows: [
                     Shadow(color: zone.accentColor.withValues(alpha: 0.5), blurRadius: 10),
                   ],
                 ),
-              ),
+              ).animate().fadeIn(),
               const SizedBox(height: 8),
               Container(
                 width: 60,
@@ -160,8 +241,8 @@ class _GameMapScreenState extends State<GameMapScreen> {
           );
         }),
         
-        // Path to next zone if applicable
-        if (zone.id != arGameZones.first.id)
+        // Path to next zone (if not the last zone in the reversed list)
+        if (zone.id != arGameZones.last.id)
           _buildPath(Colors.white.withValues(alpha: 0.3), true, isLong: true),
       ],
     );
@@ -252,10 +333,129 @@ class _GameMapScreenState extends State<GameMapScreen> {
   }
 
   void _navigateToLevel(ARLevel level) {
-    context.read<SoundService>().playTap();
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => GamePipelineScreen(level: level)),
+    final progress = context.read<GameProgressService>();
+    final stars = progress.getStars(level.id);
+    final isDark = context.read<ThemeService>().isDarkMode;
+    final zone = arGameZones.firstWhere((z) => z.id == level.zoneId);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppTheme.cardC(isDark),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white12,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: (level.isBoss ? Colors.red : zone.accentColor).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    level.isBoss ? Icons.bolt_rounded : Icons.play_arrow_rounded,
+                    color: level.isBoss ? Colors.red : zone.accentColor,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        level.isBoss ? 'BOSS CHALLENGE' : 'LEVEL PREVIEW',
+                        style: AppTheme.labelMedium.copyWith(
+                          color: level.isBoss ? Colors.red : zone.accentColor,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                      Text(
+                        level.title,
+                        style: AppTheme.headingSmall.copyWith(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('GOAL', style: TextStyle(color: Colors.white38, fontSize: 10, letterSpacing: 1)),
+                  const SizedBox(height: 8),
+                  Text(level.goal, style: const TextStyle(color: Colors.white, fontSize: 14)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            if (stars > 0) ...[
+              const Text('BEST ATTEMPT', style: TextStyle(color: Colors.white38, fontSize: 10, letterSpacing: 1)),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(3, (i) => Icon(
+                  Icons.star_rounded,
+                  size: 24,
+                  color: i < stars ? Colors.amber : Colors.white10,
+                )),
+              ),
+              const SizedBox(height: 24),
+            ],
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  context.read<SoundService>().playTap();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => GamePipelineScreen(level: level)),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: level.isBoss ? Colors.red : zone.accentColor,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                child: Text(stars > 0 ? 'REPLAY' : 'START SESSION', style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('CANCEL', style: TextStyle(color: Colors.white38)),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
     );
   }
 }

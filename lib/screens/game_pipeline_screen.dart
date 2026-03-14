@@ -25,15 +25,20 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
   bool _isValidating = false;
   bool _showSuccess = false;
   bool _showFailure = false;
+  bool _isTimeout = false;
   String _errorMessage = '';
   int _secondsRemaining = 0;
   Timer? _timer;
   int _starsEarned = 3;
+  List<bool> _nodesPulsed = [];
+  int _failureCount = 0;
+  ARNode? _hintNode;
 
   @override
   void initState() {
     super.initState();
     _slots = List.filled(widget.level.correctSequence.length, null);
+    _nodesPulsed = List.filled(widget.level.correctSequence.length, false);
     _pool = List.from(widget.level.availableNodes)..shuffle();
     if (widget.level.isBoss && widget.level.timeLimit > 0) {
       _secondsRemaining = widget.level.timeLimit;
@@ -62,6 +67,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
 
   void _onTimeout() {
     setState(() {
+      _isTimeout = true;
       _showFailure = true;
       _errorMessage = 'SYSTEM CRITICAL: Session Timeout';
       _starsEarned = 0;
@@ -97,19 +103,30 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
     setState(() {
       _isValidating = true;
       _showFailure = false;
+      _nodesPulsed = List.filled(_slots.length, false);
     });
 
     bool allCorrect = true;
     int firstWrongIndex = -1;
 
+    // Run validation synchronously to determine the outcome
     for (int i = 0; i < _slots.length; i++) {
       if (_slots[i]?.id != widget.level.correctSequence[i]) {
         allCorrect = false;
         firstWrongIndex = i;
         break;
       }
+    }
+
+    // Trigger visual pulse animation regardless of outcome (up to failure point)
+    int animateUntil = allCorrect ? _slots.length : firstWrongIndex + 1;
+    for (int i = 0; i < animateUntil; i++) {
       await Future.delayed(300.ms);
-      setState(() {}); // Trigger refresh for pulse animation
+      if (!mounted) return;
+      setState(() {
+        _nodesPulsed[i] = true;
+      });
+      context.read<SoundService>().playTap();
     }
 
     if (allCorrect) {
@@ -132,9 +149,18 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
     setState(() {
       _isValidating = false;
       _showFailure = true;
+      _failureCount++;
       if (widget.level.isBoss) {
         _starsEarned = max(1, _starsEarned - 1);
       }
+      
+      // Hint system: Reveal first node after 2 failures
+      if (_failureCount >= 2 && widget.level.isBoss) {
+        _hintNode = widget.level.availableNodes.firstWhere(
+          (n) => n.id == widget.level.correctSequence[0]
+        );
+      }
+
       _errorMessage = _slots[wrongIndex]?.errorMessage ?? 'Error: Invalid sequence at node ${wrongIndex + 1}';
       
       // Auto-clear wrong slots after a delay
@@ -171,7 +197,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
             ),
           ),
           if (_showSuccess) _buildSuccessOverlay(zone.accentColor),
-          if (_showFailure && widget.level.isBoss && _secondsRemaining <= 0) 
+          if (_isTimeout && widget.level.isBoss) 
             _buildBossFailureOverlay(),
         ],
       ),
@@ -194,6 +220,8 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
               children: [
                 Text(
                   widget.level.isBoss ? 'BOSS CHALLENGE' : zone.name.toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: AppTheme.labelMedium.copyWith(
                     color: widget.level.isBoss ? Colors.red : zone.accentColor,
                     letterSpacing: 1.5,
@@ -201,6 +229,8 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                 ),
                 Text(
                   widget.level.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: AppTheme.headingSmall.copyWith(color: Colors.white),
                 ),
               ],
@@ -213,7 +243,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
   }
 
   Widget _buildBossTimer() {
-    final color = _secondsRemaining <= 10 ? Colors.red : Colors.white;
+    final color = _secondsRemaining <= 10 ? Colors.red : (_secondsRemaining <= 30 ? Colors.amber : Colors.white);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -231,7 +261,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
           ),
         ],
       ),
-    ).animate(target: _secondsRemaining <= 10 ? 1 : 0).shake();
+    ).animate(target: _secondsRemaining <= 10 ? 1 : 0).shake().scale(begin: const Offset(1, 1), end: const Offset(1.1, 1.1));
   }
 
   Widget _buildGoalSection() {
@@ -266,16 +296,35 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
           style: AppTheme.labelMedium.copyWith(color: Colors.white38, letterSpacing: 2),
         ),
         const SizedBox(height: 20),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: List.generate(_slots.length, (index) {
-              final node = _slots[index];
-              return _buildPipelineSlot(index, node, accentColor);
-            }),
+        ShaderMask(
+          shaderCallback: (Rect bounds) {
+            return LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [Colors.black, Colors.transparent, Colors.transparent, Colors.black],
+              stops: const [0.0, 0.05, 0.95, 1.0],
+            ).createShader(bounds);
+          },
+          blendMode: BlendMode.dstOut,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              children: List.generate(_slots.length, (index) {
+                final node = _slots[index];
+                return _buildPipelineSlot(index, node, accentColor);
+              }),
+            ),
           ),
         ),
+        if (widget.level.correctSequence.length > 4)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              '← swipe to view more →',
+              style: AppTheme.bodySmall.copyWith(color: Colors.white24, fontSize: 10),
+            ),
+          ).animate().fadeIn().fadeOut(delay: 2.seconds),
         if (_showFailure)
           Padding(
             padding: const EdgeInsets.only(top: 20),
@@ -289,41 +338,44 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
   }
 
   Widget _buildPipelineSlot(int index, ARNode? node, Color accentColor) {
+    final isPulsing = _nodesPulsed[index];
     return GestureDetector(
       onTap: () => _removeNodeFromPipeline(index),
-      child: Container(
+      child: AnimatedContainer(
+        duration: 300.ms,
         width: 80,
-        height: 100,
+        height: 80, // Reduced from 100
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
           color: node != null ? Colors.white.withValues(alpha: 0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: node != null ? accentColor : Colors.white.withValues(alpha: 0.1),
-            width: node != null ? 2 : 1,
+            color: isPulsing ? accentColor : (node != null ? accentColor.withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.1)),
+            width: isPulsing ? 3 : (node != null ? 2 : 1),
           ),
+          boxShadow: isPulsing ? [
+            BoxShadow(color: accentColor.withValues(alpha: 0.5), blurRadius: 10, spreadRadius: 2)
+          ] : [],
         ),
         child: Stack(
           alignment: Alignment.center,
           children: [
-            if (node == null)
-              Text(
+            Positioned(
+              top: 4,
+              left: 4,
+              child: Text(
                 '${index + 1}',
-                style: const TextStyle(color: Colors.white10, fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: node != null ? Colors.white24 : Colors.white10,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold
+                ),
               ),
+            ),
             if (node != null)
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(node.icon, color: accentColor, size: 30),
-                  const SizedBox(height: 4),
-                  Text(
-                    node.name,
-                    style: const TextStyle(color: Colors.white, fontSize: 8),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ).animate().scale(curve: Curves.elasticOut),
+              Icon(node.icon, color: accentColor, size: 28)
+                  .animate(target: isPulsing ? 1 : 0)
+                  .scale(begin: const Offset(1, 1), end: const Offset(1.2, 1.2)),
           ],
         ),
       ),
@@ -331,17 +383,9 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
   }
 
   Widget _buildNodePool() {
-    return Container(
-      height: 220,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: GridView.builder(
-        padding: const EdgeInsets.all(10),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 2.5,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-        ),
+    return Expanded(
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: _pool.length,
         itemBuilder: (context, index) {
           final node = _pool[index];
@@ -353,45 +397,87 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
   }
 
   Widget _buildPoolNode(ARNode node, bool isInPipeline) {
+    final isHint = _hintNode?.id == node.id;
     return GestureDetector(
-      onTap: isInPipeline ? null : () => _addNodeToPipeline(node),
-      child: Opacity(
-        opacity: isInPipeline ? 0.3 : 1.0,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      onTap: () {
+        if (isInPipeline) {
+          final slotIdx = _slots.indexOf(node);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Already placed in slot ${slotIdx + 1}'),
+              duration: 1.seconds,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+        _addNodeToPipeline(node);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: isInPipeline ? 0.02 : 0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isHint ? Colors.amber : (isInPipeline ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.1)),
+            width: isHint ? 2 : 1,
           ),
-          child: Row(
-            children: [
-              const SizedBox(width: 8),
-              Icon(node.icon, color: Colors.white70, size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      node.name,
-                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      node.description,
-                      style: const TextStyle(color: Colors.white38, fontSize: 8),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          boxShadow: isHint ? [
+            BoxShadow(color: Colors.amber.withValues(alpha: 0.3), blurRadius: 8)
+          ] : [],
         ),
-      ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(node.icon, color: isHint ? Colors.amber : Colors.white70, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        node.name,
+                        style: TextStyle(
+                          color: isInPipeline ? Colors.white24 : Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold
+                        ),
+                      ),
+                      if (isHint) ...[
+                        const SizedBox(width: 8),
+                        const Icon(Icons.lightbulb_rounded, color: Colors.amber, size: 14),
+                      ],
+                    ],
+                  ),
+                  Text(
+                    node.description,
+                    style: TextStyle(
+                      color: isInPipeline ? Colors.white10 : Colors.white38,
+                      fontSize: 11
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            if (isInPipeline)
+              const Icon(Icons.check_circle_rounded, color: Colors.white10, size: 20)
+            else
+              const Icon(Icons.add_circle_outline_rounded, color: Colors.white24, size: 20),
+          ],
+        ),
+      ).animate(target: isHint ? 1 : 0).shimmer(delay: 1.seconds),
     );
   }
 
@@ -421,9 +507,35 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
             ),
             const SizedBox(height: 60),
             ElevatedButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                final currentZoneIndex = arGameZones.indexWhere((z) => z.id == widget.level.zoneId);
+                final currentLevelIndex = arGameZones[currentZoneIndex].levels.indexWhere((l) => l.id == widget.level.id);
+                
+                if (currentLevelIndex < arGameZones[currentZoneIndex].levels.length - 1) {
+                  // Next level in same zone
+                  final nextLevel = arGameZones[currentZoneIndex].levels[currentLevelIndex + 1];
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => GamePipelineScreen(level: nextLevel)),
+                  );
+                } else if (currentZoneIndex < arGameZones.length - 1) {
+                  // First level in next zone
+                  final nextLevel = arGameZones[currentZoneIndex + 1].levels.first;
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => GamePipelineScreen(level: nextLevel)),
+                  );
+                } else {
+                  Navigator.pop(context);
+                }
+              },
               style: ElevatedButton.styleFrom(backgroundColor: accentColor, foregroundColor: Colors.black),
-              child: const Text('RETURN TO MAP'),
+              child: const Text('NEXT LEVEL'),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('RETURN TO MAP', style: TextStyle(color: accentColor)),
             ),
           ],
         ),
