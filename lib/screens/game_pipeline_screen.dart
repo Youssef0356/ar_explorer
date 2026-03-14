@@ -1,13 +1,16 @@
-import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
-import '../models/game_models.dart';
 import '../data/game_data.dart';
+import '../data/modules_data.dart';          // ← for "Learn This" link
+import '../models/game_models.dart';
 import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
+import '../services/theme_service.dart';
+import 'module_detail_screen.dart';           // ← navigate to module
+import 'paywall_screen.dart';
 
 class GamePipelineScreen extends StatefulWidget {
   final ARLevel level;
@@ -19,29 +22,31 @@ class GamePipelineScreen extends StatefulWidget {
 
 class _GamePipelineScreenState extends State<GamePipelineScreen> {
   late List<ARNode?> _slots;
-  late List<ARNode>  _pool;
-  bool   _isValidating  = false;
-  bool   _showSuccess   = false;
-  bool   _showFailure   = false;
-  bool   _isTimeout     = false;
-  String _errorMessage  = '';
-  int    _secondsRemaining = 0;
-  Timer? _timer;
-  int    _starsEarned   = 3;
-  List<bool> _slotPulsed = [];
-  int    _failureCount  = 0;
-  ARNode? _hintNode;
+  late List<bool>   _slotPulsed;
+  late List<ARNode> _pool;
 
-  // Track which slot index had the last wrong entry (for red highlight)
-  int _wrongSlotIndex = -1;
+  bool   _isValidating   = false;
+  bool   _showSuccess    = false;
+  bool   _showFailure    = false;
+  bool   _isTimeout      = false;
+  int    _starsEarned    = 3;
+  int    _failureCount   = 0;
+  int    _wrongSlotIndex = -1;
+  ARNode? _hintNode;
+  String  _errorMessage  = '';
+
+  int  _secondsRemaining = 0;
+
+  // ── Pipeline scroll controller (auto-scroll to latest slot) ──────────────
+  final ScrollController _pipelineScrollCtrl = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _slots      = List.filled(widget.level.correctSequence.length, null);
     _slotPulsed = List.filled(widget.level.correctSequence.length, false);
-    _pool       = List.from(widget.level.availableNodes)..shuffle();
-    if (widget.level.isBoss && widget.level.timeLimit > 0) {
+    _pool       = List.from(widget.level.availableNodes);
+    if (widget.level.isBoss) {
       _secondsRemaining = widget.level.timeLimit;
       _startTimer();
     }
@@ -49,32 +54,31 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _pipelineScrollCtrl.dispose();
     super.dispose();
   }
 
-  // ── Timer ────────────────────────────────────────────────────────────────
+  // ── Timer ─────────────────────────────────────────────────────────────────
   void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
-      setState(() {
-        if (_secondsRemaining > 0) {
-          _secondsRemaining--;
-        } else {
-          _timer?.cancel();
-          _isTimeout = true;
-          _showFailure = true;
-          _errorMessage = 'Time\'s up! The system crashed.';
+    Future.doWhile(() async {
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return false;
+      setState(() => _secondsRemaining--);
+      if (_secondsRemaining <= 0) {
+        setState(() {
+          _isTimeout   = true;
           _starsEarned = 0;
-        }
-      });
+          _errorMessage = 'Time\'s up! The system crashed.';
+        });
+        return false;
+      }
+      return !_showSuccess;
     });
   }
 
   // ── Node placement / removal ──────────────────────────────────────────────
   void _tapNode(ARNode node) {
     if (_isValidating || _showSuccess || _isTimeout) return;
-    // If already in pipeline, remove it
     final idx = _slots.indexOf(node);
     if (idx != -1) {
       setState(() {
@@ -84,7 +88,6 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
       context.read<SoundService>().playTap();
       return;
     }
-    // Place in next empty slot
     final empty = _slots.indexOf(null);
     if (empty == -1) return;
     setState(() {
@@ -92,6 +95,21 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
       _wrongSlotIndex = -1;
     });
     context.read<SoundService>().playTap();
+
+    // ── Auto-scroll pipeline to the newly filled slot ──
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_pipelineScrollCtrl.hasClients) return;
+      // Each slot is ~80 wide + 12 separator ≈ 92
+      const slotWidth = 92.0;
+      final targetOffset = (empty * slotWidth)
+          .clamp(0.0, _pipelineScrollCtrl.position.maxScrollExtent);
+      _pipelineScrollCtrl.animateTo(
+        targetOffset,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    });
+
     if (!_slots.contains(null)) _validate();
   }
 
@@ -107,9 +125,9 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
   // ── Validation ────────────────────────────────────────────────────────────
   Future<void> _validate() async {
     setState(() {
-      _isValidating  = true;
-      _showFailure   = false;
-      _slotPulsed    = List.filled(_slots.length, false);
+      _isValidating   = true;
+      _showFailure    = false;
+      _slotPulsed     = List.filled(_slots.length, false);
       _wrongSlotIndex = -1;
     });
 
@@ -122,7 +140,6 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
     }
     final allCorrect = firstWrong == -1;
 
-    // Animate slots up to first wrong (or all if correct)
     final animateUntil = allCorrect ? _slots.length : firstWrong + 1;
     for (int i = 0; i < animateUntil; i++) {
       await Future.delayed(const Duration(milliseconds: 260));
@@ -139,7 +156,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
   }
 
   void _onSuccess() {
-    _timer?.cancel();
+    if (widget.level.isBoss) setState(() {}); // stop timer display
     setState(() {
       _isValidating = false;
       _showSuccess  = true;
@@ -163,7 +180,6 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
       _errorMessage = _slots[wrongIndex]?.errorMessage ??
           'Wrong node at step ${wrongIndex + 1}. Try again!';
     });
-    // Auto-clear the wrong slot after 1.5 s
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted && _showFailure) {
         setState(() {
@@ -210,6 +226,197 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
     });
   }
 
+  // ── "Learn This" — navigate to module most relevant to this level ─────────
+  void _openLearnModule(BuildContext context, Color accentColor) {
+    // Map zone → module id (best-effort mapping)
+    const zoneToModule = {
+      'zone_1': 'foundations_camera',      // Camera / AR basics module
+      'zone_2': 'foundations_coordinate_systems',
+      'zone_3': 'mod_dev',
+      'zone_4': 'mod_openxr',
+      'zone_5': 'mod_advanced',
+    };
+    final moduleId = zoneToModule[widget.level.zoneId];
+    final module = moduleId != null
+        ? allModules.firstWhereOrNull((m) => m.id == moduleId)
+        : null;
+
+    if (module == null) {
+      // Fallback — just pop back to modules list
+      Navigator.pop(context);
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ModuleDetailScreen(
+        module: module,
+        accentColor: accentColor,
+      )),
+    );
+  }
+
+  // ── Node long-press info sheet ─────────────────────────────────────────────
+  void _showNodeInfo(BuildContext context, ARNode node, Color accentColor) {
+    // Each node maps to a short explanation + why it comes first/last
+    final Map<String, Map<String, String>> nodeExplain = {
+      'camera': {
+        'what': 'The Camera Stream captures the live video feed from your device\'s physical camera. '
+            'It is the raw pixel data the phone sees — think of it as the "eyes" of your AR system.',
+        'why': 'It always comes first because every other step (tracking, detection, rendering) '
+            'needs the real-world image as input. Without it, there\'s nothing to overlay onto.',
+      },
+      'imu': {
+        'what': 'IMU (Inertial Measurement Unit) bundles the accelerometer and gyroscope. '
+            'They measure how fast the device is moving and rotating in 3D space.',
+        'why': 'It pairs with the camera to give SLAM a second data source. '
+            'IMU updates at ~200 Hz — much faster than camera frames — so it smooths tracking between frames.',
+      },
+      'slam': {
+        'what': 'SLAM = Simultaneous Localization And Mapping. It builds a 3D map of the environment '
+            'while also tracking where the device is inside that map.',
+        'why': 'Needed before any surface detection or object placement — you must know "where you are" '
+            'before you can say "put this object here".',
+      },
+      'plane_detection': {
+        'what': 'Plane Detection analyses the SLAM map to find flat horizontal or vertical surfaces '
+            '(floors, tables, walls).',
+        'why': 'Required before Hit Testing — you can\'t tap to place an object unless the system knows '
+            'where the surfaces are.',
+      },
+      'hit_test': {
+        'what': 'Hit Test casts an invisible ray from your screen tap into the 3D world and returns '
+            'the real-world point where it intersects a detected plane.',
+        'why': 'Translates "I tapped here on the screen" → "this exact real-world position". '
+            'Without it you can\'t interactively place objects.',
+      },
+      'anchor': {
+        'what': 'An Anchor pins a virtual object to a specific real-world position. '
+            'Even as the camera moves, the anchor keeps the object stable in space.',
+        'why': 'Without an anchor, objects would drift or float when you move the phone.',
+      },
+      'renderer': {
+        'what': 'The 3D Renderer draws your virtual objects on top of the camera feed, '
+            'compositing the digital and physical worlds together on screen.',
+        'why': 'Always last — it is the final output step. All the tracking and detection '
+            'work upstream just feeds this final drawing step.',
+      },
+      'light_estimation': {
+        'what': 'Light Estimation analyses the camera image to guess the real-world lighting '
+            'direction and colour temperature.',
+        'why': 'Makes virtual objects cast realistic shadows and have matching colours, '
+            'so they look like they truly belong in the scene.',
+      },
+      'occlusion': {
+        'what': 'Occlusion uses a depth map to determine which real objects are in front of virtual ones, '
+            'then hides the virtual geometry behind them.',
+        'why': 'Without it, a virtual cube placed behind a real table would visually float in front of it.',
+      },
+      'openxr': {
+        'what': 'OpenXR is a cross-platform, open standard by the Khronos Group. '
+            'Instead of writing different code for ARCore, ARKit, and HoloLens, '
+            'you write once against the OpenXR API.',
+        'why': 'Acts as a universal adapter layer between your app and the underlying hardware platform.',
+      },
+      'relocalization': {
+        'what': 'Relocalization recovers tracking after it has been lost — for example after '
+            'the camera is covered or rapid movement confuses SLAM.',
+        'why': 'Compares the current camera view against previously seen keyframes to re-establish '
+            'the device\'s position in the map.',
+      },
+      'spatial_anchor': {
+        'what': 'Spatial Anchors store anchor data in the cloud so that other users or '
+            'future sessions can resolve the same anchor.',
+        'why': 'Enables persistent, shared AR — multiple users see the same virtual content '
+            'at the same real-world location.',
+      },
+    };
+
+    final info = nodeExplain[node.id];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF0E1621),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: accentColor.withValues(alpha: 0.3)),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Icon + name
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: accentColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: accentColor.withValues(alpha: 0.3)),
+                  ),
+                  child: Icon(node.icon, color: accentColor, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(node.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16, fontWeight: FontWeight.w800)),
+                    Text(node.description,
+                      style: TextStyle(
+                        color: accentColor.withValues(alpha: 0.8),
+                        fontSize: 12)),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            if (info != null) ...[
+              _infoSection('🔍 What is it?', info['what']!),
+              const SizedBox(height: 14),
+              _infoSection('💡 Why does it go here in the pipeline?', info['why']!),
+            ] else
+              Text(node.description,
+                style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5)),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _infoSection(String heading, String body) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(heading,
+          style: const TextStyle(
+            color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 6),
+        Text(body,
+          style: const TextStyle(
+            color: Colors.white70, fontSize: 13, height: 1.55)),
+      ],
+    );
+  }
+
   // ── BUILD ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
@@ -229,41 +436,32 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                 const SizedBox(height: 8),
                 // ── Pipeline slots ──
                 _buildPipelineRow(zone.accentColor),
-                // ── Error message ──
+                // ── Error / hint message ──
                 AnimatedSize(
                   duration: const Duration(milliseconds: 200),
                   child: _showFailure
-                      ? Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.red.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Colors.red.withValues(alpha: 0.3))),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.error_outline_rounded, color: Colors.red, size: 16),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(_errorMessage,
-                                    style: const TextStyle(color: Colors.red, fontSize: 12))),
-                              ],
-                            ),
-                          ).animate().shake(),
-                        )
+                      ? _buildErrorBanner(zone.accentColor)
                       : const SizedBox.shrink(),
                 ),
-                const SizedBox(height: 4),
+                // ── "Learn This" appears after 2 failures ──
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 200),
+                  child: (_failureCount >= 2 && !_showSuccess)
+                      ? _buildLearnThisBanner(zone.accentColor)
+                      : const SizedBox.shrink(),
+                ),
+                const SizedBox(height: 8),
                 // ── Node pool ──
                 Expanded(child: _buildNodePool(zone.accentColor)),
-                // ── Validate button ──
-                _buildValidateButton(zone.accentColor),
+                // ── Submit button ──
+                _buildSubmitBar(zone.accentColor),
               ],
             ),
           ),
+          // ── Success overlay ──
           if (_showSuccess) _buildSuccessOverlay(zone),
-          if (_isTimeout)   _buildTimeoutOverlay(zone),
+          // ── Timeout overlay ──
+          if (_isTimeout) _buildTimeoutOverlay(zone),
         ],
       ),
     );
@@ -271,60 +469,69 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
 
   // ── Header ────────────────────────────────────────────────────────────────
   Widget _buildHeader(ARZone zone) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 12, 16, 4),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Row(
         children: [
-          IconButton(
-            icon: Icon(Icons.close_rounded,
-              color: Colors.white.withValues(alpha: 0.7)),
-            onPressed: () => Navigator.pop(context),
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.arrow_back_ios_rounded,
+                color: Colors.white70, size: 16),
+            ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  widget.level.isBoss ? '⚡ BOSS CHALLENGE' : zone.name.toUpperCase(),
-                  style: TextStyle(
-                    color: widget.level.isBoss ? Colors.red : zone.accentColor,
-                    fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
                 Text(widget.level.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: Colors.white, fontSize: 17, fontWeight: FontWeight.w700)),
+                    color: Colors.white,
+                    fontSize: 16, fontWeight: FontWeight.w800)),
+                Text(zone.name,
+                  style: TextStyle(
+                    color: zone.accentColor.withValues(alpha: 0.7),
+                    fontSize: 11)),
               ],
             ),
           ),
-          if (widget.level.isBoss) _buildTimer(),
+          // Timer (boss only)
+          if (widget.level.isBoss && !_showSuccess)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: (_secondsRemaining < 15 ? Colors.red : Colors.white)
+                    .withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: (_secondsRemaining < 15 ? Colors.red : Colors.white)
+                      .withValues(alpha: 0.25)),
+              ),
+              child: Text(
+                '${_secondsRemaining ~/ 60}:${(_secondsRemaining % 60).toString().padLeft(2, '0')}',
+                style: TextStyle(
+                  color: _secondsRemaining < 15 ? Colors.red : Colors.white,
+                  fontSize: 13, fontWeight: FontWeight.w800,
+                  fontFamily: 'monospace')),
+            ),
+          // Stars
+          const SizedBox(width: 8),
+          Row(
+            children: List.generate(3, (i) => Icon(
+              Icons.star_rounded, size: 16,
+              color: i < _starsEarned
+                  ? Colors.amber
+                  : Colors.white.withValues(alpha: 0.12))),
+          ),
         ],
       ),
     );
-  }
-
-  Widget _buildTimer() {
-    final secs = _secondsRemaining;
-    final color = secs <= 10 ? Colors.red : secs <= 30 ? Colors.amber : Colors.white;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.35))),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.timer_rounded, color: color, size: 16),
-          const SizedBox(width: 4),
-          Text('${secs}s',
-            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
-        ],
-      ),
-    ).animate(target: secs <= 10 ? 1 : 0).shake(hz: 2);
   }
 
   // ── Goal banner ───────────────────────────────────────────────────────────
@@ -362,12 +569,12 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
         border: Border.all(color: Colors.white.withValues(alpha: 0.06))),
       child: Row(
         children: [
-          Icon(Icons.touch_app_rounded, color: accentColor.withValues(alpha: 0.7), size: 14),
+          Icon(Icons.touch_app_rounded,
+            color: accentColor.withValues(alpha: 0.7), size: 14),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              'Tap nodes below to build the pipeline in the correct order. '
-              'Tap a placed node to remove it.',
+              'Tap nodes below to build the pipeline. Long-press any node for an explanation.',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.45),
                 fontSize: 11, height: 1.4))),
@@ -378,19 +585,46 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
 
   // ── Pipeline slots row ────────────────────────────────────────────────────
   Widget _buildPipelineRow(Color accentColor) {
-    return Container(
-      height: 110,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        itemCount: _slots.length,
-        separatorBuilder: (_, index) => Center(
-          child: Icon(Icons.arrow_forward_ios_rounded,
-            color: Colors.white.withValues(alpha: 0.15), size: 12),
+    final slotCount = _slots.length;
+    return Column(
+      children: [
+        Container(
+          height: 110,
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          child: Scrollbar(
+            controller: _pipelineScrollCtrl,
+            thumbVisibility: slotCount > 4, // show scrollbar when >4 slots
+            child: ListView.separated(
+              controller: _pipelineScrollCtrl,
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: slotCount,
+              separatorBuilder: (_, index) => Center(
+                child: Icon(Icons.arrow_forward_ios_rounded,
+                  color: Colors.white.withValues(alpha: 0.15), size: 12),
+              ),
+              itemBuilder: (_, i) => _buildSlot(i, accentColor),
+            ),
+          ),
         ),
-        itemBuilder: (_, i) => _buildSlot(i, accentColor),
-      ),
+        // Scroll hint only when there are more than 4 slots
+        if (slotCount > 4)
+          Padding(
+            padding: const EdgeInsets.only(top: 3),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.swipe_rounded,
+                  color: accentColor.withValues(alpha: 0.4), size: 12),
+                const SizedBox(width: 4),
+                Text('Scroll to see all $slotCount slots',
+                  style: TextStyle(
+                    color: accentColor.withValues(alpha: 0.4),
+                    fontSize: 10)),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
@@ -427,14 +661,14 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
             width: (isPulsed || isWrong) ? 2 : 1),
           boxShadow: isPulsed || isWrong
               ? [BoxShadow(
-                  color: (isWrong ? Colors.red : accentColor).withValues(alpha: 0.25),
+                  color: (isWrong ? Colors.red : accentColor)
+                      .withValues(alpha: 0.25),
                   blurRadius: 10)]
               : [],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Slot number
             Text('${index + 1}',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.2),
@@ -445,7 +679,9 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                 color: isWrong ? Colors.red : isPulsed ? Colors.green : accentColor,
                 size: 24)
                   .animate(target: isPulsed ? 1 : 0)
-                  .scale(begin: const Offset(1, 1), end: const Offset(1.15, 1.15)),
+                  .scale(
+                    begin: const Offset(1, 1),
+                    end: const Offset(1.15, 1.15)),
               const SizedBox(height: 4),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -472,6 +708,64 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
     );
   }
 
+  // ── Error banner ──────────────────────────────────────────────────────────
+  Widget _buildErrorBanner(Color accentColor) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.red.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.3))),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline_rounded, color: Colors.red, size: 14),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(_errorMessage,
+              style: const TextStyle(
+                color: Colors.red, fontSize: 11, height: 1.3))),
+        ],
+      ),
+    );
+  }
+
+  // ── "Learn This" banner (appears after 2 failures) ────────────────────────
+  Widget _buildLearnThisBanner(Color accentColor) {
+    return GestureDetector(
+      onTap: () => _openLearnModule(context, accentColor),
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: accentColor.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: accentColor.withValues(alpha: 0.35))),
+        child: Row(
+          children: [
+            Icon(Icons.school_rounded, color: accentColor, size: 16),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Not sure about this?',
+                    style: TextStyle(
+                      color: accentColor,
+                      fontSize: 12, fontWeight: FontWeight.w700)),
+                  Text('Tap to read the related learning module →',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.55),
+                      fontSize: 11)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.2),
+    );
+  }
+
   // ── Node pool ─────────────────────────────────────────────────────────────
   Widget _buildNodePool(Color accentColor) {
     return Column(
@@ -484,12 +778,19 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
               Text('AVAILABLE NODES',
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.35),
-                  fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 2)),
+                  fontSize: 10, fontWeight: FontWeight.w800,
+                  letterSpacing: 2)),
               const Spacer(),
               Text('${_slots.where((s) => s != null).length} / ${_slots.length} placed',
                 style: TextStyle(
                   color: accentColor.withValues(alpha: 0.6),
                   fontSize: 10, fontWeight: FontWeight.w600)),
+              const SizedBox(width: 8),
+              // "hold for info" label
+              Text('· hold for info',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  fontSize: 9)),
             ],
           ),
         ),
@@ -505,12 +806,14 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
   }
 
   Widget _buildPoolNode(ARNode node, Color accentColor) {
-    final slotIndex  = _slots.indexOf(node);
-    final isPlaced   = slotIndex != -1;
-    final isHint     = _hintNode?.id == node.id;
+    final slotIndex = _slots.indexOf(node);
+    final isPlaced  = slotIndex != -1;
+    final isHint    = _hintNode?.id == node.id;
 
     return GestureDetector(
       onTap: () => _tapNode(node),
+      // Long press → show explanation sheet
+      onLongPress: () => _showNodeInfo(context, node, accentColor),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.only(bottom: 8),
@@ -519,146 +822,123 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
           color: isPlaced
               ? Colors.white.withValues(alpha: 0.02)
               : isHint
-                  ? Colors.amber.withValues(alpha: 0.07)
+                  ? accentColor.withValues(alpha: 0.1)
                   : Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isHint
-                ? Colors.amber.withValues(alpha: 0.5)
-                : isPlaced
-                    ? Colors.white.withValues(alpha: 0.06)
-                    : Colors.white.withValues(alpha: 0.1))),
+            color: isPlaced
+                ? Colors.white.withValues(alpha: 0.06)
+                : isHint
+                    ? accentColor.withValues(alpha: 0.6)
+                    : Colors.white.withValues(alpha: 0.1),
+            width: isHint ? 1.5 : 1)),
         child: Row(
           children: [
-            // ── Icon box ──
             Container(
-              width: 40, height: 40,
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: isPlaced
                     ? Colors.white.withValues(alpha: 0.03)
                     : accentColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: isPlaced
-                      ? Colors.white.withValues(alpha: 0.06)
-                      : accentColor.withValues(alpha: 0.3))),
+                borderRadius: BorderRadius.circular(10)),
               child: Icon(node.icon,
                 color: isPlaced
                     ? Colors.white.withValues(alpha: 0.2)
-                    : isHint ? Colors.amber : accentColor,
+                    : accentColor,
                 size: 20),
             ),
             const SizedBox(width: 12),
-            // ── Name + description ──
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(node.name,
+                  Row(
+                    children: [
+                      Text(node.name,
+                        style: TextStyle(
+                          color: isPlaced
+                              ? Colors.white.withValues(alpha: 0.25)
+                              : Colors.white.withValues(alpha: 0.9),
+                          fontSize: 13, fontWeight: FontWeight.w700)),
+                      if (isHint) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: accentColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6)),
+                          child: Text('START HERE',
+                            style: TextStyle(
+                              color: accentColor,
+                              fontSize: 8, fontWeight: FontWeight.w800,
+                              letterSpacing: 0.8))),
+                      ],
+                    ],
+                  ),
+                  Text(node.description,
                     style: TextStyle(
                       color: isPlaced
-                          ? Colors.white.withValues(alpha: 0.3)
-                          : Colors.white.withValues(alpha: 0.9),
-                      fontSize: 13, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 2),
-                  Text(node.description,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: isPlaced ? 0.18 : 0.4),
+                          ? Colors.white.withValues(alpha: 0.15)
+                          : Colors.white.withValues(alpha: 0.45),
                       fontSize: 11)),
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            // ── Status badge ──
             if (isPlaced)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.15),
+                  color: accentColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8)),
                 child: Text('SLOT ${slotIndex + 1}',
                   style: TextStyle(
                     color: accentColor,
-                    fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
-              )
-            else if (isHint)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: Colors.amber.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8)),
-                child: const Text('HINT',
-                  style: TextStyle(
-                    color: Colors.amber,
-                    fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
-              )
+                    fontSize: 9, fontWeight: FontWeight.w800)))
             else
-              Icon(Icons.add_circle_outline_rounded,
-                color: Colors.white.withValues(alpha: 0.2), size: 18),
+              Icon(Icons.info_outline_rounded,
+                color: Colors.white.withValues(alpha: 0.15), size: 14),
           ],
         ),
-      ).animate(target: isHint ? 1 : 0).shimmer(delay: 1.seconds, duration: 1.5.seconds),
+      ),
     );
   }
 
-  // ── Validate button ───────────────────────────────────────────────────────
-  Widget _buildValidateButton(Color accentColor) {
+  // ── Submit bar ────────────────────────────────────────────────────────────
+  Widget _buildSubmitBar(Color accentColor) {
     final filledCount = _slots.where((s) => s != null).length;
     final allFilled   = filledCount == _slots.length;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-      child: Row(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      child: Column(
         children: [
-          // ── Clear all button ──
-          GestureDetector(
-            onTap: () {
-              if (_isValidating || _showSuccess) return;
-              setState(() {
-                _slots       = List.filled(_slots.length, null);
-                _showFailure = false;
-                _wrongSlotIndex = -1;
-              });
-            },
-            child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.1))),
-              child: Icon(Icons.refresh_rounded,
-                color: Colors.white.withValues(alpha: 0.5), size: 20),
-            ),
-          ),
-          const SizedBox(width: 10),
-          // ── Submit button ──
-          Expanded(
-            child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 200),
-              opacity: allFilled && !_isValidating ? 1.0 : 0.4,
-              child: ElevatedButton(
-                onPressed: (!allFilled || _isValidating || _showSuccess) ? null : _validate,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: accentColor,
-                  foregroundColor: Colors.black,
-                  disabledBackgroundColor: accentColor.withValues(alpha: 0.3),
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
-                  elevation: 0),
-                child: _isValidating
-                    ? SizedBox(
-                        width: 18, height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.black.withValues(alpha: 0.6)))
-                    : Text(
-                        allFilled ? 'RUN PIPELINE' : 'FILL ALL SLOTS  ($filledCount/${_slots.length})',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800, fontSize: 13, letterSpacing: 1)),
-              ),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: (_isValidating || !allFilled || _showSuccess || _isTimeout)
+                  ? null
+                  : _validate,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: allFilled ? accentColor : Colors.white12,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
+                elevation: 0),
+              child: _isValidating
+                  ? SizedBox(
+                      width: 18, height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.black.withValues(alpha: 0.6)))
+                  : Text(
+                      allFilled
+                          ? 'RUN PIPELINE'
+                          : 'FILL ALL SLOTS  ($filledCount/${_slots.length})',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13, letterSpacing: 1)),
             ),
           ),
         ],
@@ -681,56 +961,77 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: zone.accentColor.withValues(alpha: 0.1),
-                  border: Border.all(color: zone.accentColor.withValues(alpha: 0.4), width: 2)),
-                child: Icon(Icons.check_rounded, color: zone.accentColor, size: 56),
-              ).animate().scale(curve: Curves.elasticOut, duration: 600.ms),
+                  border: Border.all(
+                    color: zone.accentColor.withValues(alpha: 0.4), width: 2)),
+                child: Icon(Icons.check_rounded,
+                  color: zone.accentColor, size: 56),
+              ).animate().scale(
+                curve: Curves.elasticOut,
+                duration: 600.ms),
 
               const SizedBox(height: 20),
               const Text('PIPELINE ONLINE',
-                style: TextStyle(color: Colors.white, fontSize: 22,
+                style: TextStyle(
+                  color: Colors.white, fontSize: 22,
                   fontWeight: FontWeight.w900, letterSpacing: 3),
               ).animate().fadeIn(delay: 300.ms),
 
               const SizedBox(height: 12),
-              // Stars
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(3, (i) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: Icon(Icons.star_rounded,
                     size: 38,
-                    color: i < _starsEarned ? Colors.amber : Colors.white.withValues(alpha: 0.1)),
-                ).animate(delay: Duration(milliseconds: 400 + i * 150)).scale(
-                    curve: Curves.elasticOut)),
+                    color: i < _starsEarned
+                        ? Colors.amber
+                        : Colors.white.withValues(alpha: 0.1)),
+                ).animate(delay: Duration(milliseconds: 500 + i * 150))
+                    .scale(curve: Curves.elasticOut)),
               ),
 
               const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _goNextLevel,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: zone.accentColor,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
-                    elevation: 0),
-                  child: const Text('NEXT LEVEL',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, letterSpacing: 1)),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('RETURN TO MAP',
-                  style: TextStyle(color: zone.accentColor.withValues(alpha: 0.7), fontSize: 13)),
-              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _retry,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white70,
+                        side: const BorderSide(color: Colors.white24),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12))),
+                      child: const Text('RETRY',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700, letterSpacing: 1)),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: _goNextLevel,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: zone.accentColor,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                        elevation: 0),
+                      child: const Text('NEXT LEVEL →',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13, letterSpacing: 1)),
+                    ),
+                  ),
+                ],
+              ).animate().fadeIn(delay: 800.ms),
             ],
           ),
         ),
       ),
-    ).animate().fadeIn();
+    );
   }
 
   // ── Timeout overlay ───────────────────────────────────────────────────────
@@ -748,19 +1049,18 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.red.withValues(alpha: 0.1),
-                  border: Border.all(color: Colors.red.withValues(alpha: 0.4), width: 2)),
-                child: const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 56),
-              ).animate().shake(),
+                  border: Border.all(
+                    color: Colors.red.withValues(alpha: 0.4), width: 2)),
+                child: const Icon(Icons.timer_off_rounded,
+                  color: Colors.red, size: 56),
+              ).animate().shake(hz: 2),
 
               const SizedBox(height: 20),
-              const Text('SYSTEM CRASHED',
-                style: TextStyle(color: Colors.red, fontSize: 22,
-                  fontWeight: FontWeight.w900, letterSpacing: 3)),
-              const SizedBox(height: 8),
-              Text('Time ran out. The AR pipeline failed.',
+              Text(_errorMessage,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.5), fontSize: 13)),
+                style: const TextStyle(
+                  color: Colors.white, fontSize: 18,
+                  fontWeight: FontWeight.w800)),
 
               const SizedBox(height: 32),
               SizedBox(
@@ -768,26 +1068,32 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                 child: ElevatedButton(
                   onPressed: _retry,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    backgroundColor: zone.accentColor,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
+                      borderRadius: BorderRadius.circular(12)),
                     elevation: 0),
-                  child: const Text('RETRY',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, letterSpacing: 1)),
+                  child: const Text('TRY AGAIN',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14, letterSpacing: 1)),
                 ),
-              ),
-              const SizedBox(height: 10),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('BACK TO MAP',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 13)),
               ),
             ],
           ),
         ),
       ),
-    ).animate().fadeIn();
+    );
+  }
+}
+
+// ── Extension helper ──────────────────────────────────────────────────────────
+extension _IterableExt<T> on Iterable<T> {
+  T? firstWhereOrNull(bool Function(T) test) {
+    for (final e in this) {
+      if (test(e)) return e;
+    }
+    return null;
   }
 }

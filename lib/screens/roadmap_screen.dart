@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
+import '../widgets/animated_google_background.dart';
+
 import '../core/app_theme.dart';
 import '../data/modules_data.dart';
 import '../data/quiz_data.dart';
@@ -20,8 +22,8 @@ class RoadmapScreen extends StatelessWidget {
 
     return Material(
       color: Colors.transparent,
-      child: Container(
-        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(isDark)),
+      child: AnimatedGoogleBackground(
+        isDark: isDark,
         child: SafeArea(
           bottom: false,
           child: CustomScrollView(
@@ -94,6 +96,14 @@ class RoadmapScreen extends StatelessWidget {
                                     ),
                                   ),
                                 ),
+                      ).animate().fadeIn(
+                        delay: Duration(milliseconds: 100 * index),
+                        duration: const Duration(milliseconds: 500),
+                      ).slideY(
+                        begin: 0.1,
+                        end: 0,
+                        delay: Duration(milliseconds: 100 * index),
+                        curve: Curves.easeOutCubic,
                       );
                     },
                     childCount: allModules.length,

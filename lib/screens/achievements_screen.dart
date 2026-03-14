@@ -8,6 +8,7 @@ import '../services/progress_service.dart';
 import '../services/theme_service.dart';
 import '../widgets/achievement_badge.dart';
 import '../widgets/shareable_achievement_card.dart';
+import '../widgets/animated_google_background.dart';
 
 class AchievementsScreen extends StatelessWidget {
   const AchievementsScreen({super.key});
@@ -37,10 +38,8 @@ class AchievementsScreen extends StatelessWidget {
     final xp = AppTheme.getXP(completedTopics, totalQuizScore);
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: AppTheme.backgroundGradient(isDark),
-        ),
+      body: AnimatedGoogleBackground(
+        isDark: isDark,
         child: SafeArea(
           child: Column(
             children: [

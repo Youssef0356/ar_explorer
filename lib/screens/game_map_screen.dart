@@ -195,10 +195,10 @@ class _GameMapScreenState extends State<GameMapScreen>
   double _getZoneLabelY(String zoneId) => const {
     'zone_1': 1345.0,
     'zone_2': 1100.0,
-    'zone_3': 860.0,
-    'zone_4': 620.0,
+    'zone_3': 870.0,
+    'zone_4': 660.0,
     'zone_5': 120.0,
-  }[zoneId] ?? 0;
+  }[zoneId] ?? 0.0;
 
   Widget _buildHeader(GameProgressService progress) {
     int totalStars = 0, maxStars = 0;

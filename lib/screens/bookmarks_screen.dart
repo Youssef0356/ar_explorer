@@ -7,6 +7,7 @@ import '../data/modules_data.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
 import 'topic_screen.dart';
+import '../widgets/animated_google_background.dart';
 
 class BookmarksScreen extends StatelessWidget {
   const BookmarksScreen({super.key});
@@ -18,8 +19,8 @@ class BookmarksScreen extends StatelessWidget {
     final bookmarkedKeys = progress.bookmarks.toList()..sort();
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(isDark)),
+      body: AnimatedGoogleBackground(
+        isDark: isDark,
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
@@ -190,6 +191,11 @@ class BookmarksScreen extends StatelessWidget {
                                   milliseconds: 80 * index),
                               duration:
                                   const Duration(milliseconds: 400),
+                            ).slideX(
+                              begin: 0.1,
+                              end: 0,
+                              delay: Duration(milliseconds: 80 * index),
+                              curve: Curves.easeOutCubic,
                             ),
                       );
                     },

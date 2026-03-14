@@ -10,6 +10,7 @@ import 'bookmarks_screen.dart';
 import 'achievements_screen.dart';
 import 'game_map_screen.dart';
 import 'paywall_screen.dart';
+import '../widgets/animated_google_background.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -21,12 +22,12 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    HomeScreen(),
-    RoadmapScreen(),
-    _EngineerEntryScreen(),
-    BookmarksScreen(),
-    AchievementsScreen(),
+  final List<Widget> _screens = [
+    const HomeScreen(),
+    const RoadmapScreen(),
+    const _EngineerEntryScreen(),
+    const BookmarksScreen(),
+    const AchievementsScreen(),
   ];
 
   @override
@@ -114,8 +115,13 @@ class _EngineerEntryScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(isDark)),
+      body: AnimatedGoogleBackground(
+        isDark: isDark,
+        glowColors: const [
+          AppTheme.accentPurple,
+          Color(0xFF3F51B5), // Indigo
+          AppTheme.accentCyan,
+        ],
         child: SafeArea(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),

@@ -8,11 +8,13 @@ import '../services/theme_service.dart';
 class AnimatedGoogleBackground extends StatefulWidget {
   final Widget child;
   final bool isDark;
+  final List<Color>? glowColors;
 
   const AnimatedGoogleBackground({
     super.key,
     required this.child,
     required this.isDark,
+    this.glowColors,
   });
 
   @override
@@ -69,6 +71,7 @@ class _AnimatedGoogleBackgroundState extends State<AnimatedGoogleBackground>
                       t: _controller.value * 2 * math.pi,
                       isDark: widget.isDark,
                       baseColor: baseColor,
+                      glowColors: widget.glowColors,
                     ),
                     size: Size.infinite,
                   );
@@ -93,17 +96,23 @@ class _AmbientGlowPainter extends CustomPainter {
   final double t;
   final bool isDark;
   final Color baseColor;
+  final List<Color>? glowColors;
 
   _AmbientGlowPainter({
     required this.t,
     required this.isDark,
     required this.baseColor,
+    this.glowColors,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
     final cy = size.height / 2;
+
+    final color1 = glowColors != null && glowColors!.isNotEmpty ? glowColors![0] : AppTheme.accentPurple;
+    final color2 = glowColors != null && glowColors!.length > 1 ? glowColors![1] : AppTheme.accentBlue;
+    final color3 = glowColors != null && glowColors!.length > 2 ? glowColors![2] : AppTheme.accentCyan;
 
     // Glow positions — slow swirling orbits
     final x1 = cx + math.sin(t) * cx * 0.6;
@@ -117,28 +126,28 @@ class _AmbientGlowPainter extends CustomPainter {
 
     final radius = size.longestSide * 0.9;
 
-    // Purple glow
+    // Color 1 glow
     _drawGlow(
       canvas,
       Offset(x1, y1),
       radius,
-      AppTheme.accentPurple.withValues(alpha: isDark ? 0.30 : 0.08),
+      color1.withValues(alpha: isDark ? 0.30 : 0.08),
     );
 
-    // Blue glow
+    // Color 2 glow
     _drawGlow(
       canvas,
       Offset(x2, y2),
       radius * 0.85,
-      AppTheme.accentBlue.withValues(alpha: isDark ? 0.25 : 0.06),
+      color2.withValues(alpha: isDark ? 0.25 : 0.06),
     );
 
-    // Cyan glow
+    // Color 3 glow
     _drawGlow(
       canvas,
       Offset(x3, y3),
       radius * 0.8,
-      AppTheme.accentCyan.withValues(alpha: isDark ? 0.20 : 0.05),
+      color3.withValues(alpha: isDark ? 0.20 : 0.05),
     );
   }
 
