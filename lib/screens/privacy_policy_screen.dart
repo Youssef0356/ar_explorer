@@ -15,10 +15,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const isDark = true; // Privacy screen always uses dark theme for premium feel
-
     return Scaffold(
-      backgroundColor: AppTheme.primaryDark,
+      backgroundColor: Colors.transparent,
       appBar: showConfirmButton
           ? null
           : AppBar(

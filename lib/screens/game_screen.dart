@@ -171,58 +171,73 @@ class _GameScreenState extends State<GameScreen> {
                 children: [
                   _buildHeader(context, isDark, soundService),
                   Expanded(
-                    child: Column(
-                      children: [
-                        _buildInstructions(isDark, level),
-                        const SizedBox(height: 16),
-                        // Editor Zone
-                        Expanded(
-                          flex: 3,
-                          child: _buildEditorZone(isDark, level, soundService),
-                        ),
-                        // Blocks Zone
-                        Expanded(
-                          flex: 2,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
                           child: Container(
-                            margin: const EdgeInsets.only(top: 16),
-                            decoration: AppTheme.glassCard(isDark).copyWith(
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                            ),
+                            padding: const EdgeInsets.only(bottom: 100), // Increased bottom safe area
+                            constraints: BoxConstraints(minHeight: constraints.maxHeight),
                             child: Column(
                               children: [
-                                if (!_levelComplete)
-                                  Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Wrap(
-                                      spacing: 8,
-                                      runSpacing: 8,
-                                      children: level.availableBlocks.map((block) {
-                                        final isUsed = level.slots.any((s) => s.filledBlockId == block.id);
-                                        if (isUsed) return const SizedBox.shrink();
-                                        return Draggable<String>(
-                                          data: block.id,
-                                          feedback: Material(
-                                            color: Colors.transparent,
-                                            child: _buildCodeBlockUI(isDark, block.text, isDragging: true),
-                                          ),
-                                          childWhenDragging: Opacity(
-                                            opacity: 0.3,
-                                            child: _buildCodeBlockUI(isDark, block.text),
-                                          ),
-                                          onDragStarted: () => soundService.playTap(),
-                                          child: _buildCodeBlockUI(isDark, block.text),
-                                        );
-                                      }).toList(),
-                                    ).animate().fadeIn(),
+                                _buildInstructions(isDark, level),
+                                const SizedBox(height: 8),
+                                // Editor Zone
+                                SizedBox(
+                                  height: 300, // Adjusted explicit height
+                                  child: _buildEditorZone(isDark, level, soundService),
+                                ),
+                                // Blocks Zone
+                                Container(
+                                  margin: const EdgeInsets.only(top: 12),
+                                  decoration: AppTheme.glassCard(isDark).copyWith(
+                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                                   ),
-                                Expanded(
-                                  child: _buildTerminal(isDark),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (!_levelComplete)
+                                        Container(
+                                          height: 140, // Increased height for block pool
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          child: SingleChildScrollView(
+                                            physics: const BouncingScrollPhysics(),
+                                            child: Wrap(
+                                              spacing: 8,
+                                              runSpacing: 8,
+                                              alignment: WrapAlignment.center,
+                                              children: level.availableBlocks.map((block) {
+                                                final isUsed = level.slots.any((s) => s.filledBlockId == block.id);
+                                                if (isUsed) return const SizedBox.shrink();
+                                                return Draggable<String>(
+                                                  data: block.id,
+                                                  feedback: Material(
+                                                    color: Colors.transparent,
+                                                    child: _buildCodeBlockUI(isDark, block.text, isDragging: true),
+                                                  ),
+                                                  childWhenDragging: Opacity(
+                                                    opacity: 0.3,
+                                                    child: _buildCodeBlockUI(isDark, block.text),
+                                                  ),
+                                                  onDragStarted: () => soundService.playTap(),
+                                                  child: _buildCodeBlockUI(isDark, block.text),
+                                                );
+                                              }).toList(),
+                                            ).animate().fadeIn(),
+                                          ),
+                                        ),
+                                      SizedBox(
+                                        height: 200, // Increased terminal height
+                                        child: _buildTerminal(isDark),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -551,7 +566,6 @@ class _CodeSlot {
     required this.id,
     required this.expectedBlockId,
     required this.helperText,
-    this.filledBlockId,
   });
 }
 

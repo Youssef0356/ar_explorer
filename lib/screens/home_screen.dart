@@ -19,7 +19,7 @@ import '../services/sound_service.dart';
 import '../services/ad_service.dart';
 import '../services/progress_service.dart';
 import '../services/review_service.dart';
-import '../services/subscription_service.dart'; // Added this import
+import '../services/subscription_service.dart'; 
 import '../widgets/animated_google_background.dart';
 import '../widgets/banner_ad_widget.dart';
 import '../widgets/daily_keyword_card.dart';
@@ -32,7 +32,6 @@ import 'module_detail_screen.dart';
 import 'paywall_screen.dart';
 import 'practice_screen.dart';
 import 'privacy_policy_screen.dart';
-import 'roadmap_screen.dart';
 import 'topic_screen.dart';
 import 'premium_space_screen.dart';
 
@@ -41,9 +40,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.watch<ThemeService>().isDarkMode;
-    final themeService = context.watch<ThemeService>(); // Get themeService here
-
+    final themeService = context.watch<ThemeService>();
+    final isDark = themeService.isDarkMode;
     final soundService = context.read<SoundService>();
     
     return Material(

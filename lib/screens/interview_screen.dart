@@ -32,7 +32,6 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
   int? _selectedOption;
   bool _showResult = false;
   int _correctCount = 0;
-  bool _limitReached = false;
   int _secondsRemaining = _secondsPerQuestion;
   Timer? _timer;
   final Stopwatch _totalStopwatch = Stopwatch();

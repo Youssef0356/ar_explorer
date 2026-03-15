@@ -195,7 +195,7 @@ class _AdvancedNotesScreenState extends State<AdvancedNotesScreen> {
      }
 
      return ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        padding: const EdgeInsets.fromLTRB(24, 8, 24, 250), // Extreme bottom padding
         physics: const BouncingScrollPhysics(),
         itemCount: grouped.length,
         itemBuilder: (context, index) {

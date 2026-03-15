@@ -58,7 +58,7 @@ class RoadmapScreen extends StatelessWidget {
                 ),
               ),
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 200), // Maximum bottom padding
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {

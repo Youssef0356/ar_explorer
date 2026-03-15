@@ -140,7 +140,6 @@ class QuizAnalyticsScreen extends StatelessWidget {
      }
 
      final maxScore = history.reduce(max).toDouble().clamp(10.0, 100.0);
-     final minScore = history.reduce(min).toDouble();
 
      return Container(
         padding: const EdgeInsets.all(20),
