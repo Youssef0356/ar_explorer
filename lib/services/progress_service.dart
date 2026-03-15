@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/module_model.dart';
-import '../services/subscription_service.dart';
+import 'subscription_service.dart';
+import 'game_progress_service.dart';
 
 class ProgressService extends ChangeNotifier {
   SubscriptionService? _subscriptionService;
@@ -21,6 +22,7 @@ class ProgressService extends ChangeNotifier {
   static const _usernameKey = 'user_name';
   static const _adUnlockedModulesKey = 'ad_unlocked_modules';
   static const _privacyAcceptedKey = 'has_accepted_privacy';
+  static const _readKeyConceptsKey = 'read_key_concepts';
   static const _interviewAttemptsDateKey = 'interview_attempts_date';
   static const _interviewAttemptsCountKey = 'interview_attempts_count';
 
@@ -33,6 +35,7 @@ class ProgressService extends ChangeNotifier {
   Set<String> _bookmarks = {};
   Map<String, String> _notes = {};
   Set<String> _adUnlockedModules = {};
+  Set<String> _readKeyConcepts = {}; // Track module IDs where concepts were read
   int _interviewBestScore = 0;
   List<int> _interviewHistory = [];
   bool _debugUnlockAll = false;
@@ -92,6 +95,11 @@ class ProgressService extends ChangeNotifier {
       _adUnlockedModules = adUnlockedJson.toSet();
     }
 
+    final readKeyConceptsJson = _prefs?.getStringList(_readKeyConceptsKey);
+    if (readKeyConceptsJson != null) {
+      _readKeyConcepts = readKeyConceptsJson.toSet();
+    }
+
     _interviewBestScore = _prefs?.getInt(_interviewBestKey) ?? 0;
     
     final historyStrings = _prefs?.getStringList(_interviewHistoryKey) ?? [];
@@ -108,6 +116,7 @@ class ProgressService extends ChangeNotifier {
     await _prefs?.setStringList(_bookmarksKey, _bookmarks.toList());
     await _prefs?.setString(_notesKey, jsonEncode(_notes));
     await _prefs?.setStringList(_adUnlockedModulesKey, _adUnlockedModules.toList());
+    await _prefs?.setStringList(_readKeyConceptsKey, _readKeyConcepts.toList());
     await _prefs?.setInt(_interviewBestKey, _interviewBestScore);
     await _prefs?.setStringList(_interviewHistoryKey, _interviewHistory.map((e) => e.toString()).toList());
     await _prefs?.setString(_usernameKey, _username);
@@ -126,6 +135,14 @@ class ProgressService extends ChangeNotifier {
     return topicIds
         .where((id) => _completedTopics.contains('${moduleId}_$id'))
         .length;
+  }
+
+  bool isModuleTopicsCompleted(String moduleId, int totalTopics) {
+    if (totalTopics == 0) return true;
+    final count = _completedTopics
+        .where((id) => id.startsWith('${moduleId}_'))
+        .length;
+    return count >= totalTopics;
   }
 
   double moduleProgress(String moduleId, int totalTopics) {
@@ -195,6 +212,19 @@ class ProgressService extends ChangeNotifier {
     _adUnlockedModules.add(moduleId);
     await _saveProgress();
     notifyListeners();
+  }
+
+  // ── Key Concepts Tracking ──────────────────────────────────────
+  bool hasReadKeyConcepts(String moduleId) {
+    return _readKeyConcepts.contains(moduleId);
+  }
+
+  Future<void> markKeyConceptsAsRead(String moduleId) async {
+    if (!_readKeyConcepts.contains(moduleId)) {
+      _readKeyConcepts.add(moduleId);
+      await _saveProgress();
+      notifyListeners();
+    }
   }
 
   // ── Testing/Debug ──────────────────────────────────────────────
@@ -372,16 +402,46 @@ class ProgressService extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── Reset (for testing) ────────────────────────────────────────
-  Future<void> resetAll() async {
-    _completedTopics.clear();
-    _quizScores.clear();
-    _achievements.clear();
-    _wrongAnswers.clear();
-    _bookmarks.clear();
-    _notes.clear();
-    _adUnlockedModules.clear();
+  Future<void> resetAll({GameProgressService? gameProgress}) async {
+    // Clear in-memory sets/maps
+    _completedTopics = {};
+    _quizScores = {};
+    _achievements = {};
+    _wrongAnswers = {};
+    _bookmarks = {};
+    _notes = {};
+    _adUnlockedModules = {};
+    _readKeyConcepts = {};
     _interviewBestScore = 0;
+    _interviewHistory = [];
+    _username = ''; // Also reset username to default
+    
+    // Explicitly remove ALL keys from SharedPreferences immediately
+    final keys = [
+      _completedTopicsKey,
+      _quizScoresKey,
+      _achievementsKey,
+      _wrongAnswersKey,
+      _bookmarksKey,
+      _notesKey,
+      _adUnlockedModulesKey,
+      _readKeyConceptsKey,
+      _interviewBestKey,
+      _interviewHistoryKey,
+      _usernameKey,
+      _interviewAttemptsDateKey,
+      _interviewAttemptsCountKey,
+      _lastDailyChallengeKey,
+    ];
+
+    for (final key in keys) {
+      await _prefs?.remove(key);
+    }
+
+    if (gameProgress != null) {
+      await gameProgress.resetProgress();
+    }
+
     await _saveProgress();
     notifyListeners();
   }

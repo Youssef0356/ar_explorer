@@ -18,6 +18,7 @@ import '../services/theme_service.dart';
 import '../services/sound_service.dart';
 import '../services/ad_service.dart';
 import '../services/progress_service.dart';
+import '../services/game_progress_service.dart';
 import '../services/review_service.dart';
 import '../services/subscription_service.dart'; 
 import '../widgets/animated_google_background.dart';
@@ -147,6 +148,7 @@ class HomeScreen extends StatelessWidget {
                               tooltip: 'Daily Keyword',
                               isDark: isDark,
                               onTap: () {
+                                if (!context.mounted) return;
                                 soundService.playTap();
                                 final keywordEntry = getDailyKeyword();
                                 showDialog(
@@ -167,74 +169,33 @@ class HomeScreen extends StatelessWidget {
                                   return Tooltip(
                                     message: 'Premium Active',
                                     child: Container(
-                                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                       decoration: BoxDecoration(
-                                        gradient: const LinearGradient(
-                                          colors: [AppTheme.accentAmber, Color(0xFFFF8F00)],
-                                        ),
+                                        color: AppTheme.accentAmber.withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(20),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: AppTheme.accentAmber.withValues(alpha: 0.4),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ],
+                                        border: Border.all(color: AppTheme.accentAmber.withValues(alpha: 0.3)),
                                       ),
-                                      child: Row(
+                                      child: const Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(
-                                            Icons.workspace_premium_rounded,
-                                            color: Colors.white,
-                                            size: 14,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            'PREMIUM',
-                                            style: AppTheme.bodySmall.copyWith(
-                                              color: Colors.white,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w800,
-                                              letterSpacing: 0.5,
-                                            ),
-                                          ),
+                                          Icon(Icons.workspace_premium_rounded, size: 14, color: AppTheme.accentAmber),
+                                          SizedBox(width: 4),
+                                          Text('PRO', style: TextStyle(color: AppTheme.accentAmber, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
                                         ],
                                       ),
                                     ),
                                   );
                                 }
-
-                                // Show crown icon button for non-premium users
-                                return Tooltip(
-                                  message: 'Unlock Premium',
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      soundService.playTap();
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (_) => const PaywallScreen()),
-                                      );
-                                    },
-                                    child: Container(
-                                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.accentAmber.withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(
-                                          color: AppTheme.accentAmber.withValues(alpha: 0.4),
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: const Icon(
-                                        Icons.workspace_premium_rounded,
-                                        color: AppTheme.accentAmber,
-                                        size: 22,
-                                      ),
-                                    ),
-                                  ),
+                                return _buildIconButton(
+                                  icon: Icons.workspace_premium_rounded,
+                                  tooltip: 'Go Premium',
+                                  isDark: isDark,
+                                  iconColor: AppTheme.accentAmber,
+                                  onTap: () {
+                                    if (!context.mounted) return;
+                                    soundService.playTap();
+                                    Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
+                                  },
                                 );
                               },
                             ),
@@ -244,13 +205,13 @@ class HomeScreen extends StatelessWidget {
                               tooltip: 'Settings',
                               isDark: isDark,
                               onTap: () {
+                                if (!context.mounted) return;
                                 soundService.playTap();
                                 _showSettingsModal(context, isDark, themeService);
                               },
                             ),
 
                             // DEBUG: Premium Override Toggle Button
-                            // TODO: Remove this before production release
                             if (kDebugMode)
                               Consumer<SubscriptionService>(
                                 builder: (context, subscription, _) {
@@ -400,26 +361,32 @@ class HomeScreen extends StatelessWidget {
                                 soundService.playTap();
                                 if (data.isLocked) {
                                   if (module.unlockCost > 0) {
+                                    final messenger = ScaffoldMessenger.of(context);
+                                    final nav = Navigator.of(context);
+                                    final ads = context.read<AdService>();
+                                    final prog = context.read<ProgressService>();
+                                    final snd = context.read<SoundService>();
+
                                     final Future<void> Function()? onUnlockAd = data.isFirstLocked ? () async {
-                                      soundService.playTap();
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      snd.playTap();
+                                      messenger.showSnackBar(
                                         const SnackBar(content: Text('Loading Reward Ad...'), duration: Duration(seconds: 2)),
                                       );
-                                      final success = await context.read<AdService>().showRewardedAd();
-                                      if (!context.mounted) return;
+                                      final success = await ads.showRewardedAd();
+                                      
                                       if (success) {
-                                        await context.read<ProgressService>().unlockModuleWithAd(module.id);
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        await prog.unlockModuleWithAd(module.id);
+                                        messenger.showSnackBar(
                                           const SnackBar(content: Text('Module Unlocked! 🔓')),
                                         );
-                                        Navigator.of(context).pop(); // Close paywall
+                                        nav.pop(); // Close paywall
                                       } else {
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        messenger.showSnackBar(
                                           const SnackBar(content: Text('Failed to load ad. Please try again later.')),
                                         );
                                       }
                                     } : null;
-                                    
+
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(builder: (_) => PaywallScreen(
@@ -734,9 +701,6 @@ class HomeScreen extends StatelessWidget {
 
   // ── Quick Actions (Practice, Interview, Roadmap, Bookmarks) ──────────
   Widget _buildQuickActions(BuildContext context, bool isDark, bool enableAnimations) {
-    final subscriptionService = context.watch<SubscriptionService>();
-    final isPremium = subscriptionService.isPremium;
-
     return Column(
       children: [
         IntrinsicHeight(
@@ -984,22 +948,27 @@ class HomeScreen extends StatelessWidget {
                   onPressed: isAdLoading
                       ? null
                       : () async {
+                          final messenger = ScaffoldMessenger.of(context);
+                          final nav = Navigator.of(ctx);
+                          final ads = context.read<AdService>();
+                          final prog = context.read<ProgressService>();
+
                           setState(() => isAdLoading = true);
-                          final adService = context.read<AdService>();
-                          final success = await adService.showRewardedAd();
-                          if (success && ctx.mounted) {
-                            await context.read<ProgressService>().unlockModuleWithAd(module.id);
-                            Navigator.pop(ctx);
-                            ScaffoldMessenger.of(context).showSnackBar(
+                          final success = await ads.showRewardedAd();
+                          
+                          if (success) {
+                            await prog.unlockModuleWithAd(module.id);
+                            nav.pop();
+                            messenger.showSnackBar(
                               const SnackBar(content: Text('Module Unlocked! 🎉')),
                             );
                           } else {
                             if (ctx.mounted) {
                               setState(() => isAdLoading = false);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Ad could not be loaded or was cancelled.')),
-                              );
                             }
+                            messenger.showSnackBar(
+                              const SnackBar(content: Text('Ad could not be loaded or was cancelled.')),
+                            );
                           }
                         },
                   icon: isAdLoading 
@@ -1034,6 +1003,7 @@ class HomeScreen extends StatelessWidget {
     required String tooltip,
     required bool isDark,
     required VoidCallback onTap,
+    Color? iconColor,
   }) {
     return Tooltip(
       message: tooltip,
@@ -1044,7 +1014,7 @@ class HomeScreen extends StatelessWidget {
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(8),
-            child: Icon(icon, color: AppTheme.textMutedC(isDark), size: 22),
+            child: Icon(icon, color: iconColor ?? AppTheme.textMutedC(isDark), size: 22),
           ),
         ),
       ),
@@ -1207,7 +1177,7 @@ class HomeScreen extends StatelessWidget {
                           style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
                         ),
                         value: theme.enableAnimations,
-                        activeColor: AppTheme.accentPurple,
+                        activeThumbColor: AppTheme.accentPurple,
                         onChanged: (val) {
                           context.read<SoundService>().playTap();
                           theme.toggleAnimations();
@@ -1222,7 +1192,7 @@ class HomeScreen extends StatelessWidget {
                           style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
                         ),
                         value: sound.isVibrationEnabled,
-                        activeColor: AppTheme.accentCyan,
+                        activeThumbColor: AppTheme.accentCyan,
                         onChanged: (val) {
                           sound.toggleVibration();
                           sound.playTap();
@@ -1267,6 +1237,7 @@ class HomeScreen extends StatelessWidget {
                       ),
                       trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
                       onTap: () {
+                        if (!context.mounted) return;
                         context.read<SoundService>().playTap();
                         Share.share(
                           '🚀 Check out AR Explorer – the ultimate app to learn Augmented Reality concepts!\n\n'
@@ -1383,7 +1354,7 @@ class HomeScreen extends StatelessWidget {
                                 style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
                               ),
                               value: progress.debugUnlockAll,
-                              activeColor: AppTheme.accentAmber,
+                              activeThumbColor: AppTheme.accentAmber,
                               onChanged: (val) => progress.toggleDebugUnlock(),
                             ),
                             SwitchListTile(
@@ -1397,12 +1368,12 @@ class HomeScreen extends StatelessWidget {
                                 style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
                               ),
                               value: progress.isCurriculumComplete(allModules.fold<int>(0, (sum, m) => sum + m.topics.length)),
-                              activeColor: AppTheme.successGreen,
+                              activeThumbColor: AppTheme.successGreen,
                               onChanged: (val) {
                                 if (val) {
                                   progress.completeAllModules(allModules);
                                 } else {
-                                  progress.resetAll();
+                                  progress.resetAll(gameProgress: context.read<GameProgressService>());
                                 }
                               },
                             ),
@@ -1539,12 +1510,22 @@ class HomeScreen extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              if (controller.text.trim().toLowerCase() == username.toLowerCase()) {
+              final typedName = controller.text.trim().toLowerCase();
+              final actualUsername = username.toLowerCase();
+              
+              if (typedName == actualUsername) {
                 soundService.playTap();
-                await progress.resetAll();
+                
+                final navigator = Navigator.of(context);
+                final messenger = ScaffoldMessenger.of(context);
+                final gameProgress = context.read<GameProgressService>();
+                final progressService = context.read<ProgressService>();
+                
+                await progressService.resetAll(gameProgress: gameProgress);
+                
                 if (dialogCtx.mounted) {
-                  Navigator.pop(dialogCtx);
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  navigator.pop();
+                  messenger.showSnackBar(
                     const SnackBar(
                       content: Text('Progress has been reset! Start fresh 🚀'),
                     ),

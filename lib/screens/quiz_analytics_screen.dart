@@ -63,7 +63,7 @@ class QuizAnalyticsScreen extends StatelessWidget {
                       if (sortedModules.isEmpty)
                         _buildEmptyState(isDark)
                       else
-                        ...sortedModules.map((entry) => _buildHeatmapBar(isDark, entry.key, entry.value, sortedModules.first.value)).toList(),
+                        ...sortedModules.map((entry) => _buildHeatmapBar(isDark, entry.key, entry.value, sortedModules.first.value)),
                    ],
                 ),
               ),
@@ -170,9 +170,13 @@ class QuizAnalyticsScreen extends StatelessWidget {
                      final heightPercent = score / maxScore;
                      
                      Color barColor = AppTheme.textMutedC(isDark).withValues(alpha: 0.5);
-                     if (score >= 80) barColor = AppTheme.successGreen;
-                     else if (score >= 50) barColor = AppTheme.accentAmber;
-                     else barColor = AppTheme.accentPink;
+                     if (score >= 80) {
+                       barColor = AppTheme.successGreen;
+                     } else if (score >= 50) {
+                       barColor = AppTheme.accentAmber;
+                     } else {
+                       barColor = AppTheme.accentPink;
+                     }
 
                      return Column(
                         mainAxisAlignment: MainAxisAlignment.end,
@@ -181,7 +185,7 @@ class QuizAnalyticsScreen extends StatelessWidget {
                            const SizedBox(height: 4),
                            Container(
                               width: 14,
-                              height: 100 * heightPercent,
+                              height: (100 * heightPercent).toDouble(),
                               decoration: BoxDecoration(
                                 color: barColor,
                                 borderRadius: BorderRadius.circular(4),

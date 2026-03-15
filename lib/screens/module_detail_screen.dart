@@ -11,7 +11,7 @@ import 'flashcard_screen.dart';
 import 'quiz_screen.dart';
 import 'topic_screen.dart';
 
-class ModuleDetailScreen extends StatelessWidget {
+class ModuleDetailScreen extends StatefulWidget {
   final LearningModule module;
   final Color accentColor;
 
@@ -20,6 +20,25 @@ class ModuleDetailScreen extends StatelessWidget {
     required this.module,
     required this.accentColor,
   });
+
+  @override
+  State<ModuleDetailScreen> createState() => _ModuleDetailScreenState();
+}
+
+class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
+  bool _isExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-expand if not read yet
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final progress = context.read<ProgressService>();
+      if (!progress.hasReadKeyConcepts(widget.module.id)) {
+        setState(() => _isExpanded = true);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,14 +68,14 @@ class ModuleDetailScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            module.title,
+                            widget.module.title,
                             style: AppTheme.headingMedium.copyWith(
                               color: AppTheme.textPrimaryC(isDark),
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            module.description,
+                            widget.module.description,
                             style: AppTheme.bodySmall.copyWith(
                               color: AppTheme.textMutedC(isDark),
                             ),
@@ -76,13 +95,13 @@ class ModuleDetailScreen extends StatelessWidget {
               Consumer<ProgressService>(
                 builder: (context, progress, child) {
                   final moduleProgress = progress.moduleProgress(
-                    module.id,
-                    module.totalTopics,
+                    widget.module.id,
+                    widget.module.totalTopics,
                   );
-                  final completed = module.topics
+                  final completed = widget.module.topics
                       .where(
                         (t) =>
-                            progress.isTopicCompleted('${module.id}_${t.id}'),
+                            progress.isTopicCompleted('${widget.module.id}_${t.id}'),
                       )
                       .length;
 
@@ -91,19 +110,19 @@ class ModuleDetailScreen extends StatelessWidget {
                     child:
                         Container(
                           padding: const EdgeInsets.all(16),
-                          decoration: AppTheme.moduleCard(accentColor, isDark),
+                          decoration: AppTheme.moduleCard(widget.accentColor, isDark),
                           child: Row(
                             children: [
                               Container(
                                 width: 44,
                                 height: 44,
                                 decoration: BoxDecoration(
-                                  color: accentColor.withValues(alpha: 0.15),
+                                  color: widget.accentColor.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Icon(
-                                  module.icon,
-                                  color: accentColor,
+                                  widget.module.icon,
+                                  color: widget.accentColor,
                                   size: 22,
                                 ),
                               ),
@@ -115,9 +134,9 @@ class ModuleDetailScreen extends StatelessWidget {
                                     Row(
                                       children: [
                                         Text(
-                                          '$completed of ${module.totalTopics} topics',
+                                          '$completed of ${widget.module.totalTopics} topics',
                                           style: AppTheme.bodySmall.copyWith(
-                                            color: accentColor,
+                                            color: widget.accentColor,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -146,12 +165,12 @@ class ModuleDetailScreen extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(4),
                                       child: LinearProgressIndicator(
                                         value: moduleProgress,
-                                        backgroundColor: accentColor.withValues(
+                                        backgroundColor: widget.accentColor.withValues(
                                           alpha: 0.1,
                                         ),
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
-                                              accentColor,
+                                              widget.accentColor,
                                             ),
                                         minHeight: 4,
                                       ),
@@ -168,6 +187,15 @@ class ModuleDetailScreen extends StatelessWidget {
                   );
                 },
               ),
+
+              const SizedBox(height: 20),
+
+              // ── Key Concepts Card ──
+              if (widget.module.keyConcepts.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _buildKeyConceptsCard(isDark),
+                ),
 
               const SizedBox(height: 20),
 
@@ -200,11 +228,11 @@ class ModuleDetailScreen extends StatelessWidget {
                     return ListView.builder(
                       physics: const BouncingScrollPhysics(),
                       padding: const EdgeInsets.symmetric(horizontal: 24),
-                      itemCount: module.topics.length,
+                      itemCount: widget.module.topics.length,
                       itemBuilder: (context, index) {
-                        final topic = module.topics[index];
+                        final topic = widget.module.topics[index];
                         final isCompleted = progress.isTopicCompleted(
-                          '${module.id}_${topic.id}',
+                          '${widget.module.id}_${topic.id}',
                         );
 
                         return Padding(
@@ -222,8 +250,8 @@ class ModuleDetailScreen extends StatelessWidget {
                                                 secondaryAnimation,
                                               ) => TopicScreen(
                                                 topic: topic,
-                                                moduleId: module.id,
-                                                accentColor: accentColor,
+                                                moduleId: widget.module.id,
+                                                accentColor: widget.accentColor,
                                               ),
                                           transitionsBuilder:
                                               (
@@ -243,8 +271,8 @@ class ModuleDetailScreen extends StatelessWidget {
                                         ),
                                       );
 
-                                      if (goToNext == true && index + 1 < module.topics.length) {
-                                        final nextTopic = module.topics[index + 1];
+                                      if (goToNext == true && index + 1 < widget.module.topics.length) {
+                                        final nextTopic = widget.module.topics[index + 1];
                                         // Open the next topic immediately.
                                         // We don't wait on the result here to avoid chaining many pushes.
                                         // The user can always navigate back if needed.
@@ -259,8 +287,8 @@ class ModuleDetailScreen extends StatelessWidget {
                                                   secondaryAnimation,
                                                 ) => TopicScreen(
                                                   topic: nextTopic,
-                                                  moduleId: module.id,
-                                                  accentColor: accentColor,
+                                                  moduleId: widget.module.id,
+                                                  accentColor: widget.accentColor,
                                                 ),
                                             transitionsBuilder:
                                                 (
@@ -280,206 +308,8 @@ class ModuleDetailScreen extends StatelessWidget {
                                         );
                                       }
                                     },
-                                    child: Container(
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.cardC(isDark),
-                                        borderRadius: BorderRadius.circular(14),
-                                        border: Border.all(
-                                          color: isCompleted
-                                              ? accentColor.withValues(
-                                                  alpha: 0.3,
-                                                )
-                                              : AppTheme.dividerC(isDark),
-                                          width: 1,
-                                        ),
-                                        boxShadow: !isDark
-                                            ? [
-                                                BoxShadow(
-                                                  color: Colors.black
-                                                      .withValues(alpha: 0.04),
-                                                  blurRadius: 8,
-                                                  offset: const Offset(0, 2),
-                                                ),
-                                              ]
-                                            : null,
-                                      ),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          // ── Learning Path Visualizer ──
-                                          Column(
-                                            children: [
-                                              // Top line
-                                              Container(
-                                                width: 2,
-                                                height: 16,
-                                                color: index == 0
-                                                    ? Colors.transparent
-                                                    : (progress.isTopicCompleted(
-                                                                  '${module.id}_${module.topics[index - 1].id}',
-                                                                )
-                                                            ? accentColor
-                                                                  .withValues(
-                                                                    alpha: 0.3,
-                                                                  )
-                                                            : AppTheme.dividerC(
-                                                                isDark,
-                                                              )),
-                                              ),
-                                              // Number circle
-                                              Container(
-                                                    width: 36,
-                                                    height: 36,
-                                                    decoration: BoxDecoration(
-                                                      shape: BoxShape.circle,
-                                                      color: isCompleted
-                                                          ? accentColor
-                                                                .withValues(
-                                                                  alpha: 0.15,
-                                                                )
-                                                          : (isDark
-                                                                ? Colors.white
-                                                                      .withValues(
-                                                                        alpha:
-                                                                            0.05,
-                                                                      )
-                                                                : Colors.grey
-                                                                      .withValues(
-                                                                        alpha:
-                                                                            0.08,
-                                                                      )),
-                                                      border: Border.all(
-                                                        color: isCompleted
-                                                            ? accentColor
-                                                                  .withValues(
-                                                                    alpha: 0.4,
-                                                                  )
-                                                            : AppTheme.dividerC(
-                                                                isDark,
-                                                              ),
-                                                      ),
-                                                    ),
-                                                    alignment: Alignment.center,
-                                                    child: isCompleted
-                                                        ? Icon(
-                                                            Icons.check_rounded,
-                                                            color: accentColor,
-                                                            size: 18,
-                                                          )
-                                                        : Text(
-                                                            '${index + 1}',
-                                                            style: AppTheme
-                                                                .labelMedium
-                                                                .copyWith(
-                                                                  color:
-                                                                      AppTheme.textMutedC(
-                                                                        isDark,
-                                                                      ),
-                                                                ),
-                                                          ),
-                                                  )
-                                                  .animate(
-                                                    target:
-                                                        (!isCompleted &&
-                                                            (index == 0 ||
-                                                                progress.isTopicCompleted(
-                                                                  '${module.id}_${module.topics[index - 1].id}',
-                                                                )))
-                                                        ? 1
-                                                        : 0,
-                                                    onPlay: (c) => c.repeat(),
-                                                  )
-                                                  .shimmer(
-                                                    duration: 2.seconds,
-                                                    color: accentColor
-                                                        .withValues(alpha: 0.2),
-                                                  ),
-                                              // Bottom line
-                                              Container(
-                                                width: 2,
-                                                height:
-                                                    40, // Match typical item height extension
-                                                color:
-                                                    index ==
-                                                        module.topics.length - 1
-                                                    ? Colors.transparent
-                                                    : (isCompleted
-                                                          ? accentColor
-                                                                .withValues(
-                                                                  alpha: 0.3,
-                                                                )
-                                                          : AppTheme.dividerC(
-                                                              isDark,
-                                                            )),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(width: 14),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                const SizedBox(
-                                                  height: 16,
-                                                ), // Align with circle
-                                                Text(
-                                                  topic.title,
-                                                  style: AppTheme.headingSmall
-                                                      .copyWith(
-                                                        fontSize: 15,
-                                                        color:
-                                                            AppTheme.textPrimaryC(
-                                                              isDark,
-                                                            ),
-                                                      ),
-                                                ),
-                                                const SizedBox(height: 2),
-                                                Text(
-                                                  topic.subtitle,
-                                                  style: AppTheme.bodySmall
-                                                      .copyWith(
-                                                        color:
-                                                            AppTheme.textMutedC(
-                                                              isDark,
-                                                            ),
-                                                      ),
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              top: 24,
-                                            ),
-                                            child: Icon(
-                                              Icons.arrow_forward_ios_rounded,
-                                              color: isCompleted
-                                                  ? accentColor
-                                                  : AppTheme.textMutedC(isDark),
-                                              size: 16,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                  .animate()
-                                  .fadeIn(
-                                    delay: Duration(milliseconds: 80 * index),
-                                    duration: const Duration(milliseconds: 400),
-                                  )
-                                  .slideX(
-                                    begin: 0.05,
-                                    end: 0,
-                                    delay: Duration(milliseconds: 80 * index),
-                                    duration: const Duration(milliseconds: 400),
-                                  ),
+                                    child: _buildTopicTile(context, index, topic, isCompleted, isDark, progress),
+                              ),
                         );
                       },
                     );
@@ -496,16 +326,183 @@ class ModuleDetailScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildKeyConceptsCard(bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: widget.accentColor.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: widget.accentColor.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          initiallyExpanded: _isExpanded,
+          onExpansionChanged: (expanded) {
+            setState(() => _isExpanded = expanded);
+            if (expanded) {
+              context.read<ProgressService>().markKeyConceptsAsRead(widget.module.id);
+            }
+          },
+          leading: Icon(Icons.lightbulb_rounded, color: widget.accentColor),
+          title: Text(
+            'Key Concepts',
+            style: AppTheme.headingSmall.copyWith(
+              fontSize: 16,
+              color: AppTheme.textPrimaryC(isDark),
+            ),
+          ),
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Column(
+                children: widget.module.keyConcepts.map((concept) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('•', style: TextStyle(color: widget.accentColor, fontSize: 18)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            concept,
+                            style: AppTheme.bodySmall.copyWith(
+                              color: AppTheme.textSecondaryC(isDark),
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Refactored helper to keep build clean
+  Widget _buildTopicTile(BuildContext context, int index, topic, bool isCompleted, bool isDark, progress) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.cardC(isDark),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isCompleted
+              ? widget.accentColor.withValues(alpha: 0.3)
+              : AppTheme.dividerC(isDark),
+          width: 1,
+        ),
+        boxShadow: [
+          if (isCompleted)
+            BoxShadow(
+              color: widget.accentColor.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Left index/check indicator
+          Column(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: isCompleted
+                      ? widget.accentColor.withValues(alpha: 0.1)
+                      : Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isCompleted
+                        ? widget.accentColor
+                        : AppTheme.dividerC(isDark),
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: isCompleted
+                    ? Icon(
+                        Icons.check_rounded,
+                        color: widget.accentColor,
+                        size: 18,
+                      )
+                    : Text(
+                        '${index + 1}',
+                        style: AppTheme.labelMedium.copyWith(
+                          color: AppTheme.textMutedC(isDark),
+                        ),
+                      ),
+              ).animate(
+                target: (!isCompleted && (index == 0 || progress.isTopicCompleted('${widget.module.id}_${widget.module.topics[index - 1].id}'))) ? 1 : 0,
+                onPlay: (c) => c.repeat(),
+              ).shimmer(duration: 2.seconds, color: widget.accentColor.withValues(alpha: 0.2)),
+              // Bottom line
+              Container(
+                width: 2,
+                height: 40,
+                color: index == widget.module.topics.length - 1
+                    ? Colors.transparent
+                    : (isCompleted ? widget.accentColor.withValues(alpha: 0.3) : AppTheme.dividerC(isDark)),
+              ),
+            ],
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                Text(
+                  topic.title,
+                  style: AppTheme.headingSmall.copyWith(
+                    fontSize: 15,
+                    color: AppTheme.textPrimaryC(isDark),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  topic.subtitle,
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.textMutedC(isDark),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 24),
+            child: Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: isCompleted ? widget.accentColor : AppTheme.textMutedC(isDark),
+              size: 16,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildQuizButton(BuildContext context, bool isDark) {
-    final quiz = allQuizzes.values
-        .where((q) => q.moduleId == module.id)
-        .firstOrNull;
+    final quiz = allQuizzes.values.where((q) => q.moduleId == widget.module.id).firstOrNull;
     if (quiz == null) return const SizedBox.shrink();
 
     return Consumer<ProgressService>(
       builder: (context, progress, child) {
         final bestScore = progress.getQuizScore(quiz.id);
         final hasPassed = progress.hasPassedQuiz(quiz.id, quiz.passingScore);
+        final hasReadConcepts = progress.hasReadKeyConcepts(widget.module.id);
+        final allTopicsDone = progress.isModuleTopicsCompleted(widget.module.id, widget.module.totalTopics);
 
         return Container(
           padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
@@ -521,6 +518,32 @@ class ModuleDetailScreen extends StatelessWidget {
           ),
           child: Column(
             children: [
+              if (!allTopicsDone)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.warningAmber.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.warningAmber.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.lock_outline_rounded, size: 16, color: AppTheme.warningAmber),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Finish all topics to unlock quiz',
+                          style: AppTheme.bodySmall.copyWith(
+                            color: AppTheme.warningAmber,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               if (bestScore != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
@@ -528,13 +551,9 @@ class ModuleDetailScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        hasPassed
-                            ? Icons.check_circle_rounded
-                            : Icons.info_outline_rounded,
+                        hasPassed ? Icons.check_circle_rounded : Icons.info_outline_rounded,
                         size: 16,
-                        color: hasPassed
-                            ? AppTheme.successGreen
-                            : AppTheme.warningAmber,
+                        color: hasPassed ? AppTheme.successGreen : AppTheme.warningAmber,
                       ),
                       const SizedBox(width: 6),
                       Text(
@@ -542,9 +561,7 @@ class ModuleDetailScreen extends StatelessWidget {
                             ? '✅ Passed! Best: $bestScore%'
                             : '🔄 Best: $bestScore% (need ${quiz.passingScore}%)',
                         style: AppTheme.bodySmall.copyWith(
-                          color: hasPassed
-                              ? AppTheme.successGreen
-                              : AppTheme.warningAmber,
+                          color: hasPassed ? AppTheme.successGreen : AppTheme.warningAmber,
                         ),
                       ),
                     ],
@@ -559,9 +576,9 @@ class ModuleDetailScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (_) => FlashcardScreen(
-                          moduleId: module.id,
-                          moduleTitle: module.title,
-                          accentColor: accentColor,
+                          moduleId: widget.module.id,
+                          moduleTitle: widget.module.title,
+                          accentColor: widget.accentColor,
                         ),
                       ),
                     );
@@ -569,13 +586,11 @@ class ModuleDetailScreen extends StatelessWidget {
                   icon: const Icon(Icons.style_rounded, size: 20),
                   label: Text(
                     '📇 Flashcards',
-                    style: AppTheme.buttonText.copyWith(
-                      color: accentColor,
-                    ),
+                    style: AppTheme.buttonText.copyWith(color: widget.accentColor),
                   ),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: accentColor,
-                    side: BorderSide(color: accentColor.withValues(alpha: 0.4)),
+                    foregroundColor: widget.accentColor,
+                    side: BorderSide(color: widget.accentColor.withValues(alpha: 0.4)),
                   ),
                 ),
               ),
@@ -583,36 +598,15 @@ class ModuleDetailScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      PageRouteBuilder(
-                        pageBuilder:
-                            (context2, animation, secondaryAnimation) =>
-                                QuizScreen(quiz: quiz),
-                        transitionsBuilder:
-                            (context2, anim, secondaryAnim, child) {
-                              return FadeTransition(
-                                opacity: anim,
-                                child: SlideTransition(
-                                  position:
-                                      Tween<Offset>(
-                                        begin: const Offset(0, 0.1),
-                                        end: Offset.zero,
-                                      ).animate(
-                                        CurvedAnimation(
-                                          parent: anim,
-                                          curve: Curves.easeOutCubic,
-                                        ),
-                                      ),
-                                  child: child,
-                                ),
-                              );
-                            },
-                        transitionDuration: const Duration(milliseconds: 400),
-                      ),
-                    );
-                  },
+                  onPressed: !allTopicsDone 
+                      ? null 
+                      : () {
+                          if (!hasReadConcepts) {
+                            _showConceptNudge(context, quiz);
+                          } else {
+                            _startQuiz(context, quiz);
+                          }
+                        },
                   icon: Icon(
                     hasPassed ? Icons.replay_rounded : Icons.quiz_rounded,
                     size: 20,
@@ -620,6 +614,10 @@ class ModuleDetailScreen extends StatelessWidget {
                   label: Text(
                     hasPassed ? '🔁 Retake Quiz' : '🎯 Take the Quiz!',
                     style: AppTheme.buttonText,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: allTopicsDone ? widget.accentColor : AppTheme.dividerC(isDark),
+                    foregroundColor: allTopicsDone ? Colors.white : AppTheme.textMutedC(isDark),
                   ),
                 ),
               ),
@@ -630,6 +628,61 @@ class ModuleDetailScreen extends StatelessWidget {
           duration: const Duration(milliseconds: 500),
         );
       },
+    );
+  }
+
+  void _showConceptNudge(BuildContext context, quiz) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardC(context.watch<ThemeService>().isDarkMode),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('💡 Quick Review?'),
+        content: const Text('Would you like to review the Key Concepts before starting the quiz? It only takes a minute!'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _startQuiz(context, quiz);
+            },
+            child: Text('Skip', style: TextStyle(color: AppTheme.textMutedC(context.watch<ThemeService>().isDarkMode))),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() => _isExpanded = true);
+              context.read<ProgressService>().markKeyConceptsAsRead(widget.module.id);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: widget.accentColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Review Concepts'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _startQuiz(BuildContext context, quiz) {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context2, animation, secondaryAnimation) => QuizScreen(quiz: quiz),
+        transitionsBuilder: (context2, anim, secondaryAnim, child) {
+          return FadeTransition(
+            opacity: anim,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.1),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+              child: child,
+            ),
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 400),
+      ),
     );
   }
 }

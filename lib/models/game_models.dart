@@ -34,6 +34,7 @@ class ARLevel {
   final bool isBoss;
   final int timeLimit; // seconds, 0 for unlimited
   final String zoneId;
+  final bool isFree;
 
   const ARLevel({
     required this.id,
@@ -44,6 +45,7 @@ class ARLevel {
     this.isBoss = false,
     this.timeLimit = 0,
     required this.zoneId,
+    this.isFree = false,
   });
 }
 

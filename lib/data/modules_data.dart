@@ -21,6 +21,12 @@ final List<LearningModule> allModules = [
     order: 0,
     unlockCost: 0,
     requiredQuizId: null,
+    keyConcepts: [
+      'AR overlays digital content onto the real world in real-time.',
+      'Registration (3D alignment) is the defining characteristic of AR.',
+      'The 3 pillars: Combines real/virtual, Interactive, Registered in 3D.',
+      'Optical See-Through (HoloLens) vs Video See-Through (Vision Pro).',
+    ],
     topics: [
       Topic(
         id: 'what_is_ar',
@@ -179,6 +185,12 @@ final List<LearningModule> allModules = [
     order: 1,
     unlockCost: 0,
     requiredQuizId: null,
+    keyConcepts: [
+      'World Space is a stable grid tied to the real environment.',
+      'Camera Space is centered on the device and moves with it.',
+      'Screen Space is a 2D pixel-based grid for UI and touch.',
+      'Raycasting converts 2D screen taps into 3D world locations.',
+    ],
     topics: [
       Topic(
         id: 'why_coords_matter',
@@ -350,6 +362,12 @@ final List<LearningModule> allModules = [
     order: 2,
     unlockCost: 0,
     requiredQuizId: 'quiz_foundations_coords',
+    keyConcepts: [
+      'Milgram\'s Continuum maps the transition from Physical to Virtual Reality.',
+      'Mixed Reality (MR) covers the entire bridge between Real and Virtual.',
+      'The 3 pillars of AR: Tracking, Scene Understanding, and Rendering.',
+      'Motion-to-Photon latency must be below 20ms for comfortable AR.',
+    ],
     topics: [
       Topic(
         id: 'spatial_foundations',
@@ -654,6 +672,12 @@ final List<LearningModule> allModules = [
     order: 3,
     unlockCost: 1,
     requiredQuizId: 'quiz_intro',
+    keyConcepts: [
+      'SLAM (Simultaneous Localization and Mapping) tracks device pose.',
+      'Feature points are distinct visual landmarks used for tracking.',
+      'Drift occurs when the virtual coordinate system deviates from reality.',
+      'IMUs (Inertial Measurement Units) provide high-frequency motion data.',
+    ],
     topics: [
       Topic(
         id: 'sensor_fusion',
@@ -966,6 +990,12 @@ final List<LearningModule> allModules = [
     order: 4,
     unlockCost: 1,
     requiredQuizId: 'quiz_tech',
+    keyConcepts: [
+      'AR Foundation (Unity) abstracts ARKit and ARCore into one API.',
+      'Vuforia is the leader for Image Target and Model Target tracking.',
+      'WebXR and 8th Wall allow AR to run directly in the browser.',
+      'Geospatial APIs use GPS and VPS for large-scale outdoor AR.',
+    ],
     topics: [
       Topic(
         id: 'vuforia_dev',
@@ -1166,6 +1196,12 @@ final List<LearningModule> allModules = [
     order: 5,
     unlockCost: 0,
     requiredQuizId: 'quiz_dev',
+    keyConcepts: [
+      'Spatial UI should be placed 1.25m–2m in front of the user.',
+      'Progressive Disclosure reveals detail only when requested.',
+      'Billboarding ensures UI panels always rotate to face the user.',
+      'Safety: Never block the user\'s peripheral vision or floor hazards.',
+    ],
     topics: [
       Topic(
         id: 'ux_fundamentals',
@@ -1297,6 +1333,12 @@ final List<LearningModule> allModules = [
     order: 6,
     unlockCost: 1,
     requiredQuizId: 'quiz_spatial_ux',
+    keyConcepts: [
+      'Occlusion hides virtual objects behind real-world geometry.',
+      'Spatial Anchors allow content to persist across sessions.',
+      'Relocalization is the process of re-aligning to a stored map.',
+      'Z-Fighting occurs when two surfaces share the same depth.',
+    ],
     topics: [
       Topic(
         id: 'anchor_stability',
@@ -1576,10 +1618,16 @@ final List<LearningModule> allModules = [
     id: 'performance',
     title: 'Performance Profiling',
     description: 'Systematically diagnosing and fixing AR app performance issues.',
-    icon: Icons.bolt_rounded,
+    icon: Icons.analytics_rounded,
     order: 7,
-    unlockCost: 0,
-    requiredQuizId: 'quiz_stab',
+    unlockCost: 1,
+    requiredQuizId: 'quiz_stabilization_performance',
+    keyConcepts: [
+      'Draw calls should be minimized by batching similar objects.',
+      'Triangle count impacts both GPU and battery life significantly.',
+      'Thermal throttling reduces CPU/GPU speed when the device overheats.',
+      'Profiling tools (Unity Profiler, Xcode) are essential for AR.',
+    ],
     topics: [
       Topic(
         id: 'perf_methodology',

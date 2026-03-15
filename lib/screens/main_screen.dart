@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/app_theme.dart';
+import '../data/game_data.dart';
 import '../services/theme_service.dart';
 import '../services/sound_service.dart';
 import '../services/subscription_service.dart';
@@ -267,52 +268,51 @@ class _EngineerEntryScreen extends StatelessWidget {
                 // ── CTA Button ──
                 SizedBox(
                   width: double.infinity,
-                  child: isPremium
-                      ? ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const GameMapScreen()),
-                            );
-                          },
-                          icon: const Icon(Icons.play_arrow_rounded, size: 22),
-                          label: const Text('LAUNCH ENGINEER GAME'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.accentCyan,
-                            foregroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            textStyle: AppTheme.buttonText.copyWith(letterSpacing: 1),
-                          ),
-                        )
-                      : ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const PaywallScreen()),
-                            );
-                          },
-                          icon: const Icon(Icons.workspace_premium_rounded, size: 22),
-                          label: const Text('UNLOCK WITH PREMIUM'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.accentAmber,
-                            foregroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            textStyle: AppTheme.buttonText.copyWith(letterSpacing: 1),
-                          ),
-                        ),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      if (isPremium) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const GameMapScreen()),
+                        );
+                      } else {
+                        // Check if any levels are free
+                        final hasFreeLevels = arGameZones.any((z) => z.levels.any((l) => l.isFree));
+                        if (hasFreeLevels) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const GameMapScreen()),
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const PaywallScreen()),
+                          );
+                        }
+                      }
+                    },
+                    icon: Icon(
+                      isPremium ? Icons.play_arrow_rounded : Icons.workspace_premium_rounded,
+                      size: 22,
+                    ),
+                    label: Text(isPremium ? 'LAUNCH ENGINEER GAME' : 'TRY FREE LEVELS'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isPremium ? AppTheme.accentCyan : AppTheme.accentAmber,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      textStyle: AppTheme.buttonText.copyWith(letterSpacing: 1),
+                    ),
+                  ),
                 ),
 
                 if (!isPremium) ...[
                   const SizedBox(height: 12),
                   Center(
                     child: Text(
-                      'Included in Premium — unlock all 5 zones & 15+ levels',
+                      'First 2 levels free — Unlock all 5 zones with Premium',
                       style: AppTheme.bodySmall.copyWith(
                         color: AppTheme.textMutedC(isDark),
                         fontStyle: FontStyle.italic,

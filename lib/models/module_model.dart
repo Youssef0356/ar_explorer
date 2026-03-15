@@ -8,8 +8,9 @@ class LearningModule {
   final String description;
   final IconData icon;
   final List<Topic> topics;
+  final List<String> keyConcepts;
   final String?
-  requiredQuizId; // quiz that must be passed to unlock this module
+      requiredQuizId; // quiz that must be passed to unlock this module
   final int order;
   final int unlockCost;
 
@@ -19,10 +20,13 @@ class LearningModule {
     required this.description,
     required this.icon,
     required this.topics,
+    this.keyConcepts = const [],
     this.requiredQuizId,
     required this.order,
     this.unlockCost = 0,
   });
+
+  List<String> get keyConceptsList => keyConcepts;
 
   int get totalTopics => topics.length;
 
@@ -34,6 +38,9 @@ class LearningModule {
       icon: iconResolver(json['icon'] as String? ?? ''),
       topics: (json['topics'] as List<dynamic>? ?? [])
           .map((topicJson) => Topic.fromJson(topicJson as Map<String, dynamic>))
+          .toList(),
+      keyConcepts: (json['keyConcepts'] as List<dynamic>? ?? [])
+          .map((e) => e as String)
           .toList(),
       requiredQuizId: json['requiredQuizId'] as String?,
       order: json['order'] as int? ?? 0,
@@ -47,6 +54,7 @@ class LearningModule {
         'description': description,
         'icon': iconSerializer(icon),
         'topics': topics.map((t) => t.toJson()).toList(),
+        'keyConcepts': keyConcepts,
         'requiredQuizId': requiredQuizId,
         'order': order,
         'unlockCost': unlockCost,

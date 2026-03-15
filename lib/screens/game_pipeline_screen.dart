@@ -4,12 +4,12 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../data/game_data.dart';
-import '../data/modules_data.dart';          // ← for "Learn This" link
+import '../data/modules_data.dart';
 import '../models/game_models.dart';
 import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
-import '../services/theme_service.dart';
-import 'module_detail_screen.dart';           // ← navigate to module
+import '../services/subscription_service.dart';
+import 'module_detail_screen.dart';
 import 'paywall_screen.dart';
 
 class GamePipelineScreen extends StatefulWidget {
@@ -45,7 +45,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
     super.initState();
     _slots      = List.filled(widget.level.correctSequence.length, null);
     _slotPulsed = List.filled(widget.level.correctSequence.length, false);
-    _pool       = List.from(widget.level.availableNodes);
+    _pool       = List.from(widget.level.availableNodes)..shuffle();
     if (widget.level.isBoss) {
       _secondsRemaining = widget.level.timeLimit;
       _startTimer();
@@ -213,6 +213,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
     setState(() {
       _slots          = List.filled(widget.level.correctSequence.length, null);
       _slotPulsed     = List.filled(widget.level.correctSequence.length, false);
+      _pool           = List.from(widget.level.availableNodes)..shuffle();
       _showFailure    = false;
       _isTimeout      = false;
       _wrongSlotIndex = -1;
@@ -1011,7 +1012,17 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                   Expanded(
                     flex: 2,
                     child: ElevatedButton(
-                      onPressed: _goNextLevel,
+                      onPressed: () {
+                        // Check if we just finished the last free level
+                        final isLastFree = widget.level.id == 'z1_l2';
+                        final isPremium = context.read<SubscriptionService>().isPremium;
+
+                        if (isLastFree && !isPremium) {
+                          _showPremiumPrompt(context);
+                        } else {
+                          _goNextLevel();
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: zone.accentColor,
                         foregroundColor: Colors.black,
@@ -1019,14 +1030,14 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                         elevation: 0),
-                      child: const Text('NEXT LEVEL →',
+                      child: const Text('CONTINUE',
                         style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 13, letterSpacing: 1)),
+                          fontWeight: FontWeight.w800, fontSize: 13,
+                          letterSpacing: 1.5)),
                     ),
                   ),
                 ],
-              ).animate().fadeIn(delay: 800.ms),
+              ).animate(delay: 800.ms).fadeIn(),
             ],
           ),
         ),
@@ -1034,7 +1045,71 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
     );
   }
 
-  // ── Timeout overlay ───────────────────────────────────────────────────────
+  void _showPremiumPrompt(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => Container(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+        decoration: const BoxDecoration(
+          color: Color(0xFF0F172A),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40, height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white12,
+                borderRadius: BorderRadius.circular(2)),
+            ),
+            const SizedBox(height: 24),
+            const Icon(Icons.workspace_premium_rounded, size: 64, color: Color(0xFFFFC107)),
+            const SizedBox(height: 20),
+            const Text('Enjoyed the Trial?',
+              style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            const Text(
+              'You\'ve mastered the AR basics! Unlock Premium to access all 5 Zones, 15+ complex pipelines, and professional engineering challenges.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close prompt
+                  Navigator.pop(context); // Exit game screen
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00E5FF),
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                child: const Text('CONTINUE WITH PREMIUM',
+                  style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close prompt
+                Navigator.pop(context); // Exit game screen
+              },
+              child: Text('Maybe Later',
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.4))),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildTimeoutOverlay(ARZone zone) {
     return Container(
       color: Colors.black.withValues(alpha: 0.92),

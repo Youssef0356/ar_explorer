@@ -24,8 +24,9 @@ class _AdvancedNotesScreenState extends State<AdvancedNotesScreen> {
   bool _isExporting = false;
 
   Future<void> _exportPdf(BuildContext context, Map<String, String> notes) async {
-    final soundService = context.read<SoundService>();
-    soundService.playTap();
+    final snd = context.read<SoundService>();
+    final messenger = ScaffoldMessenger.of(context);
+    snd.playTap();
 
     setState(() => _isExporting = true);
 
@@ -33,13 +34,15 @@ class _AdvancedNotesScreenState extends State<AdvancedNotesScreen> {
       final path = await PdfExportService.generateNotesPdf(notes);
       
       setState(() => _isExporting = false);
-      soundService.playSuccess();
+      snd.playSuccess();
 
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            backgroundColor: AppTheme.cardC(context.read<ThemeService>().isDarkMode),
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) {
+          final isDarkMode = Provider.of<ThemeService>(ctx, listen: false).isDarkMode;
+          return AlertDialog(
+            backgroundColor: AppTheme.cardC(isDarkMode),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: const Text('📄 PDF Ready!'),
             content: const Text('Your notes have been compiled into a professional document.\n\nSave or share it now.'),
@@ -50,8 +53,10 @@ class _AdvancedNotesScreenState extends State<AdvancedNotesScreen> {
               ),
               ElevatedButton(
                 onPressed: () {
-                   Navigator.pop(ctx);
-                   Share.shareXFiles([XFile(path)], text: 'My AR Explorer Notes');
+                  Navigator.pop(ctx);
+                  if (ctx.mounted) {
+                    Share.shareXFiles([XFile(path)], text: 'My AR Explorer Notes');
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.accentPink,
@@ -60,14 +65,14 @@ class _AdvancedNotesScreenState extends State<AdvancedNotesScreen> {
                 child: const Text('Share / Save'),
               ),
             ],
-          ),
-        );
-      }
+          );
+        },
+      );
     } catch (e) {
       setState(() => _isExporting = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text('Failed to generate PDF: $e')),
+      if (context.mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text('Failed to generate PDF: $e')),
         );
       }
     }
@@ -104,7 +109,7 @@ class _AdvancedNotesScreenState extends State<AdvancedNotesScreen> {
             if (_isExporting)
                Positioned.fill(
                   child: Container(
-                     color: (isDark ? Colors.black : Colors.white).withOpacity(0.8),
+                     color: (isDark ? Colors.black : Colors.white).withValues(alpha: 0.8),
                      child: const Center(
                         child: CircularProgressIndicator(color: AppTheme.accentPink),
                      ),

@@ -37,6 +37,8 @@ class _GameScreenState extends State<GameScreen> {
         _CodeBlock(id: 'b2', text: 'var anchor = hitResult.createAnchor();'),
         _CodeBlock(id: 'b3', text: 'Instantiate(prefab, anchor.pose);'),
         _CodeBlock(id: 'w1', text: 'frame.camera.getTrackingState();'), // Wrong option
+        _CodeBlock(id: 'w2', text: 'Session.setWorldOrigin(pose);'), // Added wrong option
+        _CodeBlock(id: 'w3', text: 'frame.lightEstimation.pixelIntensity;'), // Added wrong option
       ],
       terminalSuccess: '> Plane detected.\n> Hit test successful.\n> Anchor placed.\n> Object rendered.',
     ),
@@ -52,6 +54,8 @@ class _GameScreenState extends State<GameScreen> {
         _CodeBlock(id: 'b1', text: 'void OnTrackingFound() {'),
         _CodeBlock(id: 'b2', text: '  RenderMesh.enabled = true;'),
         _CodeBlock(id: 'w2', text: '  Destroy(gameObject);'),
+        _CodeBlock(id: 'w3', text: 'TrackerManager.Instance.Deinit();'), // Added wrong option
+        _CodeBlock(id: 'w4', text: 'CloudRecoBehaviour.OnInitialized();'), // Added wrong option
       ],
       terminalSuccess: '> Vuforia Engine started.\n> Marker database loaded.\n> Marker [STAR] tracked!\n> Mesh enabled.',
     )
@@ -85,10 +89,13 @@ class _GameScreenState extends State<GameScreen> {
     _addTerminalLine('\n> Compiling AR session...');
     await Future.delayed(const Duration(milliseconds: 600));
 
+    if (!mounted) return;
+
     if (allCorrect) {
       context.read<SoundService>().playSuccess();
       _addTerminalLine('> Build successful.');
       await Future.delayed(const Duration(milliseconds: 400));
+      if (!mounted) return;
       _addTerminalLine(level.terminalSuccess);
       
       setState(() {
@@ -219,7 +226,10 @@ class _GameScreenState extends State<GameScreen> {
                                                     opacity: 0.3,
                                                     child: _buildCodeBlockUI(isDark, block.text),
                                                   ),
-                                                  onDragStarted: () => soundService.playTap(),
+                                                  onDragStarted: () {
+                                                    if (!mounted) return;
+                                                    soundService.playTap();
+                                                  },
                                                   child: _buildCodeBlockUI(isDark, block.text),
                                                 );
                                               }).toList(),
@@ -406,12 +416,13 @@ class _GameScreenState extends State<GameScreen> {
       ),
       child: ListView.separated(
         itemCount: level.slots.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        separatorBuilder: (c, i) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final slot = level.slots[index];
           return DragTarget<String>(
             onWillAcceptWithDetails: (details) => slot.filledBlockId == null,
             onAcceptWithDetails: (details) {
+              if (!mounted) return;
               soundService.playTap();
               setState(() {
                 // If this block was in another slot, clear that slot

@@ -9,7 +9,7 @@ class GameProgressService extends ChangeNotifier {
 
   SharedPreferences? _prefs;
   Set<String> _completedLevelIds = {};
-  Map<String, int> _levelStars = {};
+  final Map<String, int> _levelStars = {};
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
@@ -91,8 +91,13 @@ class GameProgressService extends ChangeNotifier {
   }
 
   Future<void> resetProgress() async {
-    _completedLevelIds.clear();
+    _completedLevelIds = {};
     _levelStars.clear();
+    
+    // Explicitly remove keys from SharedPreferences
+    await _prefs?.remove(_gameProgressKey);
+    await _prefs?.remove(_gameStarsKey);
+    
     await _saveProgress();
     notifyListeners();
   }

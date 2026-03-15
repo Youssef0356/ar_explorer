@@ -117,6 +117,7 @@ final List<ARZone> arGameZones = [
         correctSequence: ['camera', 'imu', 'renderer'],
         availableNodes: [nodeCamera, nodeIMU, nodeRenderer, nodeSLAM],
         zoneId: 'zone_1',
+        isFree: true,
       ),
       ARLevel(
         id: 'z1_l2',
@@ -125,6 +126,7 @@ final List<ARZone> arGameZones = [
         correctSequence: ['camera', 'plane_detection', 'renderer'],
         availableNodes: [nodeCamera, nodePlaneDetection, nodeRenderer, nodeHitTest],
         zoneId: 'zone_1',
+        isFree: true,
       ),
       ARLevel(
         id: 'z1_boss',
