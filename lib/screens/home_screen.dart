@@ -1438,6 +1438,7 @@ class HomeScreen extends StatelessWidget {
     final progress = context.read<ProgressService>();
     final controller = TextEditingController();
     final soundService = context.read<SoundService>();
+    final gameProgress = context.read<GameProgressService>();
     final username = progress.username;
 
     showDialog(
@@ -1516,18 +1517,14 @@ class HomeScreen extends StatelessWidget {
               if (typedName == actualUsername) {
                 soundService.playTap();
                 
-                final navigator = Navigator.of(context);
-                final messenger = ScaffoldMessenger.of(context);
-                final gameProgress = context.read<GameProgressService>();
-                final progressService = context.read<ProgressService>();
-                
-                await progressService.resetAll(gameProgress: gameProgress);
+                await progress.resetAll(gameProgress: gameProgress);
                 
                 if (dialogCtx.mounted) {
-                  navigator.pop();
-                  messenger.showSnackBar(
+                  Navigator.pop(dialogCtx);
+                  ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Progress has been reset! Start fresh 🚀'),
+                      backgroundColor: Colors.green,
                     ),
                   );
                 }
