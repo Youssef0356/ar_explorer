@@ -282,10 +282,14 @@ class PremiumSpaceScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        title,
-                        style: AppTheme.headingSmall.copyWith(
-                          color: isPremium ? AppTheme.textPrimaryC(isDark) : AppTheme.textMutedC(isDark),
+                      Flexible(
+                        child: Text(
+                          title,
+                          style: AppTheme.headingSmall.copyWith(
+                            color: isPremium ? AppTheme.textPrimaryC(isDark) : AppTheme.textMutedC(isDark),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
                       if (!isPremium) ...[
@@ -297,7 +301,7 @@ class PremiumSpaceScreen extends StatelessWidget {
                         ),
                       ],
                       if (isPremium) ...[
-                        const Spacer(),
+                        const SizedBox(width: 8),
                         Icon(
                           Icons.chevron_right_rounded,
                           color: color,
