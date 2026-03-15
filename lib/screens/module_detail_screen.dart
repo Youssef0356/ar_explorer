@@ -36,6 +36,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
       final progress = context.read<ProgressService>();
       if (!progress.hasReadKeyConcepts(widget.module.id)) {
         setState(() => _isExpanded = true);
+        progress.markKeyConceptsAsRead(widget.module.id);
       }
     });
   }
@@ -338,23 +339,51 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          initiallyExpanded: _isExpanded,
-          onExpansionChanged: (expanded) {
-            setState(() => _isExpanded = expanded);
-            if (expanded) {
-              context.read<ProgressService>().markKeyConceptsAsRead(widget.module.id);
-            }
-          },
-          leading: Icon(Icons.lightbulb_rounded, color: widget.accentColor),
-          title: Text(
-            'Key Concepts',
-            style: AppTheme.headingSmall.copyWith(
-              fontSize: 16,
-              color: AppTheme.textPrimaryC(isDark),
-            ),
-          ),
-          children: [
+        child: Consumer<ProgressService>(
+          builder: (_, progress, __) {
+            final hasRead = progress.hasReadKeyConcepts(widget.module.id);
+            return ExpansionTile(
+              initiallyExpanded: _isExpanded,
+              onExpansionChanged: (expanded) {
+                setState(() => _isExpanded = expanded);
+                if (expanded) {
+                  progress.markKeyConceptsAsRead(widget.module.id);
+                }
+              },
+              leading: Icon(Icons.lightbulb_rounded, color: widget.accentColor),
+              title: Text(
+                'Key Concepts',
+                style: AppTheme.headingSmall.copyWith(
+                  fontSize: 16,
+                  color: AppTheme.textPrimaryC(isDark),
+                ),
+              ),
+              trailing: hasRead
+                ? Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppTheme.successGreen.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(99),
+                      border: Border.all(color: AppTheme.successGreen.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.check_rounded, size: 12, color: AppTheme.successGreen),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Reviewed',
+                          style: AppTheme.bodySmall.copyWith(
+                            color: AppTheme.successGreen,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : Icon(Icons.expand_more_rounded,
+                    color: widget.accentColor.withValues(alpha: 0.6), size: 20),
+              children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Column(
@@ -382,10 +411,11 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
+        );
+      }),
+    ),
+  );
+}
 
   // Refactored helper to keep build clean
   Widget _buildTopicTile(BuildContext context, int index, topic, bool isCompleted, bool isDark, progress) {
@@ -601,18 +631,26 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                   onPressed: !allTopicsDone 
                       ? null 
                       : () {
-                          if (!hasReadConcepts) {
+                          if (!hasReadConcepts && bestScore == null) {
                             _showConceptNudge(context, quiz);
                           } else {
                             _startQuiz(context, quiz);
                           }
                         },
                   icon: Icon(
-                    hasPassed ? Icons.replay_rounded : Icons.quiz_rounded,
+                    hasPassed
+                        ? Icons.replay_rounded
+                        : !hasReadConcepts
+                            ? Icons.lightbulb_outline_rounded
+                            : Icons.quiz_rounded,
                     size: 20,
                   ),
                   label: Text(
-                    hasPassed ? '🔁 Retake Quiz' : '🎯 Take the Quiz!',
+                    hasPassed
+                        ? '🔁 Retake Quiz'
+                        : !hasReadConcepts
+                            ? '💡 Review First, Then Quiz →'
+                            : '🎯 Take the Quiz!',
                     style: AppTheme.buttonText,
                   ),
                   style: ElevatedButton.styleFrom(

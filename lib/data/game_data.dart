@@ -5,102 +5,121 @@ import '../models/game_models.dart';
 const nodeCamera = ARNode(
   id: 'camera',
   name: 'Camera Stream',
-  description: 'Capture real-world RGB data',
+  description: 'RGB video feed from device camera — the foundation of all AR',
+  hint: 'Needs access to the device camera to see the real world',
   icon: Icons.camera_alt_rounded,
   type: ARNodeType.input,
-  errorMessage: 'Error: Cannot process without visual input',
+  errorMessage: 'Camera feed unavailable — check permissions and try again',
 );
 
 const nodeIMU = ARNode(
   id: 'imu',
   name: 'IMU Sensors',
-  description: 'Accelerometer & Gyroscope data',
+  description: 'Accelerometer & Gyroscope — tracks device movement and orientation',
+  hint: 'Detects when you tilt, rotate, or move your phone',
   icon: Icons.vibration_rounded,
   type: ARNodeType.input,
+  errorMessage: 'Motion sensors unavailable — check device hardware',
 );
 
 const nodePlaneDetection = ARNode(
   id: 'plane_detection',
   name: 'Plane Detection',
-  description: 'Identify horizontal/vertical surfaces',
+  description: 'Finds flat horizontal and vertical surfaces like tables, floors, and walls',
+  hint: 'Scans for flat surfaces where virtual objects can be placed',
   icon: Icons.grid_4x4_rounded,
   type: ARNodeType.process,
-  errorMessage: 'Error: Surface required for placement',
+  errorMessage: 'No surfaces detected — move your camera slowly across a flat area',
 );
 
 const nodeSLAM = ARNode(
   id: 'slam',
   name: 'SLAM Tracking',
-  description: 'Simultaneous Localization and Mapping',
+  description: 'Builds a 3D map of the environment while tracking the device position',
+  hint: 'Creates a mental map of your room so AR stays in place',
   icon: Icons.track_changes_rounded,
   type: ARNodeType.process,
-  errorMessage: 'Error: Positional tracking lost',
+  errorMessage: 'Tracking lost — move slowly and point at recognizable features',
 );
 
 const nodeHitTest = ARNode(
   id: 'hit_test',
   name: 'Hit Test',
-  description: 'Raycast from screen to real-world',
+  description: 'Shoots a ray from the screen into the real world to find where to place objects',
+  hint: 'Converts your finger tap on screen into a real-world 3D position',
   icon: Icons.ads_click_rounded,
   type: ARNodeType.process,
-  errorMessage: 'Error: Raycast failed to find surface',
+  errorMessage: 'Hit test failed — tap on a detected flat surface, not empty space',
 );
 
 const nodeAnchor = ARNode(
   id: 'anchor',
   name: 'Anchor Node',
-  description: 'Fix virtual content to a real-world point',
+  description: 'Locks virtual content to a specific real-world point so it stays put',
+  hint: 'Makes virtual objects "stick" to real surfaces and remember their location',
   icon: Icons.push_pin_rounded,
   type: ARNodeType.output,
-  errorMessage: 'Error: Cannot anchor without HitTest',
+  errorMessage: 'Cannot anchor — perform a hit test first to find where to attach',
 );
 
 const nodeRenderer = ARNode(
   id: 'renderer',
   name: '3D Renderer',
-  description: 'Draw 3D objects on screen',
+  description: 'Draws virtual 3D models, shadows, and effects on top of the camera feed',
+  hint: 'The final step that makes virtual objects visible on your screen',
   icon: Icons.view_in_ar_rounded,
   type: ARNodeType.output,
+  errorMessage: 'Rendering failed — check that camera and tracking are active first',
 );
 
 const nodeLightEstimation = ARNode(
   id: 'light_estimation',
   name: 'Light Estimation',
-  description: 'Match virtual lighting to real world',
+  description: 'Analyzes real-world lighting to make virtual objects match their environment',
+  hint: 'Makes virtual objects look natural by copying the real room lighting',
   icon: Icons.light_mode_rounded,
   type: ARNodeType.process,
+  errorMessage: 'Light estimation failed — ensure camera feed is active and bright enough',
 );
 
 const nodeOcclusion = ARNode(
   id: 'occlusion',
   name: 'Occlusion',
-  description: 'Hide virtual objects behind real ones',
+  description: 'Hides parts of virtual objects when real-world objects block them',
+  hint: 'Makes virtual objects disappear behind real furniture and walls',
   icon: Icons.layers_rounded,
   type: ARNodeType.output,
+  errorMessage: 'Occlusion unavailable — depth data requires SLAM and camera',
 );
 
 const nodeSpatialAnchor = ARNode(
   id: 'spatial_anchor',
   name: 'Spatial Anchor',
-  description: 'Persistent cloud-based location',
+  description: 'Cloud-stored anchor that remembers its location across sessions and devices',
+  hint: 'Saves object locations to the cloud so they persist for everyone',
   icon: Icons.cloud_done_rounded,
   type: ARNodeType.output,
+  errorMessage: 'Spatial anchor failed — requires local anchor and internet connection',
 );
 
 const nodeOpenXR = ARNode(
   id: 'openxr',
   name: 'OpenXR Runtime',
-  description: 'Standardized AR/VR interface',
+  description: 'Cross-platform standard that abstracts AR/VR hardware differences',
+  hint: 'A translator that makes AR apps work on any headset or phone',
   icon: Icons.settings_input_component_rounded,
   type: ARNodeType.utility,
+  errorMessage: 'OpenXR initialization failed — platform may not be supported',
 );
 
 const nodeRelocalization = ARNode(
   id: 'relocalization',
   name: 'Relocalization',
-  description: 'Restore tracking from known features',
+  description: 'Recovers tracking position by matching current view to saved map features',
+  hint: 'Finds your place again when tracking is lost by recognizing the room',
   icon: Icons.sync_rounded,
   type: ARNodeType.process,
+  errorMessage: 'Cannot relocalize — move back to a previously seen area slowly',
 );
 
 // --- Zones and Levels ---

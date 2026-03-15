@@ -11,6 +11,7 @@ class ARNode {
   final String id;
   final String name;
   final String description;
+  final String hint;
   final IconData icon;
   final ARNodeType type;
   final String? errorMessage;
@@ -19,6 +20,7 @@ class ARNode {
     required this.id,
     required this.name,
     required this.description,
+    this.hint = '',
     required this.icon,
     required this.type,
     this.errorMessage,

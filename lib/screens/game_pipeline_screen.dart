@@ -883,6 +883,20 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                           ? Colors.white.withValues(alpha: 0.15)
                           : Colors.white.withValues(alpha: 0.45),
                       fontSize: 11)),
+                  if (node.hint.isNotEmpty && !isPlaced)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        node.hint,
+                        style: TextStyle(
+                          color: accentColor.withValues(alpha: 0.55),
+                          fontSize: 10,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                 ],
               ),
             ),
