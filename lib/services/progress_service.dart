@@ -414,7 +414,7 @@ class ProgressService extends ChangeNotifier {
     _readKeyConcepts = {};
     _interviewBestScore = 0;
     _interviewHistory = [];
-    _username = ''; // Also reset username to default
+    _username = 'Explorer'; // Reset to 'Explorer' instead of empty string
     
     // Explicitly remove ALL keys from SharedPreferences immediately
     final keys = [
@@ -428,7 +428,7 @@ class ProgressService extends ChangeNotifier {
       _readKeyConceptsKey,
       _interviewBestKey,
       _interviewHistoryKey,
-      _usernameKey,
+      _usernameKey, // This will remove the stored name, getter will return 'Explorer'
       _interviewAttemptsDateKey,
       _interviewAttemptsCountKey,
       _lastDailyChallengeKey,

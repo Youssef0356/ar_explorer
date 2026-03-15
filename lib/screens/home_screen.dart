@@ -1493,7 +1493,7 @@ class HomeScreen extends StatelessWidget {
               style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
               decoration: AppTheme.inputDecoration(
                 label: 'Your Name',
-                hint: username,
+                hint: username.isEmpty ? 'Explorer' : username,
                 isDark: isDark,
               ),
               textCapitalization: TextCapitalization.words,
@@ -1511,7 +1511,7 @@ class HomeScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () async {
               final typedName = controller.text.trim().toLowerCase();
-              final actualUsername = username.toLowerCase();
+              final actualUsername = username.isEmpty ? 'explorer' : username.toLowerCase();
               
               if (typedName == actualUsername) {
                 soundService.playTap();
@@ -1534,7 +1534,7 @@ class HomeScreen extends StatelessWidget {
               } else {
                 ScaffoldMessenger.of(dialogCtx).showSnackBar(
                   SnackBar(
-                    content: Text('Please type "$username" to confirm'),
+                    content: Text('Please type "${username.isEmpty ? 'Explorer' : username}" to confirm'),
                   ),
                 );
               }
