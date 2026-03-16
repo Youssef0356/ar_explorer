@@ -208,6 +208,9 @@ class _GameMapScreenState extends State<GameMapScreen>
         maxStars   += 3;
       }
     }
+    final league = progress.currentLeague;
+    final leagueColor = _getLeagueColor(league);
+
     return ClipRRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
@@ -233,18 +236,65 @@ class _GameMapScreenState extends State<GameMapScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('AR SYSTEMS ENGINEER',
-                      style: const TextStyle(
-                        color: Color(0xFF00E5FF), fontSize: 10,
-                        fontWeight: FontWeight.w800, letterSpacing: 2.5)),
-                    const Text('World Map',
-                      style: TextStyle(
-                        color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+                    const Text('PIPELINE CHALLENGE',
+                        style: TextStyle(
+                            color: Color(0xFF00E5FF),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 2.5)),
+                    const Text('Build Mini-Game',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700)),
                   ],
                 ),
               ),
+              // League badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
+                  color: leagueColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: leagueColor.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(_getLeagueIcon(league), color: leagueColor, size: 14),
+                    const SizedBox(width: 4),
+                    Text(league,
+                      style: TextStyle(
+                        color: leagueColor, fontSize: 10,
+                        fontWeight: FontWeight.w800)),
+                  ],
+                ),
+              ),
+              // XP counter
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.amber.withValues(alpha: 0.25)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.bolt_rounded, color: Colors.amber, size: 12),
+                    const SizedBox(width: 3),
+                    Text('${progress.totalXP}',
+                      style: const TextStyle(
+                        color: Colors.amber, fontSize: 10,
+                        fontWeight: FontWeight.w800)),
+                  ],
+                ),
+              ),
+              // Star progress ring
               SizedBox(
-                width: 52, height: 52,
+                width: 42, height: 42,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
@@ -258,9 +308,9 @@ class _GameMapScreenState extends State<GameMapScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text('$totalStars',
-                          style: const TextStyle(color: Colors.amber, fontSize: 14, fontWeight: FontWeight.w800)),
+                          style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.w800)),
                         Text('/ $maxStars',
-                          style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 8)),
+                          style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 7)),
                       ],
                     ),
                   ],
@@ -271,6 +321,24 @@ class _GameMapScreenState extends State<GameMapScreen>
         ),
       ),
     );
+  }
+
+  Color _getLeagueColor(String league) {
+    switch (league) {
+      case 'Diamond': return const Color(0xFFE1BEE7);
+      case 'Gold': return Colors.amber;
+      case 'Silver': return const Color(0xFFB0BEC5);
+      default: return const Color(0xFFCD7F32);
+    }
+  }
+
+  IconData _getLeagueIcon(String league) {
+    switch (league) {
+      case 'Diamond': return Icons.diamond_rounded;
+      case 'Gold': return Icons.emoji_events_rounded;
+      case 'Silver': return Icons.shield_rounded;
+      default: return Icons.shield_outlined;
+    }
   }
 
   void _showLevelSheet(ARLevel level, ARZone zone) {
@@ -343,26 +411,89 @@ class _GameMapScreenState extends State<GameMapScreen>
               ],
             ),
             const SizedBox(height: 16),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.07))),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            // Project Task - main scenario description
+            if (level.projectTask.isNotEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.07))),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.assignment_rounded,
+                      color: zone.accentColor.withValues(alpha: 0.8), size: 18),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(level.projectTask,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: 13, height: 1.5, fontWeight: FontWeight.w500))),
+                  ],
+                ),
+              ),
+            // Build Context - expandable section
+            if (level.buildContext.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              ExpansionTile(
+                tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                collapsedBackgroundColor: Colors.white.withValues(alpha: 0.03),
+                backgroundColor: Colors.white.withValues(alpha: 0.05),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+                ),
+                collapsedShape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+                ),
+                iconColor: zone.accentColor,
+                collapsedIconColor: Colors.white.withValues(alpha: 0.4),
+                title: Text(
+                  'About this build step',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 children: [
-                  const Icon(Icons.lightbulb_outline_rounded, color: Colors.amber, size: 16),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(level.goal,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        fontSize: 13, height: 1.5))),
+                  Text(
+                    level.buildContext,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.75),
+                      fontSize: 12,
+                      height: 1.5,
+                    ),
+                  ),
                 ],
               ),
-            ),
+            ],
+            // Goal - short directive (fallback if projectTask empty)
+            if (level.goal.isNotEmpty && level.projectTask.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.07))),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.lightbulb_outline_rounded, color: Colors.amber, size: 16),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(level.goal,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 13, height: 1.5))),
+                  ],
+                ),
+              ),
             if (level.isBoss && level.timeLimit > 0) ...[
               const SizedBox(height: 10),
               Container(

@@ -390,9 +390,12 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
             ),
             const SizedBox(height: 20),
             if (info != null) ...[
-              _infoSection('🔍 What is it?', info['what']!),
-              const SizedBox(height: 14),
-              _infoSection('💡 Why does it go here in the pipeline?', info['why']!),
+              if (info['what']?.isNotEmpty == true)
+                _infoSection('🔍 What is it?', info['what']!),
+              if (info['what']?.isNotEmpty == true && info['why']?.isNotEmpty == true)
+                const SizedBox(height: 14),
+              if (info['why']?.isNotEmpty == true)
+                _infoSection('💡 Why does it go here in the pipeline?', info['why']!),
             ] else
               Text(node.description,
                 style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5)),
@@ -434,6 +437,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                 _buildHeader(zone),
                 _buildGoalBanner(zone),
                 _buildHowToPlay(zone.accentColor),
+                _buildContextSection(zone.accentColor),
                 const SizedBox(height: 8),
                 // ── Pipeline slots ──
                 _buildPipelineRow(zone.accentColor),
@@ -539,21 +543,36 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
   Widget _buildGoalBanner(ARZone zone) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: zone.accentColor.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: zone.accentColor.withValues(alpha: 0.2))),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.flag_rounded, color: zone.accentColor, size: 16),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(widget.level.goal,
+          // Project Task - the concrete scenario
+          if (widget.level.projectTask.isNotEmpty)
+            Text(widget.level.projectTask,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.8),
-                fontSize: 12, height: 1.4))),
+                color: Colors.white.withValues(alpha: 0.95),
+                fontSize: 13, fontWeight: FontWeight.w600, height: 1.4)),
+          if (widget.level.projectTask.isNotEmpty && widget.level.goal.isNotEmpty)
+            const SizedBox(height: 6),
+          // Goal - the short directive
+          if (widget.level.goal.isNotEmpty)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.flag_rounded, color: zone.accentColor, size: 14),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(widget.level.goal,
+                    style: TextStyle(
+                      color: zone.accentColor.withValues(alpha: 0.9),
+                      fontSize: 11, fontWeight: FontWeight.w500, height: 1.4))),
+              ],
+            ),
         ],
       ),
     );
@@ -579,6 +598,49 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.45),
                 fontSize: 11, height: 1.4))),
+        ],
+      ),
+    );
+  }
+
+  // ── Build Context expandable section ────────────────────────────────────
+  Widget _buildContextSection(Color accentColor) {
+    if (widget.level.buildContext.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        collapsedBackgroundColor: Colors.white.withValues(alpha: 0.03),
+        backgroundColor: Colors.white.withValues(alpha: 0.05),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+        ),
+        collapsedShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+        ),
+        iconColor: accentColor,
+        collapsedIconColor: Colors.white.withValues(alpha: 0.4),
+        title: Text(
+          'About this build step',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.6),
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        children: [
+          Text(
+            widget.level.buildContext,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.75),
+              fontSize: 12,
+              height: 1.5,
+            ),
+          ),
         ],
       ),
     );

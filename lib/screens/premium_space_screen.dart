@@ -8,7 +8,7 @@ import '../services/sound_service.dart';
 import '../services/subscription_service.dart';
 import '../widgets/animated_google_background.dart';
 import 'paywall_screen.dart';
-import 'game_screen.dart';
+import 'league_home_screen.dart';
 import 'quiz_analytics_screen.dart';
 import 'advanced_notes_screen.dart';
 
@@ -54,7 +54,7 @@ class PremiumSpaceScreen extends StatelessWidget {
                         }
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const GameScreen()),
+                          MaterialPageRoute(builder: (_) => const LeagueHomeScreen()),
                         );
                       },
                     ),
