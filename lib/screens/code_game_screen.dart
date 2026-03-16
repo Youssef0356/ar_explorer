@@ -668,7 +668,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
       int xp = 50; // base
       if (_mistakes == 0 && _hintsUsed == 0) xp = 80; // perfect
       if (widget.challenge.isBoss) xp += 50; // boss bonus
-      progress.addXP(xp);
+      progress.addCodingXP(xp);
 
       // Stars: 3 = no mistakes no hints, 2 = ≤1 mistake, 1 = completed
       int stars = 1;

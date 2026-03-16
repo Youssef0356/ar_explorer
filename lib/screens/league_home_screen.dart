@@ -6,6 +6,7 @@ import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
 import 'code_map_screen.dart';
 import 'game_map_screen.dart';
+import 'coding_game_map_screen.dart';
 
 // ── Fake leaderboard data ─────────────────────────────────────────────────────
 class _LeaderboardEntry {
@@ -35,7 +36,7 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
     super.initState();
     // Update streak on screen entry
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<GameProgressService>().updateStreak();
+      context.read<GameProgressService>().updateCodingStreak();
     });
   }
 
@@ -43,9 +44,9 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
   Widget build(BuildContext context) {
     final progress = context.watch<GameProgressService>();
     final soundService = context.read<SoundService>();
-    final playerXP = progress.totalXP;
-    final league = progress.currentLeague;
-    final streak = progress.dailyStreak;
+    final playerXP = progress.codingXP;
+    final league = progress.codingLeague;
+    final streak = progress.codingStreak;
 
     // Build dynamic leaderboard with player included
     final entries = _buildLeaderboard(playerXP, league);
@@ -450,7 +451,7 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
           color: const Color(0xFF00E5FF),
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const CodeMapScreen()),
+            MaterialPageRoute(builder: (_) => const CodingGameMapScreen()),
           ),
         ),
         const SizedBox(height: 12),

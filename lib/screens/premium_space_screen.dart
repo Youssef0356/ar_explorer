@@ -8,9 +8,9 @@ import '../services/sound_service.dart';
 import '../services/subscription_service.dart';
 import '../widgets/animated_google_background.dart';
 import 'paywall_screen.dart';
-import 'league_home_screen.dart';
 import 'quiz_analytics_screen.dart';
 import 'advanced_notes_screen.dart';
+import 'game_map_screen.dart';
 
 class PremiumSpaceScreen extends StatelessWidget {
   const PremiumSpaceScreen({super.key});
@@ -43,9 +43,9 @@ class PremiumSpaceScreen extends StatelessWidget {
                       isDark: isDark,
                       soundService: soundService,
                       isPremium: isPremium,
-                      title: 'Drag & Drop Coding Game',
-                      subtitle: 'Master AR Logic',
-                      icon: Icons.code_rounded,
+                      title: 'Pipeline Rush',
+                      subtitle: 'Master AR Logic Pipelines',
+                      icon: Icons.account_tree_rounded,
                       color: AppTheme.accentCyan,
                       onTap: () {
                         if (!isPremium) {
@@ -54,7 +54,7 @@ class PremiumSpaceScreen extends StatelessWidget {
                         }
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const LeagueHomeScreen()),
+                          MaterialPageRoute(builder: (_) => const GameMapScreen()),
                         );
                       },
                     ),

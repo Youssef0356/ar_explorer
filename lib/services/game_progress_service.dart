@@ -11,11 +11,18 @@ class GameProgressService extends ChangeNotifier {
   static const _dailyStreakKey  = 'ar_game_daily_streak';
   static const _lastPlayedKey   = 'ar_game_last_played';
 
+  // Coding Game Keys (New)
+  static const _codingGameProgressKey = 'coding_game_progress';
+  static const _codingGameStarsKey    = 'coding_game_stars';
+  static const _codingGameXPKey      = 'coding_game_xp';
+  static const _codingLastPlayedKey   = 'coding_last_played';
+  static const _codingStreakKey       = 'coding_streak';
+
   SharedPreferences? _prefs;
   Set<String> _completedLevelIds = {};
   final Map<String, int> _levelStars = {};
 
-  // ── XP & League ────────────────────────────────────────────────────────────
+  // ── XP & League (Legacy Pipeline) ──────────────────────────────────────────
   int _totalXP = 0;
   int get totalXP => _totalXP;
 
@@ -26,11 +33,26 @@ class GameProgressService extends ChangeNotifier {
     return 'Bronze';
   }
 
-  // ── Streak ─────────────────────────────────────────────────────────────────
+  // ── XP & League (New Coding Game) ──────────────────────────────────────────
+  int _codingXP = 0;
+  int get codingXP => _codingXP;
+
+  String get codingLeague {
+    if (_codingXP >= 1500) return 'Diamond';
+    if (_codingXP >= 800) return 'Gold';
+    if (_codingXP >= 300) return 'Silver';
+    return 'Bronze';
+  }
+
+  // ── Streak (Legacy) ────────────────────────────────────────────────────────
   int _dailyStreak = 0;
   int get dailyStreak => _dailyStreak;
 
-  double get streakMultiplier => _dailyStreak > 0 ? 1.5 : 1.0;
+  // ── Streak (New Coding Game) ───────────────────────────────────────────────
+  int _codingStreak = 0;
+  int get codingStreak => _codingStreak;
+
+  double get streakMultiplier => _codingStreak > 0 ? 1.5 : 1.0;
 
   // ── Init ───────────────────────────────────────────────────────────────────
   Future<void> init() async {
@@ -55,6 +77,10 @@ class GameProgressService extends ChangeNotifier {
 
     _totalXP     = _prefs?.getInt(_totalXPKey)    ?? 0;
     _dailyStreak = _prefs?.getInt(_dailyStreakKey) ?? 0;
+
+    // Load Coding Game Progress
+    _codingXP = _prefs?.getInt(_codingGameXPKey) ?? 0;
+    _codingStreak = _prefs?.getInt(_codingStreakKey) ?? 0;
   }
 
   Future<void> _saveProgress() async {
@@ -67,6 +93,10 @@ class GameProgressService extends ChangeNotifier {
 
     await _prefs?.setInt(_totalXPKey, _totalXP);
     await _prefs?.setInt(_dailyStreakKey, _dailyStreak);
+
+    // Save Coding Game Progress
+    await _prefs?.setInt(_codingGameXPKey, _codingXP);
+    await _prefs?.setInt(_codingStreakKey, _codingStreak);
   }
 
   // ── Existing getters (unchanged) ──────────────────────────────────────────
@@ -120,9 +150,9 @@ class GameProgressService extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── XP management ─────────────────────────────────────────────────────────
+  // ── XP management (Legacy Pipeline) ────────────────────────────────────────
   void addXP(int amount) {
-    _totalXP += (amount * streakMultiplier).round();
+    _totalXP += amount; // No multiplier for legacy
     _saveProgress();
     notifyListeners();
   }
@@ -133,29 +163,60 @@ class GameProgressService extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── Streak management ─────────────────────────────────────────────────────
+  // ── XP management (Coding Game) ───────────────────────────────────────────
+  void addCodingXP(int amount) {
+    _codingXP += (amount * streakMultiplier).round();
+    _saveProgress();
+    notifyListeners();
+  }
+
+  void deductCodingXP(int amount) {
+    _codingXP = (_codingXP - amount).clamp(0, double.maxFinite.toInt());
+    _saveProgress();
+    notifyListeners();
+  }
+
+  // ── Streak management (Legacy) ─────────────────────────────────────────────
   Future<void> updateStreak() async {
-    final today = DateTime.now().toIso8601String().substring(0, 10); // YYYY-MM-DD
+    final today = DateTime.now().toIso8601String().substring(0, 10);
     final lastPlayed = _prefs?.getString(_lastPlayedKey);
+    if (lastPlayed == null) {
+      _dailyStreak = 1;
+    } else if (lastPlayed != today) {
+      final lastDate = DateTime.parse(lastPlayed);
+      final todayDate = DateTime.parse(today);
+      if (todayDate.difference(lastDate).inDays == 1) {
+        _dailyStreak++;
+      } else {
+        _dailyStreak = 1;
+      }
+    }
+    await _prefs?.setString(_lastPlayedKey, today);
+    await _saveProgress();
+    notifyListeners();
+  }
+
+  // ── Streak management (Coding Game) ────────────────────────────────────────
+  Future<void> updateCodingStreak() async {
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final lastPlayed = _prefs?.getString(_codingLastPlayedKey);
 
     if (lastPlayed == null) {
-      // First time playing
-      _dailyStreak = 1;
+      _codingStreak = 1;
     } else if (lastPlayed == today) {
-      // Already played today — no change
       return;
     } else {
       final lastDate = DateTime.parse(lastPlayed);
       final todayDate = DateTime.parse(today);
       final diff = todayDate.difference(lastDate).inDays;
       if (diff == 1) {
-        _dailyStreak++;
+        _codingStreak++;
       } else {
-        _dailyStreak = 1; // streak broken, restart
+        _codingStreak = 1;
       }
     }
 
-    await _prefs?.setString(_lastPlayedKey, today);
+    await _prefs?.setString(_codingLastPlayedKey, today);
     await _saveProgress();
     notifyListeners();
   }

@@ -168,9 +168,18 @@ class _GameScreenState extends State<GameScreen> {
     final level = _levels[_currentLevel];
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-      body: AnimatedGoogleBackground(
-        isDark: isDark,
+      backgroundColor: const Color(0xFF0A0E1A),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.topLeft,
+            radius: 1.5,
+            colors: [
+              const Color(0xFF1E293B).withValues(alpha: 0.2),
+              const Color(0xFF0A0E1A),
+            ],
+          ),
+        ),
         child: Stack(
           children: [
             SafeArea(
@@ -188,17 +197,19 @@ class _GameScreenState extends State<GameScreen> {
                             child: Column(
                               children: [
                                 _buildInstructions(isDark, level),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 16),
+                                _buildMascotBubble(isDark, level),
+                                const SizedBox(height: 24),
                                 // Editor Zone
-                                SizedBox(
-                                  height: 300, // Adjusted explicit height
-                                  child: _buildEditorZone(isDark, level, soundService),
-                                ),
+                                _buildEditorZone(isDark, level, soundService),
+                                const SizedBox(height: 24),
                                 // Blocks Zone
                                 Container(
-                                  margin: const EdgeInsets.only(top: 12),
-                                  decoration: AppTheme.glassCard(isDark).copyWith(
-                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.05),
+                                    borderRadius: BorderRadius.circular(24),
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                                   ),
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
@@ -398,89 +409,141 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  Widget _buildMascotBubble(bool isDark, _LevelData level) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppTheme.accentCyan.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+              border: Border.all(color: AppTheme.accentCyan.withValues(alpha: 0.3)),
+            ),
+            child: const Icon(Icons.psychology_rounded, color: AppTheme.accentCyan, size: 30),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(20),
+                  bottomLeft: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                ),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              ),
+              child: Text(
+                _levelComplete ? 'Excellent! Compilation successful.' : 'Tip: ${level.instructions}',
+                style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.05);
+  }
+
   Widget _buildEditorZone(bool isDark, _LevelData level, SoundService soundService) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.textMutedC(isDark).withValues(alpha: 0.2)),
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           )
         ],
       ),
-      child: ListView.separated(
-        itemCount: level.slots.length,
-        separatorBuilder: (c, i) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final slot = level.slots[index];
-          return DragTarget<String>(
-            onWillAcceptWithDetails: (details) => slot.filledBlockId == null,
-            onAcceptWithDetails: (details) {
-              if (!mounted) return;
-              soundService.playTap();
-              setState(() {
-                // If this block was in another slot, clear that slot
-                for (var s in level.slots) {
-                  if (s.filledBlockId == details.data) {
-                    s.filledBlockId = null;
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle)),
+              const SizedBox(width: 6),
+              Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.amberAccent, shape: BoxShape.circle)),
+              const SizedBox(width: 6),
+              Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.greenAccent, shape: BoxShape.circle)),
+              const Spacer(),
+              const Text('main.cs', style: TextStyle(color: Colors.white24, fontSize: 10, fontFamily: 'monospace')),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: level.slots.length,
+            separatorBuilder: (c, i) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final slot = level.slots[index];
+              return DragTarget<String>(
+                onWillAcceptWithDetails: (details) => slot.filledBlockId == null,
+                onAcceptWithDetails: (details) {
+                  if (!mounted) return;
+                  soundService.playTap();
+                  setState(() {
+                    for (var s in level.slots) {
+                      if (s.filledBlockId == details.data) s.filledBlockId = null;
+                    }
+                    slot.filledBlockId = details.data;
+                  });
+                  _checkWinCondition();
+                },
+                builder: (context, candidateData, rejectedData) {
+                  final isHovering = candidateData.isNotEmpty;
+                  final isFilled = slot.filledBlockId != null;
+
+                  if (isFilled) {
+                    final blockInfo = level.availableBlocks.firstWhere((b) => b.id == slot.filledBlockId);
+                    return GestureDetector(
+                      onTap: () {
+                        soundService.playTap();
+                        setState(() { slot.filledBlockId = null; });
+                      },
+                      child: _buildCodeBlockUI(isDark, blockInfo.text, isSlotted: true),
+                    );
                   }
-                }
-                slot.filledBlockId = details.data;
-              });
-              _checkWinCondition();
-            },
-            builder: (context, candidateData, rejectedData) {
-              final isHovering = candidateData.isNotEmpty;
-              final isFilled = slot.filledBlockId != null;
 
-              if (isFilled) {
-                final blockInfo = level.availableBlocks.firstWhere((b) => b.id == slot.filledBlockId);
-                return GestureDetector(
-                  onTap: () {
-                    // Tap to remove block
-                    soundService.playTap();
-                    setState(() {
-                      slot.filledBlockId = null;
-                    });
-                  },
-                  child: _buildCodeBlockUI(isDark, blockInfo.text, isSlotted: true),
-                );
-              }
-
-              return Container(
-                height: 50,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: isHovering 
-                      ? AppTheme.accentCyan.withValues(alpha: 0.2) 
-                      : (isDark ? const Color(0xFF0F172A) : Colors.white).withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isHovering ? AppTheme.accentCyan : AppTheme.textMutedC(isDark).withValues(alpha: 0.3),
-                    style: BorderStyle.solid,
-                    width: isHovering ? 2 : 1,
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    '// ${slot.helperText}',
-                    style: TextStyle(
-                      fontFamily: 'monospace',
-                      color: AppTheme.textMutedC(isDark),
-                      fontSize: 13,
+                  return Container(
+                    height: 50,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: isHovering 
+                          ? AppTheme.accentCyan.withValues(alpha: 0.15) 
+                          : Colors.white.withValues(alpha: 0.03),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isHovering ? AppTheme.accentCyan : Colors.white.withValues(alpha: 0.1),
+                        style: BorderStyle.solid,
+                        width: isHovering ? 2 : 1,
+                      ),
                     ),
-                  ),
-                ),
+                    child: Center(
+                      child: Text(
+                        '// ${slot.helperText}',
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          color: Colors.white24,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  );
+                },
               );
             },
-          );
-        },
+          ),
+        ],
       ),
     );
   }
