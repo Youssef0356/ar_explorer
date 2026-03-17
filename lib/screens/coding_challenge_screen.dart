@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../models/coding_game_models.dart';
 import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
+import '../services/ad_service.dart';
 
 class CodingChallengeScreen extends StatefulWidget {
   final CodingLevel level;
@@ -30,30 +31,47 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
   int _timeRemaining = 0;
   Timer? _timer;
   bool _showExplanation = false;
+  String? _hintSlotId; // New: tracks which slot to highlight for hint
 
   @override
   void initState() {
     super.initState();
+    final progress = context.read<GameProgressService>();
+    final isCompleted = progress.isCodingLevelCompleted(widget.level.id);
+
     _slotAnswers = {};
     for (var line in widget.level.lines) {
       if (line.slots != null) {
         for (var slot in line.slots!) {
-          _slotAnswers[slot.id] = null;
+          if (isCompleted) {
+             final correctChip = widget.level.wordBank.firstWhere((w) => w.correctSlotId == slot.id);
+             _slotAnswers[slot.id] = correctChip.id;
+             _results[slot.id] = true;
+          } else {
+             _slotAnswers[slot.id] = null;
+          }
         }
       }
     }
-    _wordBank = List.from(widget.level.wordBank)..shuffle();
-    
-    if (widget.level.timeLimit > 0) {
-      _timeRemaining = widget.level.timeLimit;
-      _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (_timeRemaining > 0) {
-          setState(() => _timeRemaining--);
-        } else {
-          _timer?.cancel();
-          _checkAnswers();
-        }
-      });
+
+    if (isCompleted) {
+      _wordBank = [];
+      _checked = true;
+      _showExplanation = true;
+    } else {
+      _wordBank = List.from(widget.level.wordBank)..shuffle();
+      
+      if (widget.level.timeLimit > 0) {
+        _timeRemaining = widget.level.timeLimit;
+        _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          if (_timeRemaining > 0) {
+            setState(() => _timeRemaining--);
+          } else {
+            _timer?.cancel();
+            _checkAnswers();
+          }
+        });
+      }
     }
   }
 
@@ -71,7 +89,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
       if (line.slots != null) {
         for (var slot in line.slots!) {
           final placedChipId = _slotAnswers[slot.id];
-          final isCorrect = _wordBank.any((w) => w.id == placedChipId && w.correctSlotId == slot.id);
+          final isCorrect = widget.level.wordBank.any((w) => w.id == placedChipId && w.correctSlotId == slot.id);
           results[slot.id] = isCorrect;
           if (!isCorrect) allCorrect = true; // Wait, logic error: allCorrect should be false if any is incorrect
           // Correction:
@@ -89,7 +107,12 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
     final sound = context.read<SoundService>();
     if (allCorrect) {
       sound.playSuccess();
-      context.read<GameProgressService>().addCodingXP(widget.level.isBoss ? 150 : 50);
+      final progress = context.read<GameProgressService>();
+      progress.addCodingXP(widget.level.isBoss ? 150 : 50);
+      
+      // Calculate stars (3 for no mistakes)
+      int stars = 3; // For now default to 3 if all correct
+      progress.completeCodingLevel(widget.level.id, stars);
     } else {
       sound.playFailure();
     }
@@ -283,23 +306,28 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
   Widget _buildSlot(CodeSlot slot) {
     final chipId = _slotAnswers[slot.id];
     final chip = chipId != null ? widget.level.wordBank.firstWhere((w) => w.id == chipId) : null;
+    
     final isCorrect = _results[slot.id];
+    final isHinted = _hintSlotId == slot.id;
 
     return DragTarget<WordChip>(
       onAcceptWithDetails: (details) {
         setState(() {
+          if (chip != null) _wordBank.add(chip);
           _slotAnswers[slot.id] = details.data.id;
           _wordBank.removeWhere((w) => w.id == details.data.id);
+          if (_hintSlotId == slot.id) _hintSlotId = null; // Clear hint if user fills it
         });
       },
       builder: (context, candidateData, rejectedData) {
-        return GestureDetector(
+        Widget slotContent = GestureDetector(
           onTap: () {
             if (_checked) return;
             if (chipId != null) {
               setState(() {
                 _wordBank.add(chip!);
                 _slotAnswers[slot.id] = null;
+                if (_hintSlotId == slot.id) _hintSlotId = null; // Clear hint if user interacts
               });
             }
           },
@@ -310,13 +338,21 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
             decoration: BoxDecoration(
               color: _checked
                   ? (isCorrect! ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2))
-                  : (chipId != null ? widget.accentColor.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.05)),
+                  : (chipId != null 
+                      ? widget.accentColor.withValues(alpha: 0.15) 
+                      : (isHinted ? Colors.amber.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.05))),
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
                 color: _checked
                     ? (isCorrect! ? Colors.green : Colors.red)
-                    : (chipId != null ? widget.accentColor : Colors.white.withValues(alpha: 0.1)),
+                    : (isHinted 
+                        ? Colors.amber 
+                        : (chipId != null ? widget.accentColor : Colors.white.withValues(alpha: 0.1))),
+                width: isHinted ? 2 : 1,
               ),
+              boxShadow: [
+                if (isHinted) BoxShadow(color: Colors.amber.withValues(alpha: 0.3), blurRadius: 10, spreadRadius: 1),
+              ],
             ),
             child: Text(
               chip?.label ?? '_____',
@@ -329,6 +365,43 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
             ),
           ),
         );
+
+        if (_checked && isCorrect == false) {
+           slotContent = slotContent.animate(target: 1).shakeX(amount: 3);
+        }
+
+        if (chipId != null && !_checked) {
+           final WordChip activeChip = chip as WordChip;
+           return Draggable<WordChip>(
+             data: activeChip,
+             feedback: Material(color: Colors.transparent, child: _buildChipUI(activeChip, isDragging: true)),
+             childWhenDragging: Container(
+               margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+               constraints: const BoxConstraints(minWidth: 40),
+               decoration: BoxDecoration(
+                 color: Colors.white.withValues(alpha: 0.05),
+                 borderRadius: BorderRadius.circular(6),
+                 border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+               ),
+               child: const Text('_____', style: TextStyle(color: Colors.white24, fontSize: 12, fontFamily: 'monospace')),
+             ),
+             onDragCompleted: () {
+                setState(() {
+                   _slotAnswers[slot.id] = null;
+                });
+             },
+             onDraggableCanceled: (velocity, offset) {
+                setState(() {
+                   _wordBank.add(activeChip);
+                   _slotAnswers[slot.id] = null;
+                });
+             },
+             child: slotContent,
+           );
+        }
+
+        return slotContent;
       },
     );
   }
@@ -443,8 +516,84 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
               ),
             ),
           ),
+          if (_checked && !allCorrect) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                 onPressed: _showHintWithAd,
+                 icon: const Icon(Icons.play_circle_filled_rounded, color: Colors.black),
+                 label: const Text('WATCH AD FOR HINT', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Colors.black)),
+                 style: ElevatedButton.styleFrom(
+                   backgroundColor: Colors.amber,
+                   padding: const EdgeInsets.symmetric(vertical: 18),
+                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                 ),
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
+
+  void _showHintWithAd() async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Loading Rewarded Ad...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    final adService = context.read<AdService>();
+    bool success = await adService.showRewardedAd();
+    
+    if (!mounted) return;
+
+    if (success) {
+       // Find the first incorrect or empty slot that has a chip in the bank
+       String? slotToFix;
+       WordChip? correctChip;
+
+       for (var line in widget.level.lines) {
+         if (line.slots != null) {
+           for (var slot in line.slots!) {
+             final currentChipId = _slotAnswers[slot.id];
+             final correctChipForSlot = widget.level.wordBank.firstWhere((w) => w.correctSlotId == slot.id);
+             
+             // If slot is empty or has a wrong chip
+             if (currentChipId == null || currentChipId != correctChipForSlot.id) {
+               slotToFix = slot.id;
+               correctChip = correctChipForSlot;
+               break;
+             }
+           }
+         }
+         if (slotToFix != null) break;
+       }
+       
+       if (slotToFix != null && mounted) {
+          setState(() {
+             _hintSlotId = slotToFix;
+             _checked = false;
+             _showExplanation = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(
+               content: Text('Hint: Place "${correctChip?.label}" in the highlighted slot!'), 
+               backgroundColor: Colors.amber[900],
+               duration: const Duration(seconds: 4),
+             ),
+          );
+       }
+    } else {
+       ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not load ad. Check your connection or try again later.'), 
+            backgroundColor: Colors.redAccent,
+          ),
+       );
+    }
+  }
 }
+

@@ -20,6 +20,7 @@ class GameProgressService extends ChangeNotifier {
 
   SharedPreferences? _prefs;
   Set<String> _completedLevelIds = {};
+  Set<String> _completedCodingLevelIds = {}; // New
   final Map<String, int> _levelStars = {};
 
   // ── XP & League (Legacy Pipeline) ──────────────────────────────────────────
@@ -64,6 +65,9 @@ class GameProgressService extends ChangeNotifier {
     final completed = _prefs?.getStringList(_gameProgressKey) ?? [];
     _completedLevelIds = completed.toSet();
 
+    final completedCoding = _prefs?.getStringList(_codingGameProgressKey) ?? [];
+    _completedCodingLevelIds = completedCoding.toSet();
+
     final starsJson = _prefs?.getString(_gameStarsKey);
     if (starsJson != null && starsJson.isNotEmpty) {
       final pairs = starsJson.split(',');
@@ -95,12 +99,14 @@ class GameProgressService extends ChangeNotifier {
     await _prefs?.setInt(_dailyStreakKey, _dailyStreak);
 
     // Save Coding Game Progress
+    await _prefs?.setStringList(_codingGameProgressKey, _completedCodingLevelIds.toList());
     await _prefs?.setInt(_codingGameXPKey, _codingXP);
     await _prefs?.setInt(_codingStreakKey, _codingStreak);
   }
 
   // ── Existing getters (unchanged) ──────────────────────────────────────────
   bool isLevelCompleted(String levelId) => _completedLevelIds.contains(levelId);
+  bool isCodingLevelCompleted(String levelId) => _completedCodingLevelIds.contains(levelId);
 
   int getStars(String levelId) => _levelStars[levelId] ?? 0;
 
@@ -140,6 +146,18 @@ class GameProgressService extends ChangeNotifier {
   // ── Level completion (unchanged interface, now also triggers streak) ──────
   Future<void> completeLevel(String levelId, int stars) async {
     _completedLevelIds.add(levelId);
+
+    final existingStars = _levelStars[levelId] ?? -1;
+    if (existingStars == -1 || stars > existingStars) {
+      _levelStars[levelId] = stars;
+    }
+
+    await _saveProgress();
+    notifyListeners();
+  }
+
+  Future<void> completeCodingLevel(String levelId, int stars) async {
+    _completedCodingLevelIds.add(levelId);
 
     final existingStars = _levelStars[levelId] ?? -1;
     if (existingStars == -1 || stars > existingStars) {

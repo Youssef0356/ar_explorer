@@ -8,6 +8,7 @@ import '../models/game_models.dart';
 import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
 import 'code_game_screen.dart';
+import 'league_home_screen.dart';
 
 class CodeMapScreen extends StatelessWidget {
   const CodeMapScreen({super.key});
@@ -64,22 +65,6 @@ class CodeMapScreen extends StatelessWidget {
           ),
           child: Row(
             children: [
-              GestureDetector(
-                onTap: () {
-                  sound.playTap();
-                  Navigator.pop(context);
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.arrow_back_ios_rounded,
-                      color: Colors.white70, size: 16),
-                ),
-              ),
-              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,6 +97,27 @@ class CodeMapScreen extends StatelessWidget {
                         color: Colors.white70,
                         fontSize: 13,
                         fontWeight: FontWeight.w700)),
+              ),
+              const SizedBox(width: 8),
+              // League Button
+              GestureDetector(
+                onTap: () {
+                  sound.playTap();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LeagueHomeScreen()),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                  ),
+                  child: const Icon(Icons.emoji_events_rounded,
+                      color: Colors.amber, size: 20),
+                ),
               ),
             ],
           ),

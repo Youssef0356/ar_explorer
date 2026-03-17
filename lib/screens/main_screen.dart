@@ -9,8 +9,9 @@ import 'home_screen.dart';
 import 'roadmap_screen.dart';
 import 'bookmarks_screen.dart';
 import 'achievements_screen.dart';
-import 'league_home_screen.dart';
 import 'paywall_screen.dart';
+import 'coding_game_map_screen.dart';
+import 'game_map_screen.dart';
 import '../widgets/animated_google_background.dart';
 
 class MainScreen extends StatefulWidget {
@@ -27,6 +28,7 @@ class _MainScreenState extends State<MainScreen> {
     const HomeScreen(),
     const RoadmapScreen(),
     const _EngineerEntryScreen(),
+    const CodingGameMapScreen(), // Added Code Game Screen
     const BookmarksScreen(),
     const AchievementsScreen(),
   ];
@@ -85,6 +87,11 @@ class _MainScreenState extends State<MainScreen> {
                   icon: Icon(Icons.terminal_rounded),
                   activeIcon: Icon(Icons.terminal_rounded),
                   label: 'ENGINEER',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.code_rounded),
+                  activeIcon: Icon(Icons.code_rounded),
+                  label: 'CODE',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.bookmark_rounded),
@@ -273,7 +280,7 @@ class _EngineerEntryScreen extends StatelessWidget {
                       if (isPremium) {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const LeagueHomeScreen()),
+                          MaterialPageRoute(builder: (_) => const GameMapScreen()),
                         );
                       } else {
                         // Check if any levels are free
@@ -281,7 +288,7 @@ class _EngineerEntryScreen extends StatelessWidget {
                         if (hasFreeLevels) {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const LeagueHomeScreen()),
+                            MaterialPageRoute(builder: (_) => const GameMapScreen()),
                           );
                         } else {
                           Navigator.push(

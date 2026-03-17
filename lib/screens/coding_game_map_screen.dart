@@ -8,6 +8,7 @@ import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
 import '../services/subscription_service.dart';
 import 'coding_challenge_screen.dart';
+import 'league_home_screen.dart';
 
 class CodingGameMapScreen extends StatelessWidget {
   const CodingGameMapScreen({super.key});
@@ -49,27 +50,35 @@ class CodingGameMapScreen extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Row(
         children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('AR PLATFORMS', style: TextStyle(color: AppTheme.accentCyan, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                Text('Select a Zone', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          // League Button
           GestureDetector(
             onTap: () {
               sound.playTap();
-              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LeagueHomeScreen()),
+              );
             },
             child: Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.amber.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
               ),
-              child: const Icon(Icons.arrow_back_rounded, color: Colors.white70, size: 24),
+              child: const Icon(Icons.emoji_events_rounded,
+                  color: Colors.amber, size: 24),
             ),
-          ),
-          const SizedBox(width: 16),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('AR PLATFORMS', style: TextStyle(color: AppTheme.accentCyan, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 2)),
-              Text('Select a Zone', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
-            ],
           ),
         ],
       ),
@@ -108,7 +117,7 @@ class CodingGameMapScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(28),
                 border: Border.all(color: zone.accentColor.withValues(alpha: isLocked ? 0.05 : 0.2), width: 1),
                 boxShadow: [
-                  BoxShadow(color: zone.accentColor.withValues(alpha: isLocked ? 0 : 0.05), blurRadius: 30, offset: const Offset(0, 10)),
+                  BoxShadow(color: zone.accentColor.withValues(alpha: isLocked ? 0.0 : 0.05), blurRadius: 30, offset: const Offset(0, 10)),
                 ],
               ),
               child: Row(
@@ -145,7 +154,10 @@ class CodingGameMapScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        _buildProgressDots(zone.levels.length, 0), // Placeholder for animation
+                        _buildProgressDots(
+                          zone.levels.length, 
+                          zone.levels.where((l) => progress.isCodingLevelCompleted(l.id)).length
+                        ),
                       ],
                     ),
                   ),

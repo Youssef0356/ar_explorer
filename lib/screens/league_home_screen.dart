@@ -109,7 +109,7 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('AR SYSTEMS ENGINEER',
+                Text('CODE CHALLENGES',
                     style: TextStyle(
                         color: _leagueColor(league),
                         fontSize: 10,
@@ -576,15 +576,27 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
   }
 
   int _scaleXP(int base, String league) {
+    // Determine dynamic growth based on the current time.
+    final now = DateTime.now();
+    // Use the start of the week as a common epoch to grow from
+    final startOfWeek = DateTime(now.year, now.month, now.day - now.weekday + 1);
+    final hoursSinceStart = now.difference(startOfWeek).inHours;
+    
+    // Add dynamic XP growth based on hours passed (bots gain 2-5 XP per hour depending on league)
+    int dynamicBonus = 0;
     switch (league) {
       case 'Diamond':
-        return base + 1200 + Random(42).nextInt(300);
+        dynamicBonus = hoursSinceStart * 5;
+        return base + 1200 + Random(42).nextInt(300) + dynamicBonus;
       case 'Gold':
-        return base + 600 + Random(42).nextInt(200);
+        dynamicBonus = hoursSinceStart * 3;
+        return base + 600 + Random(42).nextInt(200) + dynamicBonus;
       case 'Silver':
-        return base + 150 + Random(42).nextInt(100);
+        dynamicBonus = hoursSinceStart * 2;
+        return base + 150 + Random(42).nextInt(100) + dynamicBonus;
       default:
-        return base;
+        dynamicBonus = hoursSinceStart * 1;
+        return base + dynamicBonus;
     }
   }
 

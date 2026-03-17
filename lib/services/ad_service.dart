@@ -120,9 +120,18 @@ class AdService extends ChangeNotifier {
       }
       
       if (_rewardedLoadCompleter != null) {
-        final loaded = await _rewardedLoadCompleter!.future;
-        if (!loaded || _rewardedAd == null) {
-          debugPrint('Error: Rewarded ad failed to load.');
+        try {
+          // Add a 10-second timeout for ad loading
+          final loaded = await _rewardedLoadCompleter!.future.timeout(const Duration(seconds: 10));
+          if (!loaded || _rewardedAd == null) {
+            debugPrint('Error: Rewarded ad failed to load.');
+            return false;
+          }
+        } on TimeoutException {
+          debugPrint('Error: Rewarded ad loading timed out.');
+          return false;
+        } catch (e) {
+          debugPrint('Error waiting for rewarded ad: $e');
           return false;
         }
       } else {
