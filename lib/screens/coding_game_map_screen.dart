@@ -24,7 +24,7 @@ class CodingGameMapScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(context, sound),
+            _buildHeader(context, sound, progress),
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 40),
@@ -45,7 +45,7 @@ class CodingGameMapScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, SoundService sound) {
+  Widget _buildHeader(BuildContext context, SoundService sound, GameProgressService progress) {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -54,11 +54,31 @@ class CodingGameMapScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('AR PLATFORMS', style: TextStyle(color: AppTheme.accentCyan, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                Text('AR PLATFORMS', style: TextStyle(color: AppTheme.accentCyan, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 2)),
                 Text('Select a Zone', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
               ],
             ),
           ),
+          if (progress.codingStreak > 0)
+            Container(
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Text('🔥', style: TextStyle(fontSize: 14)),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${progress.codingStreak} DAY STREAK',
+                    style: const TextStyle(color: Colors.orange, fontSize: 10, fontWeight: FontWeight.w800),
+                  ),
+                ],
+              ),
+            ),
           const SizedBox(width: 8),
           // League Button
           GestureDetector(

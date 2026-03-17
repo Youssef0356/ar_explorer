@@ -7,6 +7,7 @@ import '../models/coding_game_models.dart';
 import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
 import '../services/ad_service.dart';
+import '../widgets/shareable_achievement_card.dart';
 
 class CodingChallengeScreen extends StatefulWidget {
   final CodingLevel level;
@@ -31,7 +32,8 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
   int _timeRemaining = 0;
   Timer? _timer;
   bool _showExplanation = false;
-  String? _hintSlotId; // New: tracks which slot to highlight for hint
+  String? _hintSlotId; 
+  int _mistakes = 0; 
 
   @override
   void initState() {
@@ -91,11 +93,13 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
           final placedChipId = _slotAnswers[slot.id];
           final isCorrect = widget.level.wordBank.any((w) => w.id == placedChipId && w.correctSlotId == slot.id);
           results[slot.id] = isCorrect;
-          if (!isCorrect) allCorrect = true; // Wait, logic error: allCorrect should be false if any is incorrect
-          // Correction:
           if (!isCorrect) allCorrect = false;
         }
       }
+    }
+
+    if (!allCorrect) {
+      _mistakes++;
     }
 
     setState(() {
@@ -108,11 +112,22 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
     if (allCorrect) {
       sound.playSuccess();
       final progress = context.read<GameProgressService>();
-      progress.addCodingXP(widget.level.isBoss ? 150 : 50);
+      final xpEarned = widget.level.isBoss ? 150 : 50;
+      progress.addCodingXP(xpEarned);
       
-      // Calculate stars (3 for no mistakes)
-      int stars = 3; // For now default to 3 if all correct
+      // Calculate stars: 0 mistakes = 3, 1-2 = 2, 3+ = 1
+      int stars = 3;
+      if (_mistakes >= 3) stars = 1;
+      else if (_mistakes >= 1) stars = 2;
+      
       progress.completeCodingLevel(widget.level.id, stars);
+      progress.updateCodingStreak();
+
+      if (widget.level.isBoss) {
+        context.read<AdService>().showInterstitialAdWithProbability(0.5);
+      }
+      
+      _showVictoryDialog(xpEarned, stars);
     } else {
       sound.playFailure();
     }
@@ -516,6 +531,21 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
               ),
             ),
           ),
+          SizedBox(height: _checked ? 12 : 0),
+          if (!_checked)
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _showHintWithAd,
+                icon: const Icon(Icons.lightbulb_outline_rounded, color: Colors.orange),
+                label: const Text('GET HINT (WATCH AD)', style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.orange),
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+              ),
+            ),
           if (_checked && !allCorrect) ...[
             const SizedBox(height: 12),
             SizedBox(
@@ -580,7 +610,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
           });
           ScaffoldMessenger.of(context).showSnackBar(
              SnackBar(
-               content: Text('Hint: Place "${correctChip?.label}" in the highlighted slot!'), 
+               content: Text('Hint: Place "${correctChip?.label ?? 'the correct statement'}" in the highlighted slot!'), 
                backgroundColor: Colors.amber[900],
                duration: const Duration(seconds: 4),
              ),
@@ -594,6 +624,72 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
           ),
        );
     }
+  }
+
+  void _showVictoryDialog(int xp, int stars) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F1420),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(color: widget.accentColor.withValues(alpha: 0.3)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('LEVEL COMPLETE', style: TextStyle(color: widget.accentColor, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 3)),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(3, (index) {
+                  return Icon(
+                    index < stars ? Icons.star_rounded : Icons.star_outline_rounded,
+                    color: index < stars ? Colors.amber : Colors.white12,
+                    size: 40,
+                  ).animate(target: index < stars ? 1 : 0).scale(delay: (index * 100).ms, duration: 400.ms, curve: Curves.elasticOut);
+                }),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                stars == 3 ? 'Perfect Execution!' : stars == 2 ? 'Great Job!' : 'Level Passed!',
+                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 24),
+              ShareableAchievementCard(
+                title: widget.level.title,
+                subtitle: 'Completed with $stars Stars!',
+                icon: widget.level.isBoss ? Icons.military_tech_rounded : Icons.code_rounded,
+                color: widget.accentColor,
+                score: '+$xp XP',
+                isDark: true,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close dialog
+                    Navigator.pop(context, true); // Return to map
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: widget.accentColor,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: const Text('CONTINUE', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

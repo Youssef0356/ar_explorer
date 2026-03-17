@@ -253,6 +253,12 @@ class GameProgressService extends ChangeNotifier {
     await _prefs?.remove(_dailyStreakKey);
     await _prefs?.remove(_lastPlayedKey);
 
+    // Coding Game keys
+    await _prefs?.remove(_codingGameProgressKey);
+    await _prefs?.remove(_codingGameXPKey);
+    await _prefs?.remove(_codingStreakKey);
+    await _prefs?.remove(_codingLastPlayedKey);
+
     await _saveProgress();
     notifyListeners();
   }

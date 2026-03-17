@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../models/game_models.dart';
 import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
+import '../widgets/shareable_achievement_card.dart';
 
 class CodeGameScreen extends StatefulWidget {
   final CodeChallenge challenge;
@@ -677,7 +678,10 @@ class _CodeGameScreenState extends State<CodeGameScreen>
       } else if (_mistakes <= 1) {
         stars = 2;
       }
-      progress.completeLevel(widget.challenge.id, stars);
+      progress.completeCodingLevel(widget.challenge.id, stars);
+      progress.updateCodingStreak();
+      
+      _showVictoryDialog(xp, stars);
     }
   }
 
@@ -770,6 +774,72 @@ class _CodeGameScreenState extends State<CodeGameScreen>
       default:
         return '◆ script.cs';
     }
+  }
+
+  void _showVictoryDialog(int xp, int stars) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F1420),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(color: widget.zoneColor.withValues(alpha: 0.3)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('CHALLENGE COMPLETE', style: TextStyle(color: widget.zoneColor, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 3)),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(3, (index) {
+                  return Icon(
+                    index < stars ? Icons.star_rounded : Icons.star_outline_rounded,
+                    color: index < stars ? Colors.amber : Colors.white12,
+                    size: 40,
+                  ).animate(target: index < stars ? 1 : 0).scale(delay: (index * 100).ms, duration: 400.ms, curve: Curves.elasticOut);
+                }),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                stars == 3 ? 'Perfect Score!' : stars == 2 ? 'Great Job!' : 'Challenge Passed!',
+                style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 24),
+              ShareableAchievementCard(
+                title: widget.challenge.title,
+                subtitle: 'Aced with $stars Stars!',
+                icon: widget.challenge.isBoss ? Icons.military_tech_rounded : Icons.code_rounded,
+                color: widget.zoneColor,
+                score: '+$xp XP',
+                isDark: true,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close dialog
+                    Navigator.pop(context, true); // Return to map
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: widget.zoneColor,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: const Text('CONTINUE', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
