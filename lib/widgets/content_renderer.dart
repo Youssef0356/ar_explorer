@@ -121,8 +121,8 @@ class ContentRenderer extends StatelessWidget {
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: AppTheme.accentCyan.withValues(
-                    alpha: isDark ? 0.15 : 0.1,
+                  color: AppTheme.accentCyan.withOpacity(
+                    isDark ? 0.15 : 0.1,
                   ),
                   borderRadius: BorderRadius.circular(6),
                 ),
@@ -205,8 +205,8 @@ class ContentRenderer extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppTheme.warningAmber.withValues(
-              alpha: isDark ? 0.08 : 0.06,
+            color: AppTheme.warningAmber.withOpacity(
+              isDark ? 0.08 : 0.06,
             ),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(

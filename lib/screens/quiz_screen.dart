@@ -182,8 +182,8 @@ class _QuizScreenState extends State<QuizScreen> {
                     curve: Curves.easeInOut,
                     child: LinearProgressIndicator(
                       value: _progress,
-                      backgroundColor: AppTheme.accentPink.withValues(
-                        alpha: 0.1,
+                      backgroundColor: AppTheme.accentPink.withOpacity(
+                        0.1,
                       ),
                       valueColor: const AlwaysStoppedAnimation<Color>(
                         AppTheme.accentPink,
@@ -261,13 +261,13 @@ class _QuizScreenState extends State<QuizScreen> {
                               width: double.infinity,
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: AppTheme.accentCyan.withValues(
-                                  alpha: isDark ? 0.08 : 0.06,
+                                color: AppTheme.accentCyan.withOpacity(
+                                  isDark ? 0.08 : 0.06,
                                 ),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: AppTheme.accentCyan.withValues(
-                                    alpha: 0.2,
+                                  color: AppTheme.accentCyan.withOpacity(
+                                    0.2,
                                   ),
                                 ),
                               ),

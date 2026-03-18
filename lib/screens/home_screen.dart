@@ -653,8 +653,8 @@ class HomeScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                             child: LinearProgressIndicator(
                               value: overallProgress,
-                              backgroundColor: AppTheme.accentCyan.withValues(
-                                alpha: isDark ? 0.1 : 0.15,
+                              backgroundColor: AppTheme.accentCyan.withOpacity(
+                                isDark ? 0.1 : 0.15,
                               ),
                               valueColor: const AlwaysStoppedAnimation<Color>(
                                 AppTheme.accentCyan,

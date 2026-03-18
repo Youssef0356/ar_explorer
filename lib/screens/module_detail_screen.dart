@@ -166,8 +166,8 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                                       borderRadius: BorderRadius.circular(4),
                                       child: LinearProgressIndicator(
                                         value: moduleProgress,
-                                        backgroundColor: widget.accentColor.withValues(
-                                          alpha: 0.1,
+                                        backgroundColor: widget.accentColor.withOpacity(
+                                          0.1,
                                         ),
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(

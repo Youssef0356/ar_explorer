@@ -76,8 +76,8 @@ class ModuleCard extends StatelessWidget {
                             width: 48,
                             height: 48,
                             decoration: BoxDecoration(
-                              color: accentColor.withValues(
-                                alpha: isLocked ? 0.1 : 0.15,
+                              color: accentColor.withOpacity(
+                                isLocked ? 0.1 : 0.15,
                               ),
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -141,8 +141,8 @@ class ModuleCard extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(4),
                                 child: LinearProgressIndicator(
                                   value: progress,
-                                  backgroundColor: accentColor.withValues(
-                                    alpha: 0.1,
+                                  backgroundColor: accentColor.withOpacity(
+                                    0.1,
                                   ),
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                     accentColor,

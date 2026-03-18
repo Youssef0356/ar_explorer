@@ -190,8 +190,8 @@ class CreditsScreen extends StatelessWidget {
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: AppTheme.warningAmber.withValues(
-                            alpha: isDark ? 0.08 : 0.06,
+                          color: AppTheme.warningAmber.withOpacity(
+                            isDark ? 0.08 : 0.06,
                           ),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
@@ -213,8 +213,8 @@ class CreditsScreen extends StatelessWidget {
                                 'All content is derived from official documentation, academic sources, '
                                 'and open research materials.',
                                 style: AppTheme.bodySmall.copyWith(
-                                  color: AppTheme.warningAmber.withValues(
-                                    alpha: 0.9,
+                                  color: AppTheme.warningAmber.withOpacity(
+                                    0.9,
                                   ),
                                   height: 1.5,
                                 ),

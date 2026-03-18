@@ -97,15 +97,15 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                           gradient: LinearGradient(
                             colors: _passed
                                 ? [
-                                    AppTheme.successGreen.withValues(
-                                      alpha: 0.3,
+                                    AppTheme.successGreen.withOpacity(
+                                      0.3,
                                     ),
                                     AppTheme.accentCyan.withOpacity(0.1),
                                   ]
                                 : [
                                     AppTheme.errorRed.withOpacity(0.3),
-                                    AppTheme.warningAmber.withValues(
-                                      alpha: 0.1,
+                                    AppTheme.warningAmber.withOpacity(
+                                      0.1,
                                     ),
                                   ],
                           ),
