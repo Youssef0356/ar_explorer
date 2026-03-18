@@ -40,6 +40,7 @@ flutter:
     - assets/images/AR vs VR vs MR vs XR/
     - assets/images/Real World Examples vs Common Misconceptions/
     - assets/images/evolution of spatial computing in augmented reality/
+    - assets/images/Why coordinate systems in AR/
 
 flutter_launcher_icons:
   android: true

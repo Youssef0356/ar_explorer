@@ -10,7 +10,7 @@ import 'roadmap_screen.dart';
 import 'bookmarks_screen.dart';
 import 'achievements_screen.dart';
 import 'paywall_screen.dart';
-import 'coding_game_map_screen.dart';
+import 'inspector_game_map_screen.dart';
 import 'game_map_screen.dart';
 import '../widgets/animated_google_background.dart';
 
@@ -28,7 +28,7 @@ class _MainScreenState extends State<MainScreen> {
     const HomeScreen(),
     const RoadmapScreen(),
     const _EngineerEntryScreen(),
-    const CodingGameMapScreen(), // Added Code Game Screen
+    const InspectorGameMapScreen(), // Added XR Builder
     const BookmarksScreen(),
     const AchievementsScreen(),
   ];
@@ -89,9 +89,9 @@ class _MainScreenState extends State<MainScreen> {
                   label: 'ENGINEER',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.code_rounded),
-                  activeIcon: Icon(Icons.code_rounded),
-                  label: 'CODE',
+                  icon: Icon(Icons.architecture_rounded),
+                  activeIcon: Icon(Icons.architecture_rounded),
+                  label: 'XR BUILDER',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.bookmark_rounded),
@@ -363,7 +363,7 @@ class _EngineerEntryScreen extends StatelessWidget {
       ),
       (
         name: 'Zone 4 — Advanced',
-        description: 'OpenXR standards, Occlusion depth',
+        description: 'OpenXR standards, Occlusion',
         color: const Color(0xFFFFC107),
         icon: Icons.auto_awesome_rounded,
         levels: '3 levels',

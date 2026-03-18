@@ -202,6 +202,9 @@ final List<LearningModule> allModules = [
             'Every AR experience is built on coordinate systems: invisible 3D grids that define '
             'where the camera is, where virtual objects live, and how everything moves together.',
           ),
+          const ContentBlock.image(
+            'assets/images/Why coordinate systems in AR/Coordinates systems.png',
+          ),
           const ContentBlock.subheading('Without Coordinate Systems…'),
           const ContentBlock.bullet(
             'Virtual objects would not know "where" to appear in the real world.',
@@ -211,6 +214,21 @@ final List<LearningModule> allModules = [
           ),
           const ContentBlock.bullet(
             'Two users could not agree on "the same" real-world location.',
+          ),
+          const ContentBlock.subheading('Understanding the Grid'),
+          const ContentBlock.body(
+            'In AR, a coordinate system is a mathematical framework that allows the system to '
+            'assign a unique address (X, Y, Z) to every point in space. '
+            'Common values like (0,0,0) represent the "Origin" — the starting point of that specific grid.',
+          ),
+          const ContentBlock.bullet(
+            'X-Axis: Typically represents horizontal movement (Left/Right).',
+          ),
+          const ContentBlock.bullet(
+            'Y-Axis: Typically represents vertical movement (Up/Down).',
+          ),
+          const ContentBlock.bullet(
+            'Z-Axis: Typically represents depth (Forward/Backward).',
           ),
           const ContentBlock.info(
             'You do not need to compute matrices yet. Focus on the mental model: '
