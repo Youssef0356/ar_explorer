@@ -380,6 +380,9 @@ final List<LearningModule> allModules = [
             'In a professional context, AR is the real-time integration of digital artifacts that respect '
             'the laws of physics, perspective, and lighting within the user\'s physical environment.',
           ),
+          const ContentBlock.image(
+            'assets/images/evolution of spatial computing in augmented reality/evolution of spatial computing in augmented reality.png',
+          ),
           const ContentBlock.subheading('The Reality-Virtuality Continuum'),
           const ContentBlock.body(
             'Paul Milgram\'s 1994 spectrum maps the transition from the Physical World to Virtual Reality. '

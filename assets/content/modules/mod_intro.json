@@ -17,6 +17,10 @@
           "content": "We are currently undergoing a third foundational shift: moving from mobile to spatial computing. In a professional context, AR is the real-time integration of digital artifacts that respect the laws of physics, perspective, and lighting within the user’s physical environment."
         },
         {
+          "type": "image",
+          "content": "assets/images/evolution of spatial computing in augmented reality/evolution of spatial computing in augmented reality.png"
+        },
+        {
           "type": "subheading",
           "content": "The Reality-Virtuality Continuum"
         },

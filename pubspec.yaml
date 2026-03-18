@@ -39,6 +39,7 @@ flutter:
     - assets/images/
     - assets/images/AR vs VR vs MR vs XR/
     - assets/images/Real World Examples vs Common Misconceptions/
+    - assets/images/evolution of spatial computing in augmented reality/
 
 flutter_launcher_icons:
   android: true
