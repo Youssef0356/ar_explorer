@@ -157,7 +157,7 @@ class _QuizScreenState extends State<QuizScreen> {
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.accentAmber.withValues(alpha: 0.15),
+                          color: AppTheme.accentAmber.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -332,7 +332,7 @@ class _QuizScreenState extends State<QuizScreen> {
                                             ),
                                             style: OutlinedButton.styleFrom(
                                               foregroundColor: AppTheme.accentCyan,
-                                              side: BorderSide(color: AppTheme.accentCyan.withValues(alpha: 0.5)),
+                                              side: BorderSide(color: AppTheme.accentCyan.withOpacity(0.5)),
                                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                               minimumSize: Size.zero,
                                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,

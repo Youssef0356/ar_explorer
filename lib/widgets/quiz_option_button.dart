@@ -26,31 +26,31 @@ class QuizOptionButton extends StatelessWidget {
   Color get _backgroundColor {
     if (!showResult) {
       return isSelected
-          ? AppTheme.accentCyan.withValues(alpha: isDark ? 0.15 : 0.1)
+          ? AppTheme.accentCyan.withOpacity(isDark ? 0.15 : 0.1)
           : AppTheme.cardC(isDark);
     }
     if (isCorrect) {
-      return AppTheme.successGreen.withValues(alpha: isDark ? 0.15 : 0.1);
+      return AppTheme.successGreen.withOpacity(isDark ? 0.15 : 0.1);
     }
     if (isSelected && !isCorrect) {
-      return AppTheme.errorRed.withValues(alpha: isDark ? 0.15 : 0.1);
+      return AppTheme.errorRed.withOpacity(isDark ? 0.15 : 0.1);
     }
-    return AppTheme.cardC(isDark).withValues(alpha: isDark ? 0.5 : 0.7);
+    return AppTheme.cardC(isDark).withOpacity(isDark ? 0.5 : 0.7);
   }
 
   Color get _borderColor {
     if (!showResult) {
       return isSelected
-          ? AppTheme.accentCyan.withValues(alpha: 0.5)
+          ? AppTheme.accentCyan.withOpacity(0.5)
           : AppTheme.dividerC(isDark);
     }
     if (isCorrect) {
-      return AppTheme.successGreen.withValues(alpha: 0.5);
+      return AppTheme.successGreen.withOpacity(0.5);
     }
     if (isSelected && !isCorrect) {
-      return AppTheme.errorRed.withValues(alpha: 0.5);
+      return AppTheme.errorRed.withOpacity(0.5);
     }
-    return AppTheme.dividerC(isDark).withValues(alpha: 0.3);
+    return AppTheme.dividerC(isDark).withOpacity(0.3);
   }
 
   IconData? get _trailingIcon {
@@ -81,7 +81,7 @@ class QuizOptionButton extends StatelessWidget {
           boxShadow: !isDark && isSelected && !showResult
               ? [
                   BoxShadow(
-                    color: AppTheme.accentCyan.withValues(alpha: 0.15),
+                    color: AppTheme.accentCyan.withOpacity(0.15),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -95,10 +95,10 @@ class QuizOptionButton extends StatelessWidget {
               height: 32,
               decoration: BoxDecoration(
                 color: isSelected && !showResult
-                    ? AppTheme.accentCyan.withValues(alpha: 0.2)
+                    ? AppTheme.accentCyan.withOpacity(0.2)
                     : (isDark
-                          ? Colors.white.withValues(alpha: 0.05)
-                          : Colors.grey.withValues(alpha: 0.08)),
+                          ? Colors.white.withOpacity(0.05)
+                          : Colors.grey.withOpacity(0.08)),
                 borderRadius: BorderRadius.circular(8),
               ),
               alignment: Alignment.center,

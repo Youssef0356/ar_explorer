@@ -303,8 +303,8 @@ class _PracticeScreenState extends State<PracticeScreen> {
             child: LinearProgressIndicator(
               value: (_currentIndex + 1) / _questions.length,
               backgroundColor: isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.grey.withValues(alpha: 0.12),
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.grey.withOpacity(0.12),
               valueColor: const AlwaysStoppedAnimation(AppTheme.accentCyan),
               minHeight: 4,
             ),
@@ -397,7 +397,7 @@ class _PracticeModeCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: enabled
-                ? color.withValues(alpha: isDark ? 0.3 : 0.2)
+                ? color.withOpacity(isDark ? 0.3 : 0.2)
                 : AppTheme.dividerC(isDark),
           ),
         ),
@@ -407,7 +407,7 @@ class _PracticeModeCard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: enabled ? 0.15 : 0.05),
+                color: color.withOpacity(enabled ? 0.15 : 0.05),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(

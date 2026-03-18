@@ -155,7 +155,7 @@ class AchievementsScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
               value: overallProgress,
-              backgroundColor: AppTheme.accentCyan.withValues(alpha: 0.1),
+              backgroundColor: AppTheme.accentCyan.withOpacity(0.1),
               valueColor: const AlwaysStoppedAnimation<Color>(
                 AppTheme.accentCyan,
               ),

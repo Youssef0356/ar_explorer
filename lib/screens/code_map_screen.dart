@@ -58,10 +58,10 @@ class CodeMapScreen extends StatelessWidget {
           padding: EdgeInsets.fromLTRB(
               12, MediaQuery.of(context).padding.top + 8, 16, 14),
           decoration: BoxDecoration(
-            color: const Color(0xFF060B14).withValues(alpha: 0.85),
+            color: const Color(0xFF060B14).withOpacity(0.85),
             border: Border(
                 bottom: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.06))),
+                    color: Colors.white.withOpacity(0.06))),
           ),
           child: Row(
             children: [
@@ -89,7 +89,7 @@ class CodeMapScreen extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.06),
+                  color: Colors.white.withOpacity(0.06),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text('$completed / $total',
@@ -111,9 +111,9 @@ class CodeMapScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.15),
+                    color: Colors.amber.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                    border: Border.all(color: Colors.amber.withOpacity(0.4)),
                   ),
                   child: const Icon(Icons.emoji_events_rounded,
                       color: Colors.amber, size: 20),
@@ -137,12 +137,12 @@ class CodeMapScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
+        color: Colors.white.withOpacity(0.04),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: allDone
-              ? zone.accentColor.withValues(alpha: 0.3)
-              : Colors.white.withValues(alpha: 0.06),
+              ? zone.accentColor.withOpacity(0.3)
+              : Colors.white.withOpacity(0.06),
         ),
       ),
       child: Column(
@@ -151,7 +151,7 @@ class CodeMapScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: zone.accentColor.withValues(alpha: 0.06),
+              color: zone.accentColor.withOpacity(0.06),
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(18)),
             ),
@@ -160,7 +160,7 @@ class CodeMapScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: zone.accentColor.withValues(alpha: 0.12),
+                    color: zone.accentColor.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(zone.icon, color: zone.accentColor, size: 22),
@@ -177,7 +177,7 @@ class CodeMapScreen extends StatelessWidget {
                               fontWeight: FontWeight.w700)),
                       Text(zone.platform,
                           style: TextStyle(
-                              color: zone.accentColor.withValues(alpha: 0.7),
+                              color: zone.accentColor.withOpacity(0.7),
                               fontSize: 12)),
                     ],
                   ),
@@ -187,7 +187,7 @@ class CodeMapScreen extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: zone.accentColor.withValues(alpha: 0.1),
+                    color: zone.accentColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text('$completedInZone / $totalInZone',
@@ -227,7 +227,7 @@ class CodeMapScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   border: Border(
                     bottom:
-                        BorderSide(color: Colors.white.withValues(alpha: 0.04)),
+                        BorderSide(color: Colors.white.withOpacity(0.04)),
                   ),
                 ),
                 child: Row(
@@ -239,22 +239,22 @@ class CodeMapScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: isLocked
-                            ? Colors.white.withValues(alpha: 0.04)
+                            ? Colors.white.withOpacity(0.04)
                             : isCompleted
-                                ? zone.accentColor.withValues(alpha: 0.15)
-                                : Colors.white.withValues(alpha: 0.06),
+                                ? zone.accentColor.withOpacity(0.15)
+                                : Colors.white.withOpacity(0.06),
                         border: Border.all(
                           color: isLocked
-                              ? Colors.white.withValues(alpha: 0.08)
+                              ? Colors.white.withOpacity(0.08)
                               : isCompleted
-                                  ? zone.accentColor.withValues(alpha: 0.4)
-                                  : Colors.white.withValues(alpha: 0.12),
+                                  ? zone.accentColor.withOpacity(0.4)
+                                  : Colors.white.withOpacity(0.12),
                         ),
                       ),
                       child: Center(
                         child: isLocked
                             ? Icon(Icons.lock_rounded,
-                                color: Colors.white.withValues(alpha: 0.2),
+                                color: Colors.white.withOpacity(0.2),
                                 size: 14)
                             : isCompleted
                                 ? Icon(Icons.check_rounded,
@@ -263,12 +263,12 @@ class CodeMapScreen extends StatelessWidget {
                                     ? Icon(
                                         Icons.local_fire_department_rounded,
                                         color: Colors.orange
-                                            .withValues(alpha: 0.7),
+                                            .withOpacity(0.7),
                                         size: 16)
                                     : Text('${idx + 1}',
                                         style: TextStyle(
                                             color: Colors.white
-                                                .withValues(alpha: 0.6),
+                                                .withOpacity(0.6),
                                             fontSize: 14,
                                             fontWeight: FontWeight.w700)),
                       ),
@@ -283,8 +283,8 @@ class CodeMapScreen extends StatelessWidget {
                             challenge.title,
                             style: TextStyle(
                               color: isLocked
-                                  ? Colors.white.withValues(alpha: 0.3)
-                                  : Colors.white.withValues(alpha: 0.9),
+                                  ? Colors.white.withOpacity(0.3)
+                                  : Colors.white.withOpacity(0.9),
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
@@ -294,8 +294,8 @@ class CodeMapScreen extends StatelessWidget {
                               challenge.subtitle,
                               style: TextStyle(
                                 color: isLocked
-                                    ? Colors.white.withValues(alpha: 0.15)
-                                    : Colors.white.withValues(alpha: 0.4),
+                                    ? Colors.white.withOpacity(0.15)
+                                    : Colors.white.withOpacity(0.4),
                                 fontSize: 11,
                               ),
                             ),
@@ -313,14 +313,14 @@ class CodeMapScreen extends StatelessWidget {
                                 : Icons.star_outline_rounded,
                             color: i < stars
                                 ? Colors.amber
-                                : Colors.white.withValues(alpha: 0.15),
+                                : Colors.white.withOpacity(0.15),
                             size: 16,
                           );
                         }),
                       ),
                     if (!isCompleted && !isLocked)
                       Icon(Icons.chevron_right_rounded,
-                          color: Colors.white.withValues(alpha: 0.3), size: 20),
+                          color: Colors.white.withOpacity(0.3), size: 20),
                   ],
                 ),
               ),

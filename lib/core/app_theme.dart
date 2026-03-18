@@ -67,8 +67,8 @@ class AppTheme {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: isDark
-            ? [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)]
-            : [color.withValues(alpha: 0.08), color.withValues(alpha: 0.03)],
+            ? [color.withOpacity(0.15), color.withOpacity(0.05)]
+            : [color.withOpacity(0.08), color.withOpacity(0.03)],
       );
 
   // ── Theme-Aware Helpers ────────────────────────────────────────
@@ -183,7 +183,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: card,
         elevation: isDark ? 0 : 2,
-        shadowColor: isDark ? null : Colors.black.withValues(alpha: 0.06),
+        shadowColor: isDark ? null : Colors.black.withOpacity(0.06),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -221,20 +221,20 @@ class AppTheme {
   // ── Decorations ────────────────────────────────────────────────
   static BoxDecoration glassCard(bool isDark) => BoxDecoration(
     color: isDark
-        ? cardDark.withValues(alpha: 0.7)
-        : Colors.white.withValues(alpha: 0.85),
+        ? cardDark.withOpacity(0.7)
+        : Colors.white.withOpacity(0.85),
     borderRadius: BorderRadius.circular(16),
     border: Border.all(
       color: isDark
-          ? Colors.white.withValues(alpha: 0.06)
-          : Colors.black.withValues(alpha: 0.06),
+          ? Colors.white.withOpacity(0.06)
+          : Colors.black.withOpacity(0.06),
       width: 1,
     ),
     boxShadow: isDark
         ? null
         : [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: Colors.black.withOpacity(0.04),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -245,14 +245,14 @@ class AppTheme {
     gradient: moduleGradient(accent, isDark),
     borderRadius: BorderRadius.circular(16),
     border: Border.all(
-      color: accent.withValues(alpha: isDark ? 0.2 : 0.15),
+      color: accent.withOpacity(isDark ? 0.2 : 0.15),
       width: 1,
     ),
     boxShadow: isDark
         ? null
         : [
             BoxShadow(
-              color: accent.withValues(alpha: 0.08),
+              color: accent.withOpacity(0.08),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -270,7 +270,7 @@ class AppTheme {
       labelText: label,
       hintText: hint,
       labelStyle: TextStyle(color: txtMuted),
-      hintStyle: TextStyle(color: txtMuted.withValues(alpha: 0.5)),
+      hintStyle: TextStyle(color: txtMuted.withOpacity(0.5)),
       floatingLabelStyle: const TextStyle(color: accentCyan),
       filled: true,
       fillColor: isDark ? cardDark : cardLightAlt,

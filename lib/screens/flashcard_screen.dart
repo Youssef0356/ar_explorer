@@ -211,8 +211,8 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                   child: LinearProgressIndicator(
                     value: (_currentIndex + 1) / _cards.length,
                     backgroundColor: isDark
-                        ? Colors.white.withValues(alpha: 0.05)
-                        : Colors.grey.withValues(alpha: 0.12),
+                        ? Colors.white.withOpacity(0.05)
+                        : Colors.grey.withOpacity(0.12),
                     valueColor:
                         AlwaysStoppedAnimation(widget.accentColor),
                     minHeight: 4,
@@ -323,15 +323,15 @@ class _FlashcardScreenState extends State<FlashcardScreen>
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isBack
-              ? widget.accentColor.withValues(alpha: 0.3)
+              ? widget.accentColor.withOpacity(0.3)
               : AppTheme.dividerC(isDark),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
             color: isBack
-                ? widget.accentColor.withValues(alpha: 0.1)
-                : Colors.black.withValues(alpha: 0.1),
+                ? widget.accentColor.withOpacity(0.1)
+                : Colors.black.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -345,10 +345,10 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                 horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
               color: isBack
-                  ? widget.accentColor.withValues(alpha: 0.15)
+                  ? widget.accentColor.withOpacity(0.15)
                   : (isDark
-                      ? Colors.white.withValues(alpha: 0.05)
-                      : Colors.grey.withValues(alpha: 0.08)),
+                      ? Colors.white.withOpacity(0.05)
+                      : Colors.grey.withOpacity(0.08)),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(

@@ -32,22 +32,22 @@ class AchievementBadge extends StatelessWidget {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          color.withValues(alpha: 0.3),
-                          color.withValues(alpha: 0.1),
+                          color.withOpacity(0.3),
+                          color.withOpacity(0.1),
                         ],
                       )
                     : null,
                 color: earned ? null : AppTheme.cardDark,
                 border: Border.all(
                   color: earned
-                      ? color.withValues(alpha: 0.5)
+                      ? color.withOpacity(0.5)
                       : AppTheme.dividerColor,
                   width: 2,
                 ),
                 boxShadow: earned
                     ? [
                         BoxShadow(
-                          color: color.withValues(alpha: 0.3),
+                          color: color.withOpacity(0.3),
                           blurRadius: 12,
                           spreadRadius: 0,
                         ),

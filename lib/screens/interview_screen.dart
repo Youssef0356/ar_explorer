@@ -240,7 +240,7 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: AppTheme.accentAmber.withValues(alpha: 0.15),
+                    color: AppTheme.accentAmber.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Icon(
@@ -268,7 +268,7 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppTheme.accentCyan.withValues(alpha: 0.1),
+                      color: AppTheme.accentCyan.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -287,7 +287,7 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
                           margin: const EdgeInsets.only(top: 8),
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                           decoration: BoxDecoration(
-                             color: AppTheme.successGreen.withValues(alpha: 0.15),
+                             color: AppTheme.successGreen.withOpacity(0.15),
                              borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(
@@ -390,7 +390,7 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
                 padding: const EdgeInsets.symmetric(
                     horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: timerColor.withValues(alpha: 0.15),
+                  color: timerColor.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -419,8 +419,8 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
             child: LinearProgressIndicator(
               value: timerFraction,
               backgroundColor: isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.grey.withValues(alpha: 0.12),
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.grey.withOpacity(0.12),
               valueColor: AlwaysStoppedAnimation(timerColor),
               minHeight: 4,
             ),
@@ -509,12 +509,12 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
                       colors: [
-                        _tierColor.withValues(alpha: 0.3),
-                        _tierColor.withValues(alpha: 0.1),
+                        _tierColor.withOpacity(0.3),
+                        _tierColor.withOpacity(0.1),
                       ],
                     ),
                     border: Border.all(
-                        color: _tierColor.withValues(alpha: 0.5),
+                        color: _tierColor.withOpacity(0.5),
                         width: 3),
                   ),
                   child: Center(

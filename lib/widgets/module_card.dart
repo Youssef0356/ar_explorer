@@ -38,7 +38,7 @@ class ModuleCard extends StatelessWidget {
           child: Container(
             decoration: AppTheme.moduleCard(accentColor, isDark).copyWith(
               color: isLocked
-                  ? AppTheme.cardC(isDark).withValues(alpha: isDark ? 0.5 : 0.7)
+                  ? AppTheme.cardC(isDark).withOpacity(isDark ? 0.5 : 0.7)
                   : null,
             ),
             child: Stack(
@@ -55,7 +55,7 @@ class ModuleCard extends StatelessWidget {
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
                           colors: [
-                            accentColor.withValues(alpha: isDark ? 0.15 : 0.1),
+                            accentColor.withOpacity(isDark ? 0.15 : 0.1),
                             Colors.transparent,
                           ],
                         ),
@@ -110,7 +110,7 @@ class ModuleCard extends StatelessWidget {
                                     color: isLocked
                                         ? AppTheme.textMutedC(
                                             isDark,
-                                          ).withValues(alpha: 0.5)
+                                          ).withOpacity(0.5)
                                         : AppTheme.textSecondaryC(isDark),
                                   ),
                                   maxLines: 2,
@@ -171,8 +171,8 @@ class ModuleCard extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: isPremiumModule 
-                                ? AppTheme.accentAmber.withValues(alpha: 0.15)
-                                : AppTheme.warningAmber.withValues(alpha: 0.1),
+                                ? AppTheme.accentAmber.withOpacity(0.15)
+                                : AppTheme.warningAmber.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Column(
@@ -186,7 +186,7 @@ class ModuleCard extends StatelessWidget {
                                     size: 14,
                                     color: isPremiumModule 
                                         ? AppTheme.accentAmber
-                                        : AppTheme.warningAmber.withValues(alpha: 0.7),
+                                        : AppTheme.warningAmber.withOpacity(0.7),
                                   ),
                                   const SizedBox(width: 6),
                                   Expanded(
@@ -195,7 +195,7 @@ class ModuleCard extends StatelessWidget {
                                       style: AppTheme.bodySmall.copyWith(
                                         color: isPremiumModule 
                                             ? AppTheme.accentAmber
-                                            : AppTheme.warningAmber.withValues(alpha: 0.7),
+                                            : AppTheme.warningAmber.withOpacity(0.7),
                                         fontSize: 11,
                                         fontWeight: isPremiumModule ? FontWeight.bold : FontWeight.normal,
                                       ),

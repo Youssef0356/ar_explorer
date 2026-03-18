@@ -195,7 +195,7 @@ class CreditsScreen extends StatelessWidget {
                           ),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: AppTheme.warningAmber.withValues(alpha: 0.2),
+                            color: AppTheme.warningAmber.withOpacity(0.2),
                           ),
                         ),
                         child: Row(
@@ -247,13 +247,13 @@ class CreditsScreen extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppTheme.accentCyan.withValues(alpha: isDark ? 0.15 : 0.1),
-                AppTheme.accentBlue.withValues(alpha: isDark ? 0.1 : 0.05),
+                AppTheme.accentCyan.withOpacity(isDark ? 0.15 : 0.1),
+                AppTheme.accentBlue.withOpacity(isDark ? 0.1 : 0.05),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: AppTheme.accentCyan.withValues(alpha: 0.2),
+              color: AppTheme.accentCyan.withOpacity(0.2),
             ),
           ),
           child: Column(
@@ -311,7 +311,7 @@ class CreditsScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppTheme.cardC(isDark),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: color.withValues(alpha: 0.15)),
+                  border: Border.all(color: color.withOpacity(0.15)),
                 ),
                 child: Row(
                   children: [
@@ -319,7 +319,7 @@ class CreditsScreen extends StatelessWidget {
                       width: 38,
                       height: 38,
                       decoration: BoxDecoration(
-                        color: color.withValues(alpha: isDark ? 0.15 : 0.1),
+                        color: color.withOpacity(isDark ? 0.15 : 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(icon, color: color, size: 20),
@@ -376,9 +376,9 @@ class CreditsScreen extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: tech.$2.withValues(alpha: isDark ? 0.12 : 0.08),
+            color: tech.$2.withOpacity(isDark ? 0.12 : 0.08),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: tech.$2.withValues(alpha: 0.25)),
+            border: Border.all(color: tech.$2.withOpacity(0.25)),
           ),
           child: Text(
             tech.$1,

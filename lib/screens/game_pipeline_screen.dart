@@ -342,7 +342,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFF0E1621),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border.all(color: accentColor.withValues(alpha: 0.3)),
+          border: Border.all(color: accentColor.withOpacity(0.3)),
         ),
         padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
         child: Column(
@@ -366,9 +366,9 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.12),
+                    color: accentColor.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: accentColor.withValues(alpha: 0.3)),
+                    border: Border.all(color: accentColor.withOpacity(0.3)),
                   ),
                   child: Icon(node.icon, color: accentColor, size: 22),
                 ),
@@ -382,7 +382,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                         fontSize: 16, fontWeight: FontWeight.w800)),
                     Text(node.description,
                       style: TextStyle(
-                        color: accentColor.withValues(alpha: 0.8),
+                        color: accentColor.withOpacity(0.8),
                         fontSize: 12)),
                   ],
                 ),
@@ -483,7 +483,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.06),
+                color: Colors.white.withOpacity(0.06),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.arrow_back_ios_rounded,
@@ -501,7 +501,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                     fontSize: 16, fontWeight: FontWeight.w800)),
                 Text(zone.name,
                   style: TextStyle(
-                    color: zone.accentColor.withValues(alpha: 0.7),
+                    color: zone.accentColor.withOpacity(0.7),
                     fontSize: 11)),
               ],
             ),
@@ -512,11 +512,11 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: (_secondsRemaining < 15 ? Colors.red : Colors.white)
-                    .withValues(alpha: 0.08),
+                    .withOpacity(0.08),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: (_secondsRemaining < 15 ? Colors.red : Colors.white)
-                      .withValues(alpha: 0.25)),
+                      .withOpacity(0.25)),
               ),
               child: Text(
                 '${_secondsRemaining ~/ 60}:${(_secondsRemaining % 60).toString().padLeft(2, '0')}',
@@ -532,7 +532,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
               Icons.star_rounded, size: 16,
               color: i < _starsEarned
                   ? Colors.amber
-                  : Colors.white.withValues(alpha: 0.12))),
+                  : Colors.white.withOpacity(0.12))),
           ),
         ],
       ),
@@ -545,9 +545,9 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: zone.accentColor.withValues(alpha: 0.07),
+        color: zone.accentColor.withOpacity(0.07),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: zone.accentColor.withValues(alpha: 0.2))),
+        border: Border.all(color: zone.accentColor.withOpacity(0.2))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -555,7 +555,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
           if (widget.level.projectTask.isNotEmpty)
             Text(widget.level.projectTask,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.95),
+                color: Colors.white.withOpacity(0.95),
                 fontSize: 13, fontWeight: FontWeight.w600, height: 1.4)),
           if (widget.level.projectTask.isNotEmpty && widget.level.goal.isNotEmpty)
             const SizedBox(height: 6),
@@ -569,7 +569,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                 Expanded(
                   child: Text(widget.level.goal,
                     style: TextStyle(
-                      color: zone.accentColor.withValues(alpha: 0.9),
+                      color: zone.accentColor.withOpacity(0.9),
                       fontSize: 11, fontWeight: FontWeight.w500, height: 1.4))),
               ],
             ),
@@ -584,19 +584,19 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.03),
+        color: Colors.white.withOpacity(0.03),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06))),
+        border: Border.all(color: Colors.white.withOpacity(0.06))),
       child: Row(
         children: [
           Icon(Icons.touch_app_rounded,
-            color: accentColor.withValues(alpha: 0.7), size: 14),
+            color: accentColor.withOpacity(0.7), size: 14),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
               'Tap nodes below to build the pipeline. Long-press any node for an explanation.',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.45),
+                color: Colors.white.withOpacity(0.45),
                 fontSize: 11, height: 1.4))),
         ],
       ),
@@ -612,22 +612,22 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
       child: ExpansionTile(
         tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        collapsedBackgroundColor: Colors.white.withValues(alpha: 0.03),
-        backgroundColor: Colors.white.withValues(alpha: 0.05),
+        collapsedBackgroundColor: Colors.white.withOpacity(0.03),
+        backgroundColor: Colors.white.withOpacity(0.05),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+          side: BorderSide(color: Colors.white.withOpacity(0.06)),
         ),
         collapsedShape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+          side: BorderSide(color: Colors.white.withOpacity(0.06)),
         ),
         iconColor: accentColor,
-        collapsedIconColor: Colors.white.withValues(alpha: 0.4),
+        collapsedIconColor: Colors.white.withOpacity(0.4),
         title: Text(
           'About this build step',
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.6),
+            color: Colors.white.withOpacity(0.6),
             fontSize: 11,
             fontWeight: FontWeight.w500,
           ),
@@ -636,7 +636,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
           Text(
             widget.level.buildContext,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.75),
+              color: Colors.white.withOpacity(0.75),
               fontSize: 12,
               height: 1.5,
             ),
@@ -664,7 +664,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
               itemCount: slotCount,
               separatorBuilder: (_, index) => Center(
                 child: Icon(Icons.arrow_forward_ios_rounded,
-                  color: Colors.white.withValues(alpha: 0.15), size: 12),
+                  color: Colors.white.withOpacity(0.15), size: 12),
               ),
               itemBuilder: (_, i) => _buildSlot(i, accentColor),
             ),
@@ -678,11 +678,11 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.swipe_rounded,
-                  color: accentColor.withValues(alpha: 0.4), size: 12),
+                  color: accentColor.withOpacity(0.4), size: 12),
                 const SizedBox(width: 4),
                 Text('Scroll to see all $slotCount slots',
                   style: TextStyle(
-                    color: accentColor.withValues(alpha: 0.4),
+                    color: accentColor.withOpacity(0.4),
                     fontSize: 10)),
               ],
             ),
@@ -701,8 +701,8 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
         : isPulsed
             ? Colors.green
             : node != null
-                ? accentColor.withValues(alpha: 0.7)
-                : Colors.white.withValues(alpha: 0.12);
+                ? accentColor.withOpacity(0.7)
+                : Colors.white.withOpacity(0.12);
 
     return GestureDetector(
       onTap: node != null ? () => _removeSlot(index) : null,
@@ -713,11 +713,11 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
         decoration: BoxDecoration(
           color: node != null
               ? (isWrong
-                  ? Colors.red.withValues(alpha: 0.1)
+                  ? Colors.red.withOpacity(0.1)
                   : isPulsed
-                      ? Colors.green.withValues(alpha: 0.1)
-                      : Colors.white.withValues(alpha: 0.06))
-              : Colors.white.withValues(alpha: 0.02),
+                      ? Colors.green.withOpacity(0.1)
+                      : Colors.white.withOpacity(0.06))
+              : Colors.white.withOpacity(0.02),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: borderColor,
@@ -725,7 +725,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
           boxShadow: isPulsed || isWrong
               ? [BoxShadow(
                   color: (isWrong ? Colors.red : accentColor)
-                      .withValues(alpha: 0.25),
+                      .withOpacity(0.25),
                   blurRadius: 10)]
               : [],
         ),
@@ -734,7 +734,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
           children: [
             Text('${index + 1}',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: Colors.white.withOpacity(0.2),
                 fontSize: 9, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             if (node != null) ...[
@@ -753,16 +753,16 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6),
+                    color: Colors.white.withOpacity(0.6),
                     fontSize: 9, height: 1.2)),
               ),
             ] else ...[
               Icon(Icons.add_rounded,
-                color: Colors.white.withValues(alpha: 0.15), size: 20),
+                color: Colors.white.withOpacity(0.15), size: 20),
               const SizedBox(height: 2),
               Text('EMPTY',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.12),
+                  color: Colors.white.withOpacity(0.12),
                   fontSize: 8, letterSpacing: 0.5)),
             ],
           ],
@@ -777,9 +777,9 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
       margin: const EdgeInsets.fromLTRB(16, 4, 16, 0),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha: 0.08),
+        color: Colors.red.withOpacity(0.08),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.red.withValues(alpha: 0.3))),
+        border: Border.all(color: Colors.red.withOpacity(0.3))),
       child: Row(
         children: [
           const Icon(Icons.error_outline_rounded, color: Colors.red, size: 14),
@@ -801,9 +801,9 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
         margin: const EdgeInsets.fromLTRB(16, 6, 16, 0),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: accentColor.withValues(alpha: 0.07),
+          color: accentColor.withOpacity(0.07),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: accentColor.withValues(alpha: 0.35))),
+          border: Border.all(color: accentColor.withOpacity(0.35))),
         child: Row(
           children: [
             Icon(Icons.school_rounded, color: accentColor, size: 16),
@@ -818,7 +818,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                       fontSize: 12, fontWeight: FontWeight.w700)),
                   Text('Tap to read the related learning module →',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.55),
+                      color: Colors.white.withOpacity(0.55),
                       fontSize: 11)),
                 ],
               ),
@@ -840,19 +840,19 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
             children: [
               Text('AVAILABLE NODES',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.35),
+                  color: Colors.white.withOpacity(0.35),
                   fontSize: 10, fontWeight: FontWeight.w800,
                   letterSpacing: 2)),
               const Spacer(),
               Text('${_slots.where((s) => s != null).length} / ${_slots.length} placed',
                 style: TextStyle(
-                  color: accentColor.withValues(alpha: 0.6),
+                  color: accentColor.withOpacity(0.6),
                   fontSize: 10, fontWeight: FontWeight.w600)),
               const SizedBox(width: 8),
               // "hold for info" label
               Text('· hold for info',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: Colors.white.withOpacity(0.2),
                   fontSize: 9)),
             ],
           ),
@@ -883,17 +883,17 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isPlaced
-              ? Colors.white.withValues(alpha: 0.02)
+              ? Colors.white.withOpacity(0.02)
               : isHint
-                  ? accentColor.withValues(alpha: 0.1)
-                  : Colors.white.withValues(alpha: 0.05),
+                  ? accentColor.withOpacity(0.1)
+                  : Colors.white.withOpacity(0.05),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isPlaced
-                ? Colors.white.withValues(alpha: 0.06)
+                ? Colors.white.withOpacity(0.06)
                 : isHint
-                    ? accentColor.withValues(alpha: 0.6)
-                    : Colors.white.withValues(alpha: 0.1),
+                    ? accentColor.withOpacity(0.6)
+                    : Colors.white.withOpacity(0.1),
             width: isHint ? 1.5 : 1)),
         child: Row(
           children: [
@@ -901,12 +901,12 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: isPlaced
-                    ? Colors.white.withValues(alpha: 0.03)
-                    : accentColor.withValues(alpha: 0.1),
+                    ? Colors.white.withOpacity(0.03)
+                    : accentColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10)),
               child: Icon(node.icon,
                 color: isPlaced
-                    ? Colors.white.withValues(alpha: 0.2)
+                    ? Colors.white.withOpacity(0.2)
                     : accentColor,
                 size: 20),
             ),
@@ -920,8 +920,8 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                       Text(node.name,
                         style: TextStyle(
                           color: isPlaced
-                              ? Colors.white.withValues(alpha: 0.25)
-                              : Colors.white.withValues(alpha: 0.9),
+                              ? Colors.white.withOpacity(0.25)
+                              : Colors.white.withOpacity(0.9),
                           fontSize: 13, fontWeight: FontWeight.w700)),
                       if (isHint) ...[
                         const SizedBox(width: 6),
@@ -929,7 +929,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                           padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: accentColor.withValues(alpha: 0.15),
+                            color: accentColor.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(6)),
                           child: Text('START HERE',
                             style: TextStyle(
@@ -942,8 +942,8 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                   Text(node.description,
                     style: TextStyle(
                       color: isPlaced
-                          ? Colors.white.withValues(alpha: 0.15)
-                          : Colors.white.withValues(alpha: 0.45),
+                          ? Colors.white.withOpacity(0.15)
+                          : Colors.white.withOpacity(0.45),
                       fontSize: 11)),
                   if (node.hint.isNotEmpty && !isPlaced)
                     Padding(
@@ -951,7 +951,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                       child: Text(
                         node.hint,
                         style: TextStyle(
-                          color: accentColor.withValues(alpha: 0.55),
+                          color: accentColor.withOpacity(0.55),
                           fontSize: 10,
                           fontStyle: FontStyle.italic,
                         ),
@@ -966,7 +966,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.1),
+                  color: accentColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8)),
                 child: Text('SLOT ${slotIndex + 1}',
                   style: TextStyle(
@@ -974,7 +974,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                     fontSize: 9, fontWeight: FontWeight.w800)))
             else
               Icon(Icons.info_outline_rounded,
-                color: Colors.white.withValues(alpha: 0.15), size: 14),
+                color: Colors.white.withOpacity(0.15), size: 14),
           ],
         ),
       ),
@@ -1008,7 +1008,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                       width: 18, height: 18,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Colors.black.withValues(alpha: 0.6)))
+                        color: Colors.black.withOpacity(0.6)))
                   : Text(
                       allFilled
                           ? 'RUN PIPELINE'
@@ -1026,7 +1026,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
   // ── Success overlay ───────────────────────────────────────────────────────
   Widget _buildSuccessOverlay(ARZone zone) {
     return Container(
-      color: Colors.black.withValues(alpha: 0.92),
+      color: Colors.black.withOpacity(0.92),
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -1037,9 +1037,9 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: zone.accentColor.withValues(alpha: 0.1),
+                  color: zone.accentColor.withOpacity(0.1),
                   border: Border.all(
-                    color: zone.accentColor.withValues(alpha: 0.4), width: 2)),
+                    color: zone.accentColor.withOpacity(0.4), width: 2)),
                 child: Icon(Icons.check_rounded,
                   color: zone.accentColor, size: 56),
               ).animate().scale(
@@ -1062,7 +1062,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                     size: 38,
                     color: i < _starsEarned
                         ? Colors.amber
-                        : Colors.white.withValues(alpha: 0.1)),
+                        : Colors.white.withOpacity(0.1)),
                 ).animate(delay: Duration(milliseconds: 500 + i * 150))
                     .scale(curve: Curves.elasticOut)),
               ),
@@ -1178,7 +1178,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                 Navigator.pop(context); // Exit game screen
               },
               child: Text('Maybe Later',
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.4))),
+                style: TextStyle(color: Colors.white.withOpacity(0.4))),
             ),
           ],
         ),
@@ -1188,7 +1188,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
 
   Widget _buildTimeoutOverlay(ARZone zone) {
     return Container(
-      color: Colors.black.withValues(alpha: 0.92),
+      color: Colors.black.withOpacity(0.92),
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -1199,9 +1199,9 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.red.withValues(alpha: 0.1),
+                  color: Colors.red.withOpacity(0.1),
                   border: Border.all(
-                    color: Colors.red.withValues(alpha: 0.4), width: 2)),
+                    color: Colors.red.withOpacity(0.4), width: 2)),
                 child: const Icon(Icons.timer_off_rounded,
                   color: Colors.red, size: 56),
               ).animate().shake(hz: 2),

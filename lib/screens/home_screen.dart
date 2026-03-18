@@ -73,7 +73,7 @@ class HomeScreen extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppTheme.accentCyan.withValues(alpha: 0.2),
+                                      color: AppTheme.accentCyan.withOpacity(0.2),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -92,7 +92,7 @@ class HomeScreen extends StatelessWidget {
                                     .animate(onPlay: (c) => c.repeat(reverse: true))
                                     .shimmer(
                                       duration: const Duration(seconds: 4),
-                                      color: AppTheme.accentCyan.withValues(alpha: 0.2),
+                                      color: AppTheme.accentCyan.withOpacity(0.2),
                                     );
                               }
                               return logo;
@@ -125,7 +125,7 @@ class HomeScreen extends StatelessWidget {
                                           Text(
                                             'Welcome, ${progress.username}!',
                                             style: AppTheme.bodySmall.copyWith(
-                                              color: AppTheme.accentCyan.withValues(alpha: 0.7),
+                                              color: AppTheme.accentCyan.withOpacity(0.7),
                                               letterSpacing: 1,
                                               fontWeight: FontWeight.w600,
                                             ),
@@ -171,9 +171,9 @@ class HomeScreen extends StatelessWidget {
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: AppTheme.accentAmber.withValues(alpha: 0.15),
+                                        color: AppTheme.accentAmber.withOpacity(0.15),
                                         borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(color: AppTheme.accentAmber.withValues(alpha: 0.3)),
+                                        border: Border.all(color: AppTheme.accentAmber.withOpacity(0.3)),
                                       ),
                                       child: const Row(
                                         mainAxisSize: MainAxisSize.min,
@@ -244,8 +244,8 @@ class HomeScreen extends StatelessWidget {
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
                                           color: subscription.debugPremiumOverride 
-                                            ? Colors.green.withValues(alpha: 0.3)
-                                            : Colors.red.withValues(alpha: 0.3),
+                                            ? Colors.green.withOpacity(0.3)
+                                            : Colors.red.withOpacity(0.3),
                                           borderRadius: BorderRadius.circular(10),
                                           border: Border.all(
                                             color: subscription.debugPremiumOverride 
@@ -492,22 +492,22 @@ class HomeScreen extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isUnlocked
-                ? [AppTheme.accentCyan.withValues(alpha: 0.2), AppTheme.accentCyan.withValues(alpha: 0.05)]
+                ? [AppTheme.accentCyan.withOpacity(0.2), AppTheme.accentCyan.withOpacity(0.05)]
                 : [
-                    (isDark ? AppTheme.cardDark : AppTheme.cardLightAlt).withValues(alpha: 0.8),
-                    (isDark ? AppTheme.cardDark : AppTheme.cardLightAlt).withValues(alpha: 0.4),
+                    (isDark ? AppTheme.cardDark : AppTheme.cardLightAlt).withOpacity(0.8),
+                    (isDark ? AppTheme.cardDark : AppTheme.cardLightAlt).withOpacity(0.4),
                   ],
           ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isUnlocked 
-              ? AppTheme.accentCyan.withValues(alpha: 0.5) 
-              : AppTheme.textMutedC(isDark).withValues(alpha: 0.2),
+              ? AppTheme.accentCyan.withOpacity(0.5) 
+              : AppTheme.textMutedC(isDark).withOpacity(0.2),
             width: 2,
           ),
           boxShadow: isUnlocked ? [
             BoxShadow(
-              color: AppTheme.accentCyan.withValues(alpha: 0.1),
+              color: AppTheme.accentCyan.withOpacity(0.1),
               blurRadius: 20,
               offset: const Offset(0, 10),
             )
@@ -555,7 +555,7 @@ class HomeScreen extends StatelessWidget {
         ),
       ).animate(target: isUnlocked ? 1 : 0).shimmer(
         duration: const Duration(seconds: 3),
-        color: AppTheme.accentCyan.withValues(alpha: 0.3),
+        color: AppTheme.accentCyan.withOpacity(0.3),
       ),
     );
   }
@@ -836,7 +836,7 @@ class HomeScreen extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: iconColor.withValues(alpha: 0.15),
+                    color: iconColor.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(icon, color: iconColor, size: 20),
@@ -1051,7 +1051,7 @@ class HomeScreen extends StatelessWidget {
                         width: 40, height: 4,
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: AppTheme.textMutedC(isDark).withValues(alpha: 0.3),
+                          color: AppTheme.textMutedC(isDark).withOpacity(0.3),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -1394,7 +1394,7 @@ class HomeScreen extends StatelessWidget {
                             child: Text(
                               'AR Explorer $version',
                               style: AppTheme.bodySmall.copyWith(
-                                color: AppTheme.textMutedC(isDark).withValues(alpha: 0.5),
+                                color: AppTheme.textMutedC(isDark).withOpacity(0.5),
                               ),
                             ),
                           ),
@@ -1463,9 +1463,9 @@ class HomeScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppTheme.errorRed.withValues(alpha: 0.1),
+                color: AppTheme.errorRed.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.errorRed.withValues(alpha: 0.2)),
+                border: Border.all(color: AppTheme.errorRed.withOpacity(0.2)),
               ),
               child: Row(
                 children: [
@@ -1767,7 +1767,7 @@ class TopicSearchDelegate extends SearchDelegate<String> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(module.icon, color: color, size: 20),

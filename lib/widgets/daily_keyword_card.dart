@@ -124,7 +124,7 @@ class _DailyKeywordCardState extends State<DailyKeywordCard>
               icon: Icon(Icons.close_rounded, color: AppTheme.textPrimaryC(isDark)),
               onPressed: () => Navigator.pop(context),
               style: IconButton.styleFrom(
-                backgroundColor: AppTheme.cardC(isDark).withValues(alpha: 0.8),
+                backgroundColor: AppTheme.cardC(isDark).withOpacity(0.8),
               ),
             ),
           ).animate().fadeIn(delay: const Duration(milliseconds: 300)),
@@ -149,12 +149,12 @@ class _DailyKeywordCardState extends State<DailyKeywordCard>
         color: AppTheme.cardC(isDark),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: color.withValues(alpha: isBack ? 0.4 : 0.2),
+          color: color.withOpacity(isBack ? 0.4 : 0.2),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.15),
+            color: color.withOpacity(0.15),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
@@ -167,7 +167,7 @@ class _DailyKeywordCardState extends State<DailyKeywordCard>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 32),

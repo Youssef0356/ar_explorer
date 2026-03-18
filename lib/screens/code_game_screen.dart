@@ -113,7 +113,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.06),
+                color: Colors.white.withOpacity(0.06),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.close_rounded,
@@ -136,7 +136,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
                 } else if (filled) {
                   dotColor = widget.zoneColor;
                 } else {
-                  dotColor = Colors.white.withValues(alpha: 0.15);
+                  dotColor = Colors.white.withOpacity(0.15);
                 }
                 return Expanded(
                   child: Container(
@@ -158,13 +158,13 @@ class _CodeGameScreenState extends State<CodeGameScreen>
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: _timeRemaining <= 10
-                    ? Colors.red.withValues(alpha: 0.15)
-                    : Colors.white.withValues(alpha: 0.06),
+                    ? Colors.red.withOpacity(0.15)
+                    : Colors.white.withOpacity(0.06),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: _timeRemaining <= 10
-                      ? Colors.red.withValues(alpha: 0.4)
-                      : Colors.white.withValues(alpha: 0.1),
+                      ? Colors.red.withOpacity(0.4)
+                      : Colors.white.withOpacity(0.1),
                 ),
               ),
               child: Row(
@@ -188,7 +188,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: widget.zoneColor.withValues(alpha: 0.1),
+                color: widget.zoneColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
@@ -210,16 +210,16 @@ class _CodeGameScreenState extends State<CodeGameScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: widget.zoneColor.withValues(alpha: 0.06),
+        color: widget.zoneColor.withOpacity(0.06),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: widget.zoneColor.withValues(alpha: 0.12)),
+        border: Border.all(color: widget.zoneColor.withOpacity(0.12)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: widget.zoneColor.withValues(alpha: 0.12),
+              color: widget.zoneColor.withOpacity(0.12),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -243,7 +243,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
                 if (widget.challenge.subtitle.isNotEmpty)
                   Text(widget.challenge.subtitle,
                       style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.5),
+                          color: Colors.white.withOpacity(0.5),
                           fontSize: 12)),
               ],
             ),
@@ -264,7 +264,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
       decoration: BoxDecoration(
         color: const Color(0xFF1A1E2E),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(color: Colors.white.withOpacity(0.06)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,13 +274,13 @@ class _CodeGameScreenState extends State<CodeGameScreen>
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
-              color: widget.zoneColor.withValues(alpha: 0.08),
+              color: widget.zoneColor.withOpacity(0.08),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
               _fileExtension(widget.challenge.language),
               style: TextStyle(
-                  color: widget.zoneColor.withValues(alpha: 0.7),
+                  color: widget.zoneColor.withOpacity(0.7),
                   fontSize: 10,
                   fontWeight: FontWeight.w600),
             ),
@@ -323,19 +323,19 @@ class _CodeGameScreenState extends State<CodeGameScreen>
     Color bgColor;
     Color borderColor;
     if (result == true) {
-      bgColor = const Color(0xFF4CAF50).withValues(alpha: 0.15);
-      borderColor = const Color(0xFF4CAF50).withValues(alpha: 0.5);
+      bgColor = const Color(0xFF4CAF50).withOpacity(0.15);
+      borderColor = const Color(0xFF4CAF50).withOpacity(0.5);
     } else if (result == false) {
-      bgColor = Colors.red.withValues(alpha: 0.15);
-      borderColor = Colors.red.withValues(alpha: 0.5);
+      bgColor = Colors.red.withOpacity(0.15);
+      borderColor = Colors.red.withOpacity(0.5);
     } else if (filled != null) {
-      bgColor = widget.zoneColor.withValues(alpha: 0.12);
-      borderColor = widget.zoneColor.withValues(alpha: 0.4);
+      bgColor = widget.zoneColor.withOpacity(0.12);
+      borderColor = widget.zoneColor.withOpacity(0.4);
     } else {
-      bgColor = Colors.white.withValues(alpha: isSelected ? 0.1 : 0.04);
+      bgColor = Colors.white.withOpacity(isSelected ? 0.1 : 0.04);
       borderColor = isSelected
-          ? widget.zoneColor.withValues(alpha: 0.6)
-          : Colors.white.withValues(alpha: 0.15);
+          ? widget.zoneColor.withOpacity(0.6)
+          : Colors.white.withOpacity(0.15);
     }
 
     return GestureDetector(
@@ -373,7 +373,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
             fontWeight: filled != null ? FontWeight.w700 : FontWeight.w400,
             color: filled != null
                 ? Colors.white
-                : Colors.white.withValues(alpha: 0.3),
+                : Colors.white.withOpacity(0.3),
           ),
         ),
       ),
@@ -389,7 +389,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
       decoration: BoxDecoration(
         color: const Color(0xFF111522),
         border: Border(
-          top: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+          top: BorderSide(color: Colors.white.withOpacity(0.06)),
         ),
       ),
       child: Column(
@@ -397,7 +397,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
         children: [
           Text('WORD BANK',
               style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.35),
+                  color: Colors.white.withOpacity(0.35),
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.5)),
@@ -420,20 +420,20 @@ class _CodeGameScreenState extends State<CodeGameScreen>
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? widget.zoneColor.withValues(alpha: 0.15)
-                        : Colors.white.withValues(alpha: 0.06),
+                        ? widget.zoneColor.withOpacity(0.15)
+                        : Colors.white.withOpacity(0.06),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: isSelected
-                          ? widget.zoneColor.withValues(alpha: 0.6)
-                          : Colors.white.withValues(alpha: 0.1),
+                          ? widget.zoneColor.withOpacity(0.6)
+                          : Colors.white.withOpacity(0.1),
                       width: isSelected ? 2 : 1,
                     ),
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
                                 color:
-                                    widget.zoneColor.withValues(alpha: 0.2),
+                                    widget.zoneColor.withOpacity(0.2),
                                 blurRadius: 8)
                           ]
                         : null,
@@ -447,7 +447,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
                           isSelected ? FontWeight.w700 : FontWeight.w500,
                       color: isSelected
                           ? widget.zoneColor
-                          : Colors.white.withValues(alpha: 0.8),
+                          : Colors.white.withOpacity(0.8),
                     ),
                   ),
                 ),
@@ -477,10 +477,10 @@ class _CodeGameScreenState extends State<CodeGameScreen>
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withValues(alpha: 0.08),
+                  color: Colors.amber.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(12),
                   border:
-                      Border.all(color: Colors.amber.withValues(alpha: 0.2)),
+                      Border.all(color: Colors.amber.withOpacity(0.2)),
                 ),
                 child: const Icon(Icons.lightbulb_outline_rounded,
                     color: Colors.amber, size: 20),
@@ -500,8 +500,8 @@ class _CodeGameScreenState extends State<CodeGameScreen>
                         : const Color(0xFFFF5252))
                     : widget.zoneColor,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor: Colors.white.withValues(alpha: 0.06),
-                disabledForegroundColor: Colors.white.withValues(alpha: 0.2),
+                disabledBackgroundColor: Colors.white.withOpacity(0.06),
+                disabledForegroundColor: Colors.white.withOpacity(0.2),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
@@ -531,9 +531,9 @@ class _CodeGameScreenState extends State<CodeGameScreen>
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.amber.withValues(alpha: 0.08),
+        color: Colors.amber.withOpacity(0.08),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.amber.withValues(alpha: 0.2)),
+        border: Border.all(color: Colors.amber.withOpacity(0.2)),
       ),
       child: Row(
         children: [
@@ -542,7 +542,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
           Expanded(
             child: Text(_currentHint,
                 style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: Colors.white.withOpacity(0.7),
                     fontSize: 13)),
           ),
         ],
@@ -559,13 +559,13 @@ class _CodeGameScreenState extends State<CodeGameScreen>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: allCorrect
-            ? const Color(0xFF4CAF50).withValues(alpha: 0.08)
-            : Colors.red.withValues(alpha: 0.08),
+            ? const Color(0xFF4CAF50).withOpacity(0.08)
+            : Colors.red.withOpacity(0.08),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: allCorrect
-              ? const Color(0xFF4CAF50).withValues(alpha: 0.2)
-              : Colors.red.withValues(alpha: 0.2),
+              ? const Color(0xFF4CAF50).withOpacity(0.2)
+              : Colors.red.withOpacity(0.2),
         ),
       ),
       child: Column(
@@ -628,7 +628,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
                         Text(
                           blank.explanation,
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.55),
+                            color: Colors.white.withOpacity(0.55),
                             fontSize: 11,
                             height: 1.4,
                           ),
@@ -788,7 +788,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
           decoration: BoxDecoration(
             color: const Color(0xFF0F1420),
             borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: widget.zoneColor.withValues(alpha: 0.3)),
+            border: Border.all(color: widget.zoneColor.withOpacity(0.3)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

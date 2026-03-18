@@ -192,7 +192,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: _timeRemaining < 10 ? Colors.red.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.05),
+                color: _timeRemaining < 10 ? Colors.red.withOpacity(0.1) : Colors.white.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: _timeRemaining < 10 ? Colors.red : Colors.white24),
               ),
@@ -212,9 +212,9 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: widget.accentColor.withValues(alpha: 0.1),
+            color: widget.accentColor.withOpacity(0.1),
             shape: BoxShape.circle,
-            border: Border.all(color: widget.accentColor.withValues(alpha: 0.3)),
+            border: Border.all(color: widget.accentColor.withOpacity(0.3)),
           ),
           child: Icon(Icons.psychology_rounded, color: widget.accentColor, size: 28),
         ),
@@ -223,13 +223,13 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: Colors.white.withOpacity(0.05),
               borderRadius: const BorderRadius.only(
                 topRight: Radius.circular(16),
                 bottomLeft: Radius.circular(16),
                 bottomRight: Radius.circular(16),
               ),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              border: Border.all(color: Colors.white.withOpacity(0.08)),
             ),
             child: Text(
               widget.level.mascotHint,
@@ -246,9 +246,9 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF161B29),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(color: Colors.white.withOpacity(0.08)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
         ],
       ),
       child: Column(
@@ -256,14 +256,14 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.03),
+              color: Colors.white.withOpacity(0.03),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             ),
             child: Row(
               children: [
                 const Icon(Icons.code_rounded, color: Colors.white24, size: 14),
                 const SizedBox(width: 8),
-                Text('editor.script', style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 10, fontFamily: 'monospace')),
+                Text('editor.script', style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 10, fontFamily: 'monospace')),
                 const Spacer(),
                 const Icon(Icons.more_horiz_rounded, color: Colors.white24, size: 14),
               ],
@@ -297,7 +297,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
                               Text(
                                 line.text!,
                                 style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.6),
+                                  color: Colors.white.withOpacity(0.6),
                                   fontSize: 13,
                                   fontFamily: 'monospace',
                                 ),
@@ -352,21 +352,21 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
             constraints: const BoxConstraints(minWidth: 40),
             decoration: BoxDecoration(
               color: _checked
-                  ? (isCorrect! ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2))
+                  ? (isCorrect! ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2))
                   : (chipId != null 
-                      ? widget.accentColor.withValues(alpha: 0.15) 
-                      : (isHinted ? Colors.amber.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.05))),
+                      ? widget.accentColor.withOpacity(0.15) 
+                      : (isHinted ? Colors.amber.withOpacity(0.15) : Colors.white.withOpacity(0.05))),
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
                 color: _checked
                     ? (isCorrect! ? Colors.green : Colors.red)
                     : (isHinted 
                         ? Colors.amber 
-                        : (chipId != null ? widget.accentColor : Colors.white.withValues(alpha: 0.1))),
+                        : (chipId != null ? widget.accentColor : Colors.white.withOpacity(0.1))),
                 width: isHinted ? 2 : 1,
               ),
               boxShadow: [
-                if (isHinted) BoxShadow(color: Colors.amber.withValues(alpha: 0.3), blurRadius: 10, spreadRadius: 1),
+                if (isHinted) BoxShadow(color: Colors.amber.withOpacity(0.3), blurRadius: 10, spreadRadius: 1),
               ],
             ),
             child: Text(
@@ -395,9 +395,9 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                constraints: const BoxConstraints(minWidth: 40),
                decoration: BoxDecoration(
-                 color: Colors.white.withValues(alpha: 0.05),
+                 color: Colors.white.withOpacity(0.05),
                  borderRadius: BorderRadius.circular(6),
-                 border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                 border: Border.all(color: Colors.white.withOpacity(0.1)),
                ),
                child: const Text('_____', style: TextStyle(color: Colors.white24, fontSize: 12, fontFamily: 'monospace')),
              ),
@@ -427,7 +427,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
         color: const Color(0xFF0F1420),
-        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
       ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -458,9 +458,9 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF1E2638),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
         boxShadow: [
-          if (isDragging) BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 10),
+          if (isDragging) BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 10),
         ],
       ),
       child: Text(
@@ -484,9 +484,9 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
               margin: const EdgeInsets.only(bottom: 16),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: allCorrect ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
+                color: allCorrect ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: allCorrect ? Colors.green.withValues(alpha: 0.3) : Colors.red.withValues(alpha: 0.3)),
+                border: Border.all(color: allCorrect ? Colors.green.withOpacity(0.3) : Colors.red.withOpacity(0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -504,7 +504,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
                   const SizedBox(height: 8),
                   Text(
                     widget.level.feedbackExplanation,
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
+                    style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13),
                   ),
                 ],
               ),
@@ -638,7 +638,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
           decoration: BoxDecoration(
             color: const Color(0xFF0F1420),
             borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: widget.accentColor.withValues(alpha: 0.3)),
+            border: Border.all(color: widget.accentColor.withOpacity(0.3)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

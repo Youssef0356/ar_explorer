@@ -6,14 +6,14 @@ import '../core/app_theme.dart';
 import '../services/theme_service.dart';
 
 class AnimatedGoogleBackground extends StatefulWidget {
-  final Widget child;
-  final bool isDark;
+  final Widget? child;
+  final bool? isDark;
   final List<Color>? glowColors;
 
   const AnimatedGoogleBackground({
     super.key,
-    required this.child,
-    required this.isDark,
+    this.child,
+    this.isDark,
     this.glowColors,
   });
 
@@ -52,8 +52,9 @@ class _AnimatedGoogleBackgroundState extends State<AnimatedGoogleBackground>
     } else if (!enableAnimations && _controller.isAnimating) {
       _controller.stop();
     }
+    final bool isDark = widget.isDark ?? context.watch<ThemeService>().isDarkMode;
     final Color baseColor =
-        widget.isDark ? AppTheme.primaryDark : const Color(0xFFFAFCFF);
+        isDark ? AppTheme.primaryDark : const Color(0xFFFAFCFF);
 
     return Container(
       color: baseColor,
@@ -69,7 +70,7 @@ class _AnimatedGoogleBackgroundState extends State<AnimatedGoogleBackground>
                   return CustomPaint(
                     painter: _AmbientGlowPainter(
                       t: _controller.value * 2 * math.pi,
-                      isDark: widget.isDark,
+                      isDark: isDark,
                       baseColor: baseColor,
                       glowColors: widget.glowColors,
                     ),
@@ -79,9 +80,10 @@ class _AnimatedGoogleBackgroundState extends State<AnimatedGoogleBackground>
               ),
             ),
           // Content payload — also isolated so scroll repaints stay local
-          RepaintBoundary(
-            child: widget.child,
-          ),
+          if (widget.child != null)
+            RepaintBoundary(
+              child: widget.child!,
+            ),
         ],
       ),
     );
@@ -131,7 +133,7 @@ class _AmbientGlowPainter extends CustomPainter {
       canvas,
       Offset(x1, y1),
       radius,
-      color1.withValues(alpha: isDark ? 0.30 : 0.08),
+      color1.withOpacity(isDark ? 0.30 : 0.08),
     );
 
     // Color 2 glow
@@ -139,7 +141,7 @@ class _AmbientGlowPainter extends CustomPainter {
       canvas,
       Offset(x2, y2),
       radius * 0.85,
-      color2.withValues(alpha: isDark ? 0.25 : 0.06),
+      color2.withOpacity(isDark ? 0.25 : 0.06),
     );
 
     // Color 3 glow
@@ -147,14 +149,14 @@ class _AmbientGlowPainter extends CustomPainter {
       canvas,
       Offset(x3, y3),
       radius * 0.8,
-      color3.withValues(alpha: isDark ? 0.20 : 0.05),
+      color3.withOpacity(isDark ? 0.20 : 0.05),
     );
   }
 
   void _drawGlow(Canvas canvas, Offset center, double radius, Color color) {
     final paint = Paint()
       ..shader = RadialGradient(
-        colors: [color, color.withValues(alpha: 0.0)],
+        colors: [color, color.withOpacity(0)],
         stops: const [0.0, 1.0],
       ).createShader(
         Rect.fromCircle(center: center, radius: radius),

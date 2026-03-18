@@ -168,7 +168,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     decoration: BoxDecoration(
                       color: _currentPage == i
                           ? AppTheme.accentCyan
-                          : AppTheme.textMuted.withValues(alpha: 0.3),
+                          : AppTheme.textMuted.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),

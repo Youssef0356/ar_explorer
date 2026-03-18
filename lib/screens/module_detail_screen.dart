@@ -118,7 +118,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                                 width: 44,
                                 height: 44,
                                 decoration: BoxDecoration(
-                                  color: widget.accentColor.withValues(alpha: 0.15),
+                                  color: widget.accentColor.withOpacity(0.15),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Icon(
@@ -150,7 +150,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                                             ),
                                             decoration: BoxDecoration(
                                               color: AppTheme.successGreen
-                                                  .withValues(alpha: 0.15),
+                                                  .withOpacity(0.15),
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                             ),
@@ -330,10 +330,10 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
   Widget _buildKeyConceptsCard(bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: widget.accentColor.withValues(alpha: 0.05),
+        color: widget.accentColor.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: widget.accentColor.withValues(alpha: 0.2),
+          color: widget.accentColor.withOpacity(0.2),
           width: 1,
         ),
       ),
@@ -362,9 +362,9 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                 ? Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppTheme.successGreen.withValues(alpha: 0.12),
+                      color: AppTheme.successGreen.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(99),
-                      border: Border.all(color: AppTheme.successGreen.withValues(alpha: 0.3)),
+                      border: Border.all(color: AppTheme.successGreen.withOpacity(0.3)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -382,7 +382,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                     ),
                   )
                 : Icon(Icons.expand_more_rounded,
-                    color: widget.accentColor.withValues(alpha: 0.6), size: 20),
+                    color: widget.accentColor.withOpacity(0.6), size: 20),
               children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -426,14 +426,14 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isCompleted
-              ? widget.accentColor.withValues(alpha: 0.3)
+              ? widget.accentColor.withOpacity(0.3)
               : AppTheme.dividerC(isDark),
           width: 1,
         ),
         boxShadow: [
           if (isCompleted)
             BoxShadow(
-              color: widget.accentColor.withValues(alpha: 0.05),
+              color: widget.accentColor.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -449,7 +449,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                 height: 32,
                 decoration: BoxDecoration(
                   color: isCompleted
-                      ? widget.accentColor.withValues(alpha: 0.1)
+                      ? widget.accentColor.withOpacity(0.1)
                       : Colors.transparent,
                   shape: BoxShape.circle,
                   border: Border.all(
@@ -474,14 +474,14 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
               ).animate(
                 target: (!isCompleted && (index == 0 || progress.isTopicCompleted('${widget.module.id}_${widget.module.topics[index - 1].id}'))) ? 1 : 0,
                 onPlay: (c) => c.repeat(),
-              ).shimmer(duration: 2.seconds, color: widget.accentColor.withValues(alpha: 0.2)),
+              ).shimmer(duration: 2.seconds, color: widget.accentColor.withOpacity(0.2)),
               // Bottom line
               Container(
                 width: 2,
                 height: 40,
                 color: index == widget.module.topics.length - 1
                     ? Colors.transparent
-                    : (isCompleted ? widget.accentColor.withValues(alpha: 0.3) : AppTheme.dividerC(isDark)),
+                    : (isCompleted ? widget.accentColor.withOpacity(0.3) : AppTheme.dividerC(isDark)),
               ),
             ],
           ),
@@ -541,7 +541,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                AppTheme.scaffoldC(isDark).withValues(alpha: 0.0),
+                AppTheme.scaffoldC(isDark).withOpacity(0.0),
                 AppTheme.scaffoldC(isDark),
               ],
             ),
@@ -554,9 +554,9 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppTheme.warningAmber.withValues(alpha: 0.1),
+                      color: AppTheme.warningAmber.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.warningAmber.withValues(alpha: 0.3)),
+                      border: Border.all(color: AppTheme.warningAmber.withOpacity(0.3)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -620,7 +620,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                   ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: widget.accentColor,
-                    side: BorderSide(color: widget.accentColor.withValues(alpha: 0.4)),
+                    side: BorderSide(color: widget.accentColor.withOpacity(0.4)),
                   ),
                 ),
               ),

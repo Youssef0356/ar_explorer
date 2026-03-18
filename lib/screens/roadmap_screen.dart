@@ -180,7 +180,7 @@ class _RoadmapNode extends StatelessWidget {
                             ? AppTheme.cardC(isDark)
                             : isCompleted
                                 ? color
-                                : color.withValues(alpha: 0.3),
+                                : color.withOpacity(0.3),
                         border: Border.all(
                           color: isLocked ? AppTheme.dividerC(isDark) : color,
                           width: 2.5,
@@ -188,7 +188,7 @@ class _RoadmapNode extends StatelessWidget {
                         boxShadow: isCompleted
                             ? [
                                 BoxShadow(
-                                  color: color.withValues(alpha: 0.4),
+                                  color: color.withOpacity(0.4),
                                   blurRadius: 8,
                                 ),
                               ]
@@ -206,7 +206,7 @@ class _RoadmapNode extends StatelessWidget {
                         child: Container(
                           width: 2.5,
                           color: isCompleted
-                              ? color.withValues(alpha: 0.5)
+                              ? color.withOpacity(0.5)
                               : AppTheme.dividerC(isDark),
                         ),
                       ),
@@ -220,13 +220,13 @@ class _RoadmapNode extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: isLocked
-                        ? AppTheme.cardC(isDark).withValues(alpha: 0.5)
+                        ? AppTheme.cardC(isDark).withOpacity(0.5)
                         : AppTheme.cardC(isDark),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: isLocked
                           ? AppTheme.dividerC(isDark)
-                          : color.withValues(alpha: isDark ? 0.3 : 0.2),
+                          : color.withOpacity(isDark ? 0.3 : 0.2),
                     ),
                   ),
                   child: Column(
@@ -265,7 +265,7 @@ class _RoadmapNode extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: AppTheme.successGreen.withValues(alpha: 0.15),
+                                color: AppTheme.successGreen.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -285,8 +285,8 @@ class _RoadmapNode extends StatelessWidget {
                           child: LinearProgressIndicator(
                             value: progress,
                             backgroundColor: isDark
-                                ? Colors.white.withValues(alpha: 0.05)
-                                : Colors.grey.withValues(alpha: 0.12),
+                                ? Colors.white.withOpacity(0.05)
+                                : Colors.grey.withOpacity(0.12),
                             valueColor: AlwaysStoppedAnimation<Color>(color),
                             minHeight: 4,
                           ),

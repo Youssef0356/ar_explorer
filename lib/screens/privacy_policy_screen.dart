@@ -72,7 +72,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                     color: AppTheme.cardDark,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.06),
+                      color: Colors.white.withOpacity(0.06),
                     ),
                   ),
                   child: SingleChildScrollView(

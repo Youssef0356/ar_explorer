@@ -78,7 +78,7 @@ class ContentRenderer extends StatelessWidget {
                   width: 6,
                   height: 6,
                   decoration: BoxDecoration(
-                    color: AppTheme.accentCyan.withValues(alpha: 0.7),
+                    color: AppTheme.accentCyan.withOpacity(0.7),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -156,8 +156,8 @@ class ContentRenderer extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.06)
-                  : Colors.black.withValues(alpha: 0.08),
+                  ? Colors.white.withOpacity(0.06)
+                  : Colors.black.withOpacity(0.08),
             ),
           ),
           child: Text(
@@ -174,10 +174,10 @@ class ContentRenderer extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppTheme.accentCyan.withValues(alpha: isDark ? 0.08 : 0.06),
+            color: AppTheme.accentCyan.withOpacity(isDark ? 0.08 : 0.06),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: AppTheme.accentCyan.withValues(alpha: 0.2),
+              color: AppTheme.accentCyan.withOpacity(0.2),
             ),
           ),
           child: Row(
@@ -210,7 +210,7 @@ class ContentRenderer extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: AppTheme.warningAmber.withValues(alpha: 0.2),
+              color: AppTheme.warningAmber.withOpacity(0.2),
             ),
           ),
           child: Row(
@@ -240,11 +240,11 @@ class ContentRenderer extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border(
               left: BorderSide(
-                color: AppTheme.accentBlue.withValues(alpha: 0.6),
+                color: AppTheme.accentBlue.withOpacity(0.6),
                 width: 4,
               ),
             ),
-            color: AppTheme.accentBlue.withValues(alpha: isDark ? 0.05 : 0.03),
+            color: AppTheme.accentBlue.withOpacity(isDark ? 0.05 : 0.03),
           ),
           child: Text(
             block.content,
@@ -273,7 +273,7 @@ class ContentRenderer extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.15),
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.15),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
