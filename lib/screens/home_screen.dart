@@ -331,16 +331,12 @@ class HomeScreen extends StatelessWidget {
                       final module = allModules[index];
                       final color = AppTheme.getModuleColor(index);
 
-                      return Selector2<ProgressService, SubscriptionService, ({bool isLocked, double progress, bool isFirstLocked})>(
+                      return Selector2<ProgressService, SubscriptionService, ({bool isLocked, double progress})>(
                         selector: (context, progress, subscription) {
                           final isLocked = !progress.isModuleUnlocked(module, isPremium: subscription.isPremium);
                           final moduleProgress = isLocked ? 0.0 : progress.moduleProgress(module.id, module.totalTopics);
-                          
-                          // Find first locked index for ad unlock logic
-                          final firstLockedIndex = allModules.indexWhere((m) => !progress.isModuleUnlocked(m, isPremium: subscription.isPremium));
-                          final isFirstLocked = index == firstLockedIndex;
 
-                          return (isLocked: isLocked, progress: moduleProgress, isFirstLocked: isFirstLocked);
+                          return (isLocked: isLocked, progress: moduleProgress);
                         },
                         builder: (context, data, child) {
                           return Padding(
@@ -367,7 +363,7 @@ class HomeScreen extends StatelessWidget {
                                     final prog = context.read<ProgressService>();
                                     final snd = context.read<SoundService>();
 
-                                    final Future<void> Function()? onUnlockAd = data.isFirstLocked ? () async {
+                                    final Future<void> Function()? onUnlockAd = () async {
                                       snd.playTap();
                                       messenger.showSnackBar(
                                         const SnackBar(content: Text('Loading Reward Ad...'), duration: Duration(seconds: 2)),
@@ -385,7 +381,7 @@ class HomeScreen extends StatelessWidget {
                                           const SnackBar(content: Text('Failed to load ad. Please try again later.')),
                                         );
                                       }
-                                    } : null;
+                                    };
 
                                     Navigator.push(
                                       context,

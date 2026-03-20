@@ -34,6 +34,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
   bool _showExplanation = false;
   String? _hintSlotId; 
   int _mistakes = 0; 
+  bool _isHintAdLoading = false;
 
   @override
   void initState() {
@@ -537,9 +538,11 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: _showHintWithAd,
-                icon: const Icon(Icons.lightbulb_outline_rounded, color: Colors.orange),
-                label: const Text('GET HINT (WATCH AD)', style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                onPressed: _isHintAdLoading ? null : _showHintWithAd,
+                icon: _isHintAdLoading
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.orange, strokeWidth: 2))
+                    : const Icon(Icons.lightbulb_outline_rounded, color: Colors.orange),
+                label: Text(_isHintAdLoading ? 'WAIT...' : 'GET HINT (WATCH AD)', style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.orange),
                   padding: const EdgeInsets.symmetric(vertical: 18),
@@ -552,9 +555,11 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                 onPressed: _showHintWithAd,
-                 icon: const Icon(Icons.play_circle_filled_rounded, color: Colors.black),
-                 label: const Text('WATCH AD FOR HINT', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Colors.black)),
+                 onPressed: _isHintAdLoading ? null : _showHintWithAd,
+                 icon: _isHintAdLoading
+                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
+                     : const Icon(Icons.play_circle_filled_rounded, color: Colors.black),
+                 label: Text(_isHintAdLoading ? 'WAIT...' : 'WATCH AD FOR HINT', style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Colors.black)),
                  style: ElevatedButton.styleFrom(
                    backgroundColor: Colors.amber,
                    padding: const EdgeInsets.symmetric(vertical: 18),
@@ -569,6 +574,9 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
   }
 
   void _showHintWithAd() async {
+    if (_isHintAdLoading) return;
+    setState(() => _isHintAdLoading = true);
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Loading Rewarded Ad...'),
@@ -580,6 +588,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
     bool success = await adService.showRewardedAd();
     
     if (!mounted) return;
+    setState(() => _isHintAdLoading = false);
 
     if (success) {
        // Find the first incorrect or empty slot that has a chip in the bank

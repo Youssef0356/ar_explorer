@@ -14,16 +14,33 @@ class AdService extends ChangeNotifier {
   bool _isRewardedAdLoading = false;
   Completer<bool>? _rewardedLoadCompleter;
 
-  // Test Ad Unit IDs
-  final String _interstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712';
-  final String _rewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917';
+  // Ad Unit IDs (Test IDs vs Real IDs based on debug/release)
+  String get _interstitialAdUnitId {
+    if (kDebugMode) {
+      return 'ca-app-pub-3940256099942544/1033173712';
+    }
+    // Replace with real AdMob Unit ID when deploying to stores
+    return 'ca-app-pub-3940256099942544/1033173712'; 
+  }
+
+  String get _rewardedAdUnitId {
+    if (kDebugMode) {
+      return 'ca-app-pub-3940256099942544/5224354917';
+    }
+    // Replace with real AdMob Unit ID when deploying to stores
+    return 'ca-app-pub-3940256099942544/5224354917';
+  }
 
   void setSubscriptionService(SubscriptionService service) {
     _subscriptionService = service;
   }
 
   void init() {
-    if (_subscriptionService?.isPremium ?? false) return;
+    debugPrint('AdService.init() called.');
+    if (_subscriptionService?.isPremium ?? false) {
+      debugPrint('AdService.init() skipped due to Premium status.');
+      return;
+    }
     _loadInterstitialAd();
     _loadRewardedAd();
   }
@@ -32,12 +49,15 @@ class AdService extends ChangeNotifier {
     if (_subscriptionService?.isPremium ?? false) return;
     if (_isInterstitialAdLoading) return;
     _isInterstitialAdLoading = true;
+    
+    debugPrint('Loading InterstitialAd...');
 
     InterstitialAd.load(
       adUnitId: _interstitialAdUnitId,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
+          debugPrint('InterstitialAd loaded successfully.');
           _interstitialAd = ad;
           _isInterstitialAdLoading = false;
         },
@@ -55,11 +75,14 @@ class AdService extends ChangeNotifier {
     _isRewardedAdLoading = true;
     _rewardedLoadCompleter = Completer<bool>();
 
+    debugPrint('Loading RewardedAd...');
+
     RewardedAd.load(
       adUnitId: _rewardedAdUnitId,
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
+          debugPrint('RewardedAd loaded successfully.');
           _rewardedAd = ad;
           _isRewardedAdLoading = false;
           if (_rewardedLoadCompleter != null && !_rewardedLoadCompleter!.isCompleted) {
@@ -93,17 +116,22 @@ class AdService extends ChangeNotifier {
       return;
     }
     
+    debugPrint('Attempting to show InterstitialAd...');
+
     _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
-      onAdShowedFullScreenContent: (ad) {},
+      onAdShowedFullScreenContent: (ad) {
+        debugPrint('InterstitialAd showed successfully.');
+      },
       onAdDismissedFullScreenContent: (ad) {
+        debugPrint('InterstitialAd dismissed.');
         ad.dispose();
         _interstitialAd = null;
         _loadInterstitialAd();
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
+        debugPrint('InterstitialAd failed to show: $error');
         ad.dispose();
         _interstitialAd = null;
-        debugPrint('Interstitial failed to show: $error');
         _loadInterstitialAd();
       },
     );
@@ -112,7 +140,11 @@ class AdService extends ChangeNotifier {
   }
 
   Future<bool> showRewardedAd() async {
-    if (_subscriptionService?.isPremium ?? false) return true; // Auto-success for premium
+    debugPrint('showRewardedAd called...');
+    if (_subscriptionService?.isPremium ?? false) {
+      debugPrint('Premium user, returning success for RewardedAd.');
+      return true; // Auto-success for premium
+    }
     if (_rewardedAd == null) {
       debugPrint('Warning: attempt to show rewarded ad before loaded. Waiting to load...');
       if (!_isRewardedAdLoading) {
@@ -124,7 +156,7 @@ class AdService extends ChangeNotifier {
           // Add a 10-second timeout for ad loading
           final loaded = await _rewardedLoadCompleter!.future.timeout(const Duration(seconds: 10));
           if (!loaded || _rewardedAd == null) {
-            debugPrint('Error: Rewarded ad failed to load.');
+            debugPrint('Error: Rewarded ad failed to load within timeout period.');
             return false;
           }
         } on TimeoutException {
@@ -142,18 +174,23 @@ class AdService extends ChangeNotifier {
     final completer = Completer<bool>();
     bool earnedReward = false;
 
+    debugPrint('Attempting to show RewardedAd...');
+
     _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
-      onAdShowedFullScreenContent: (ad) {},
+      onAdShowedFullScreenContent: (ad) {
+        debugPrint('RewardedAd showed successfully.');
+      },
       onAdDismissedFullScreenContent: (ad) {
+        debugPrint('RewardedAd dismissed.');
         ad.dispose();
         _rewardedAd = null;
         _loadRewardedAd();
         if (!completer.isCompleted) completer.complete(earnedReward);
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
+        debugPrint('Rewarded ad failed to show: $error');
         ad.dispose();
         _rewardedAd = null;
-        debugPrint('Rewarded ad failed to show: $error');
         _loadRewardedAd();
         if (!completer.isCompleted) completer.complete(false);
       },
@@ -161,6 +198,7 @@ class AdService extends ChangeNotifier {
 
     await _rewardedAd!.show(
       onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+        debugPrint('RewardedAd reward earned: ${reward.amount} ${reward.type}');
         earnedReward = true;
       },
     );
