@@ -12,7 +12,7 @@ import '../models/quiz_model.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
 import '../widgets/quiz_option_button.dart';
-import '../services/ad_service.dart';
+import 'paywall_screen.dart';
 
 class InterviewScreen extends StatefulWidget {
   const InterviewScreen({super.key});
@@ -21,8 +21,9 @@ class InterviewScreen extends StatefulWidget {
   State<InterviewScreen> createState() => _InterviewScreenState();
 }
 
-class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingObserver {
-  static const _totalSessionSeconds = 120;
+class _InterviewScreenState extends State<InterviewScreen>
+    with WidgetsBindingObserver {
+  static const _secondsPerQuestion = 90;
   static const _totalQuestions = 10;
 
   bool _started = false;
@@ -32,30 +33,47 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
   int? _selectedOption;
   bool _showResult = false;
   int _correctCount = 0;
-  int _secondsRemaining = _totalSessionSeconds;
+  int _secondsRemaining = _secondsPerQuestion;
   Timer? _timer;
   final Stopwatch _totalStopwatch = Stopwatch();
   String? _selectedCategory;
-  bool _isAdLoading = false;
+
+  // Map of module title → quiz IDs that belong to that module
+  // Built once so the dropdown and filtering are always in sync
+  late final Map<String, List<String>> _moduleTitleToQuizIds;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _buildModuleQuizMap();
+  }
+
+  /// Build a lookup: moduleTitle → [quizId, ...] using allQuizzes.moduleId
+  void _buildModuleQuizMap() {
+    final map = <String, List<String>>{};
+    for (final module in allModules) {
+      final quizIds = allQuizzes.entries
+          .where((e) => e.value.moduleId == module.id)
+          .map((e) => e.key)
+          .toList();
+      if (quizIds.isNotEmpty) {
+        map[module.title] = quizIds;
+      }
+    }
+    _moduleTitleToQuizIds = map;
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
-    _totalStopwatch.stop();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!_started || _finished || _showResult) return;
-
     if (state == AppLifecycleState.paused) {
       _timer?.cancel();
       _totalStopwatch.stop();
@@ -69,74 +87,57 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
-      if (_secondsRemaining > 0) {
-        setState(() {
-          _secondsRemaining--;
-        });
-      } else {
-        _timeUp();
-      }
+      setState(() => _secondsRemaining--);
+      if (_secondsRemaining <= 0) _timeUp();
     });
   }
 
   void _startInterview() async {
     final progress = context.read<ProgressService>();
-    final adService = context.read<AdService>();
+    if (progress.interviewAttemptsLeft <= 0 && !progress.isPremium) {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
+      return;
+    }
+    if (!progress.isPremium) await progress.useInterviewAttempt();
 
-    if (!progress.isPremium) {
-      if (progress.interviewAttemptsLeft <= 0) {
-        setState(() => _isAdLoading = true);
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Loading Rewarded Ad...'), duration: Duration(seconds: 2)),
-        );
+    List<QuizQuestion> pool = [];
 
-        bool success = await adService.showRewardedAd();
-        
-        if (!mounted) return;
-        setState(() => _isAdLoading = false);
+    if (_selectedCategory == null) {
+      // All topics — draw from every quiz
+      pool = allQuizzes.values.expand((q) => q.questions).toList();
+    } else {
+      // Filter by the selected module: use the pre-built quiz ID map
+      final quizIds = _moduleTitleToQuizIds[_selectedCategory] ?? [];
+      for (final id in quizIds) {
+        final quiz = allQuizzes[id];
+        if (quiz != null) pool.addAll(quiz.questions);
+      }
 
-        if (success) {
-          await progress.gainInterviewAttempts(2);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Reward Received: +2 Attempts!')),
-          );
-        } else {
-          // If ad failed, we can't start without attempts
-          return;
+      // Safety: if module has no mapped quizzes, fall back gracefully
+      if (pool.isEmpty) {
+        pool = allQuizzes.values.expand((q) => q.questions).toList();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                'No quiz questions found for "$_selectedCategory" — showing mixed questions.'),
+            backgroundColor: AppTheme.warningAmber,
+          ));
         }
       }
-      
-      // Use one attempt to start
-      await progress.useInterviewAttempt();
     }
 
-    Iterable<QuizQuestion> all = [];
-    if (_selectedCategory == null) {
-       // All topics
-       all = allQuizzes.values.expand((quiz) => quiz.questions);
-    } else {
-       // Filtered by Module title
-       final module = allModules.firstWhere((m) => m.title == _selectedCategory);
-       final relatedQuizzes = module.topics.where((t) => t.quizId != null).map((t) => allQuizzes[t.quizId!]);
-       all = relatedQuizzes.where((q) => q != null).expand((quiz) => quiz!.questions);
-    }
-
-    final shuffled = all.toList()..shuffle(Random());
-    if (shuffled.isEmpty) {
-        // Fallback safety
-        shuffled.addAll(allQuizzes.values.expand((quiz) => quiz.questions).toList()..shuffle(Random()));
-    }
+    pool.shuffle(Random());
 
     setState(() {
-      _questions = shuffled.take(min(_totalQuestions, shuffled.length)).toList();
+      _questions = pool.take(min(_totalQuestions, pool.length)).toList();
       _started = true;
       _finished = false;
       _currentIndex = 0;
       _selectedOption = null;
       _showResult = false;
       _correctCount = 0;
-      _secondsRemaining = _totalSessionSeconds;
+      _secondsRemaining = _secondsPerQuestion;
     });
 
     _totalStopwatch
@@ -147,33 +148,30 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
 
   void _startTimer() {
     _timer?.cancel();
+    _secondsRemaining = _secondsPerQuestion;
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
-      if (_secondsRemaining > 0) {
-        setState(() {
-          _secondsRemaining--;
-        });
-      } else {
-        _timeUp();
-      }
+      setState(() => _secondsRemaining--);
+      if (_secondsRemaining <= 0) _timeUp();
     });
   }
 
   void _timeUp() {
     _timer?.cancel();
-    if (!_finished) {
-      _finishInterview();
+    if (!_showResult) {
+      setState(() {
+        _showResult = true;
+        _selectedOption = -1;
+      });
+      Future.delayed(const Duration(seconds: 2), _nextQuestion);
     }
   }
 
   void _selectOption(int index) {
     if (_showResult) return;
     _timer?.cancel();
-
     final q = _questions[_currentIndex];
-    final isCorrect = index == q.correctIndex;
-    if (isCorrect) _correctCount++;
-
+    if (index == q.correctIndex) _correctCount++;
     setState(() {
       _selectedOption = index;
       _showResult = true;
@@ -188,6 +186,7 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
         _selectedOption = null;
         _showResult = false;
       });
+      _startTimer();
     } else {
       _finishInterview();
     }
@@ -202,6 +201,57 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
     setState(() => _finished = true);
   }
 
+  // ── Back navigation — always cancel timer ────────────────────────────────
+  void _handleBack() {
+    _timer?.cancel();
+    _totalStopwatch.stop();
+    if (_started && !_finished) {
+      // Confirm exit mid-interview
+      _showExitConfirm();
+    } else {
+      Navigator.pop(context);
+    }
+  }
+
+  void _showExitConfirm() {
+    final isDark = context.read<ThemeService>().isDarkMode;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.cardC(isDark),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Exit Interview?',
+            style: AppTheme.headingSmall
+                .copyWith(color: AppTheme.textPrimaryC(isDark))),
+        content: Text(
+            'Your current session will be lost. Exit anyway?',
+            style: AppTheme.bodyMedium
+                .copyWith(color: AppTheme.textSecondaryC(isDark))),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Keep Going',
+                style:
+                    AppTheme.bodyMedium.copyWith(color: AppTheme.accentCyan)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              setState(() {
+                _started = false;
+                _finished = false;
+              });
+              Navigator.pop(context);
+            },
+            child: Text('Exit',
+                style:
+                    AppTheme.bodyMedium.copyWith(color: AppTheme.errorRed)),
+          ),
+        ],
+      ),
+    );
+  }
+
   String get _readinessTier {
     final pct = ((_correctCount / _questions.length) * 100).round();
     if (pct >= 91) return '🏆 AR Expert / Lead';
@@ -209,28 +259,6 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
     if (pct >= 51) return '🔍 Mid-Level AR Dev';
     if (pct >= 31) return '📱 Junior AR Dev';
     return '📚 Needs More Study';
-  }
-
-  void _watchAdForAttempts() async {
-    final progress = context.read<ProgressService>();
-    final adService = context.read<AdService>();
-
-    setState(() => _isAdLoading = true);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Loading Rewarded Ad...'), duration: Duration(seconds: 2)),
-    );
-
-    bool success = await adService.showRewardedAd();
-
-    if (!mounted) return;
-    setState(() => _isAdLoading = false);
-
-    if (success) {
-      await progress.gainInterviewAttempts(2);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Reward Received: +2 Attempts!')),
-      );
-    }
   }
 
   Color get _tierColor {
@@ -247,19 +275,14 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
     final isDark = context.watch<ThemeService>().isDarkMode;
 
     return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          _timer?.cancel();
-          _totalStopwatch.stop();
-          // Reset internal states so re-entry starts fresh
-          _started = false;
-          _finished = false;
-        }
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) _handleBack();
       },
       child: Scaffold(
         body: Container(
-          decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(isDark)),
+          decoration:
+              BoxDecoration(gradient: AppTheme.backgroundGradient(isDark)),
           child: SafeArea(
             child: _finished
                 ? _buildResults(isDark)
@@ -272,9 +295,14 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
     );
   }
 
+  // ── Intro ─────────────────────────────────────────────────────────────────
   Widget _buildIntro(bool isDark) {
-    final bestScore =
-        context.watch<ProgressService>().interviewBestScore;
+    final bestScore = context.watch<ProgressService>().interviewBestScore;
+    final isPremium = context.watch<ProgressService>().isPremium;
+
+    // Only show modules that actually have quizzes
+    final availableCategories = _moduleTitleToQuizIds.keys.toList();
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -293,21 +321,16 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: AppTheme.accentAmber.withValues(alpha: 0.15),
+                    color: AppTheme.accentAmber.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Icon(
-                    Icons.work_rounded,
-                    color: AppTheme.accentAmber,
-                    size: 40,
-                  ),
+                  child: const Icon(Icons.work_rounded,
+                      color: AppTheme.accentAmber, size: 40),
                 ),
                 const SizedBox(height: 24),
-                Text(
-                  'Mock Interview',
-                  style: AppTheme.headingLarge.copyWith(
-                      color: AppTheme.textPrimaryC(isDark)),
-                ),
+                Text('Mock Interview',
+                    style: AppTheme.headingLarge.copyWith(
+                        color: AppTheme.textPrimaryC(isDark))),
                 const SizedBox(height: 12),
                 Text(
                   '10 questions • 90 seconds each\nNo hints • Timed • Scored',
@@ -321,127 +344,112 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppTheme.accentCyan.withValues(alpha: 0.1),
+                      color: AppTheme.accentCyan.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text(
-                      'Best: $bestScore%',
-                      style: AppTheme.bodyMedium.copyWith(
-                          color: AppTheme.accentCyan,
-                          fontWeight: FontWeight.w600),
-                    ),
+                    child: Text('Best: $bestScore%',
+                        style: AppTheme.bodyMedium.copyWith(
+                            color: AppTheme.accentCyan,
+                            fontWeight: FontWeight.w600)),
                   ),
                 ],
                 const SizedBox(height: 12),
                 Consumer<ProgressService>(
                   builder: (context, progress, _) {
                     if (progress.isPremium) {
-                       return Container(
-                          margin: const EdgeInsets.only(top: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                          decoration: BoxDecoration(
-                             color: AppTheme.successGreen.withValues(alpha: 0.15),
-                             borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                             mainAxisSize: MainAxisSize.min,
-                             children: [
-                                const Icon(Icons.all_inclusive_rounded, color: AppTheme.successGreen, size: 16),
-                                const SizedBox(width: 8),
-                                Text(
-                                   'Unlimited Premium Attempts',
-                                   style: AppTheme.labelMedium.copyWith(color: AppTheme.successGreen),
-                                )
-                             ],
-                          ),
-                       );
+                      return Container(
+                        margin: const EdgeInsets.only(top: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppTheme.successGreen.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.all_inclusive_rounded,
+                                color: AppTheme.successGreen, size: 16),
+                            const SizedBox(width: 8),
+                            Text('Unlimited Premium Attempts',
+                                style: AppTheme.labelMedium
+                                    .copyWith(color: AppTheme.successGreen)),
+                          ],
+                        ),
+                      );
                     }
                     final left = progress.interviewAttemptsLeft;
-                    return Column(
-                      children: [
-                        Text(
-                          left > 0 ? 'Attempts Left: $left' : 'No Attempts Left',
-                          style: AppTheme.bodySmall.copyWith(
-                            color: left > 0 ? AppTheme.accentCyan : AppTheme.errorRed,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        OutlinedButton.icon(
-                          onPressed: _isAdLoading ? null : _watchAdForAttempts,
-                          icon: _isAdLoading
-                              ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                              : const Icon(Icons.video_collection_rounded, size: 18),
-                          label: const Text('GET +2 ATTEMPTS'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppTheme.accentAmber,
-                            side: const BorderSide(color: AppTheme.accentAmber),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            textStyle: AppTheme.labelMedium.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
+                    return Text(
+                      'Daily attempts: $left / 2',
+                      style: AppTheme.bodySmall.copyWith(
+                        color: left > 0
+                            ? AppTheme.accentCyan
+                            : AppTheme.errorRed,
+                        fontWeight: FontWeight.bold,
+                      ),
                     );
                   },
                 ),
-                Consumer<ProgressService>(
-                   builder: (context, progress, _) {
-                      if (!progress.isPremium) return const SizedBox(height: 24);
-                      return Padding(
-                         padding: const EdgeInsets.symmetric(vertical: 24.0),
-                         child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                               Text('Topic Focus (Premium)', style: AppTheme.labelMedium.copyWith(color: AppTheme.textSecondaryC(isDark))),
-                               const SizedBox(height: 8),
-                               Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                                  decoration: AppTheme.glassCard(isDark),
-                                  child: DropdownButtonHideUnderline(
-                                     child: DropdownButton<String>(
-                                        value: _selectedCategory,
-                                        isExpanded: true,
-                                        hint: Text('All Modules (Mixed)', style: AppTheme.bodySmall.copyWith(color: AppTheme.textPrimaryC(isDark))),
-                                        dropdownColor: AppTheme.cardC(isDark),
-                                        style: AppTheme.bodySmall.copyWith(color: AppTheme.textPrimaryC(isDark)),
-                                        icon: Icon(Icons.arrow_drop_down_rounded, color: AppTheme.textMutedC(isDark)),
-                                        items: [
-                                           DropdownMenuItem(value: null, child: Text('All Modules (Mixed)')),
-                                           ...allModules.map((m) => DropdownMenuItem(value: m.title, child: Text(m.title, maxLines: 1, overflow: TextOverflow.ellipsis))),
-                                        ],
-                                        onChanged: (val) => setState(() => _selectedCategory = val),
-                                     ),
-                                  ),
-                               )
-                            ],
-                         ),
-                      );
-                   },
-                ),
-                Consumer<ProgressService>(
-                  builder: (context, progress, _) {
-                    final left = progress.interviewAttemptsLeft;
-                    final isPremium = progress.isPremium;
-                    final needsAd = !isPremium && left <= 0;
 
-                    return SizedBox(
-                      width: 240,
-                      child: ElevatedButton.icon(
-                        onPressed: _isAdLoading ? null : _startInterview,
-                        icon: _isAdLoading
-                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
-                            : Icon(needsAd ? Icons.play_circle_fill_rounded : Icons.play_arrow_rounded),
-                        label: Text(
-                          _isAdLoading 
-                            ? 'LOADING AD...' 
-                            : (needsAd ? 'WATCH AD TO START' : 'START INTERVIEW'),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: needsAd ? AppTheme.accentAmber : null,
-                        ),
+                // ── Category selector (Premium only) ──────────────────────
+                if (isPremium) ...[
+                  const SizedBox(height: 24),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Topic Focus',
+                        style: AppTheme.labelMedium.copyWith(
+                            color: AppTheme.textSecondaryC(isDark))),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: AppTheme.glassCard(isDark),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _selectedCategory,
+                        isExpanded: true,
+                        hint: Text('All Modules (Mixed)',
+                            style: AppTheme.bodySmall.copyWith(
+                                color: AppTheme.textPrimaryC(isDark))),
+                        dropdownColor: AppTheme.cardC(isDark),
+                        style: AppTheme.bodySmall
+                            .copyWith(color: AppTheme.textPrimaryC(isDark)),
+                        icon: Icon(Icons.arrow_drop_down_rounded,
+                            color: AppTheme.textMutedC(isDark)),
+                        items: [
+                          const DropdownMenuItem<String>(
+                            value: null,
+                            child: Text('All Modules (Mixed)'),
+                          ),
+                          ...availableCategories.map((title) =>
+                              DropdownMenuItem<String>(
+                                value: title,
+                                child: Text(
+                                  title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              )),
+                        ],
+                        onChanged: (val) =>
+                            setState(() => _selectedCategory = val),
                       ),
-                    );
-                  }
+                    ),
+                  ),
+                  if (_selectedCategory != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: _buildCategoryPreview(isDark),
+                    ),
+                ],
+
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: 200,
+                  child: ElevatedButton(
+                    onPressed: _startInterview,
+                    child: const Text('Start Interview'),
+                  ),
                 ),
               ],
             ),
@@ -452,12 +460,33 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
     );
   }
 
+  /// Small preview showing how many questions are available for chosen category
+  Widget _buildCategoryPreview(bool isDark) {
+    final quizIds = _moduleTitleToQuizIds[_selectedCategory] ?? [];
+    final count =
+        quizIds.fold<int>(0, (sum, id) => sum + (allQuizzes[id]?.questions.length ?? 0));
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.info_outline_rounded,
+            size: 13, color: AppTheme.accentCyan.withOpacity(0.7)),
+        const SizedBox(width: 5),
+        Text(
+          '$count questions available in this topic',
+          style: AppTheme.bodySmall.copyWith(
+              color: AppTheme.accentCyan.withOpacity(0.8), fontSize: 11),
+        ),
+      ],
+    );
+  }
+
+  // ── Quiz ──────────────────────────────────────────────────────────────────
   Widget _buildQuiz(bool isDark) {
     final q = _questions[_currentIndex];
-    final timerFraction = (_secondsRemaining / _totalSessionSeconds).clamp(0.0, 1.0);
-    final timerColor = _secondsRemaining <= 20
+    final timerFraction = _secondsRemaining / _secondsPerQuestion;
+    final timerColor = _secondsRemaining <= 15
         ? AppTheme.errorRed
-        : _secondsRemaining <= 45
+        : _secondsRemaining <= 30
             ? AppTheme.warningAmber
             : AppTheme.accentCyan;
 
@@ -466,9 +495,13 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header ──
           Row(
             children: [
+              IconButton(
+                icon: Icon(Icons.arrow_back_ios_rounded,
+                    color: AppTheme.textPrimaryC(isDark)),
+                onPressed: _handleBack,
+              ),
               Text(
                 'Question ${_currentIndex + 1} / ${_questions.length}',
                 style: AppTheme.headingSmall.copyWith(
@@ -479,54 +512,41 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
                 padding: const EdgeInsets.symmetric(
                     horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: timerColor.withValues(alpha: 0.15),
+                  color: timerColor.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.timer_rounded,
-                        color: timerColor, size: 18),
+                    Icon(Icons.timer_rounded, color: timerColor, size: 18),
                     const SizedBox(width: 4),
-                    Text(
-                      '${_secondsRemaining}s',
-                      style: AppTheme.labelMedium.copyWith(
-                        color: timerColor,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    Text('${_secondsRemaining}s',
+                        style: AppTheme.labelMedium.copyWith(
+                            color: timerColor, fontWeight: FontWeight.w700)),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-
-          // ── Timer Bar ──
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: timerFraction,
               backgroundColor: isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.grey.withValues(alpha: 0.12),
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.grey.withOpacity(0.12),
               valueColor: AlwaysStoppedAnimation(timerColor),
               minHeight: 4,
             ),
           ),
           const SizedBox(height: 24),
-
-          // ── Question ──
           Text(
             q.question,
             style: AppTheme.headingSmall.copyWith(
-              color: AppTheme.textPrimaryC(isDark),
-              fontSize: 17,
-            ),
+                color: AppTheme.textPrimaryC(isDark), fontSize: 17),
           ),
           const SizedBox(height: 20),
-
-          // ── Options ──
           ...List.generate(q.options.length, (i) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -541,7 +561,6 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
               ),
             );
           }),
-
           if (_showResult) ...[
             const Spacer(),
             SizedBox(
@@ -549,10 +568,9 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
               child: ElevatedButton(
                 onPressed: _nextQuestion,
                 child: Text(
-                  _currentIndex < _questions.length - 1
-                      ? 'Next Question'
-                      : 'See Results',
-                ),
+                    _currentIndex < _questions.length - 1
+                        ? 'Next Question'
+                        : 'See Results'),
               ),
             ),
           ],
@@ -562,11 +580,13 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
     );
   }
 
+  // ── Results ───────────────────────────────────────────────────────────────
   Widget _buildResults(bool isDark) {
     final pct = ((_correctCount / _questions.length) * 100).round();
     final elapsed = _totalStopwatch.elapsed;
     final minutes = elapsed.inMinutes;
     final seconds = elapsed.inSeconds % 60;
+    final categoryLabel = _selectedCategory ?? 'All Modules';
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -585,10 +605,14 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
           Center(
             child: Column(
               children: [
+                Text(_readinessTier,
+                    style: AppTheme.headingLarge
+                        .copyWith(color: _tierColor, fontSize: 26)),
+                const SizedBox(height: 8),
                 Text(
-                  _readinessTier,
-                  style: AppTheme.headingLarge.copyWith(
-                      color: _tierColor, fontSize: 26),
+                  'Topic: $categoryLabel',
+                  style: AppTheme.bodySmall.copyWith(
+                      color: AppTheme.textMutedC(isDark)),
                 ),
                 const SizedBox(height: 24),
                 Container(
@@ -596,54 +620,44 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
                   height: 120,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [
-                        _tierColor.withValues(alpha: 0.3),
-                        _tierColor.withValues(alpha: 0.1),
-                      ],
-                    ),
+                    gradient: LinearGradient(colors: [
+                      _tierColor.withOpacity(0.3),
+                      _tierColor.withOpacity(0.1),
+                    ]),
                     border: Border.all(
-                        color: _tierColor.withValues(alpha: 0.5),
-                        width: 3),
+                        color: _tierColor.withOpacity(0.5), width: 3),
                   ),
                   child: Center(
-                    child: Text(
-                      '$pct%',
-                      style: AppTheme.headingLarge.copyWith(
-                        color: _tierColor,
-                        fontSize: 32,
-                      ),
-                    ),
+                    child: Text('$pct%',
+                        style: AppTheme.headingLarge
+                            .copyWith(color: _tierColor, fontSize: 32)),
                   ),
                 ),
                 const SizedBox(height: 20),
-                Text(
-                  '$_correctCount / ${_questions.length} correct',
-                  style: AppTheme.headingMedium.copyWith(
-                      color: AppTheme.textPrimaryC(isDark)),
-                ),
+                Text('$_correctCount / ${_questions.length} correct',
+                    style: AppTheme.headingMedium.copyWith(
+                        color: AppTheme.textPrimaryC(isDark))),
                 const SizedBox(height: 8),
-                Text(
-                  'Time: ${minutes}m ${seconds}s',
-                  style: AppTheme.bodyMedium.copyWith(
-                      color: AppTheme.textMutedC(isDark)),
-                ),
+                Text('Time: ${minutes}m ${seconds}s',
+                    style: AppTheme.bodyMedium.copyWith(
+                        color: AppTheme.textMutedC(isDark))),
                 const SizedBox(height: 32),
                 SizedBox(
                   width: 200,
                   child: ElevatedButton(
-                    onPressed: _startInterview,
+                    onPressed: () => setState(() {
+                      _started = false;
+                      _finished = false;
+                    }),
                     child: const Text('Try Again'),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'Back to Home',
-                    style: AppTheme.bodyMedium
-                        .copyWith(color: AppTheme.accentCyan),
-                  ),
+                  child: Text('Back to Home',
+                      style: AppTheme.bodyMedium
+                          .copyWith(color: AppTheme.accentCyan)),
                 ),
               ],
             ),
@@ -651,9 +665,7 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
               .animate()
               .fadeIn(duration: const Duration(milliseconds: 600))
               .scale(
-                begin: const Offset(0.9, 0.9),
-                end: const Offset(1.0, 1.0),
-              ),
+                  begin: const Offset(0.9, 0.9), end: const Offset(1.0, 1.0)),
           const Spacer(),
         ],
       ),

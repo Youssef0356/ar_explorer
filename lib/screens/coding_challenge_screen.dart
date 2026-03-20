@@ -7,7 +7,9 @@ import '../models/coding_game_models.dart';
 import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
 import '../services/ad_service.dart';
+import '../services/subscription_service.dart';
 import '../widgets/shareable_achievement_card.dart';
+import 'paywall_screen.dart';
 
 class CodingChallengeScreen extends StatefulWidget {
   final CodingLevel level;
@@ -39,6 +41,18 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
   @override
   void initState() {
     super.initState();
+    final isPremium = context.read<SubscriptionService>().isPremium;
+    if (!isPremium && !widget.level.id.startsWith('z1_')) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pop(context); // Pop off challenge screen
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
+      });
+      // Initialize dummies to prevent errors before popping
+      _slotAnswers = {};
+      _wordBank = [];
+      return;
+    }
+
     final progress = context.read<GameProgressService>();
     final isCompleted = progress.isCodingLevelCompleted(widget.level.id);
 

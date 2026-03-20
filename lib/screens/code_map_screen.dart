@@ -7,6 +7,7 @@ import '../data/code_challenges_data.dart';
 import '../models/game_models.dart';
 import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
+import '../services/subscription_service.dart';
 import 'code_game_screen.dart';
 import 'league_home_screen.dart';
 
@@ -17,6 +18,7 @@ class CodeMapScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final progress = context.watch<GameProgressService>();
     final sound = context.read<SoundService>();
+    final isPremium = context.watch<SubscriptionService>().isPremium;
 
     return Scaffold(
       backgroundColor: const Color(0xFF060B14),
@@ -30,7 +32,7 @@ class CodeMapScreen extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
                 itemCount: codeGameZones.length,
                 itemBuilder: (ctx, i) =>
-                    _buildZoneCard(context, codeGameZones[i], progress, sound, i),
+                    _buildZoneCard(context, codeGameZones[i], progress, sound, isPremium, i),
               ),
             ),
           ],
@@ -128,7 +130,7 @@ class CodeMapScreen extends StatelessWidget {
 
   // ── Zone card ───────────────────────────────────────────────────────────────
   Widget _buildZoneCard(BuildContext context, CodeZone zone,
-      GameProgressService progress, SoundService sound, int index) {
+      GameProgressService progress, SoundService sound, bool isPremium, int index) {
     final completedInZone =
         zone.challenges.where((c) => progress.isLevelCompleted(c.id)).length;
     final totalInZone = zone.challenges.length;
@@ -183,6 +185,16 @@ class CodeMapScreen extends StatelessWidget {
                   ),
                 ),
                 // Zone progress
+                if (!isPremium && index > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                    margin: const EdgeInsets.only(right: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.workspace_premium_rounded, color: Colors.amber, size: 16),
+                  ),
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -205,7 +217,7 @@ class CodeMapScreen extends StatelessWidget {
             final challenge = entry.value;
             final isCompleted = progress.isLevelCompleted(challenge.id);
             final stars = progress.getStars(challenge.id);
-            final isLocked = _isChallengeLocked(zone, idx, progress);
+            final isLocked = _isChallengeLocked(zone, idx, progress, isPremium);
 
             return GestureDetector(
               onTap: () {
@@ -333,8 +345,12 @@ class CodeMapScreen extends StatelessWidget {
 
   // ── Lock logic ──────────────────────────────────────────────────────────────
   bool _isChallengeLocked(
-      CodeZone zone, int challengeIndex, GameProgressService progress) {
+      CodeZone zone, int challengeIndex, GameProgressService progress, bool isPremium) {
     final challenge = zone.challenges[challengeIndex];
+
+    // Premium check for zones 2-5
+    final zoneIdx = codeGameZones.indexOf(zone);
+    if (!isPremium && zoneIdx > 0) return true;
 
     // Free levels are never locked
     if (challenge.isFree) return false;

@@ -475,11 +475,7 @@ class HomeScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         context.read<SoundService>().playTap();
-        if (isUnlocked) {
-          Navigator.pushNamed(context, '/certificate');
-        } else {
-          _showCertificateLockedDialog(context, isDark);
-        }
+        Navigator.pushNamed(context, '/certificate');
       },
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -518,19 +514,17 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'AR Explorer Certificate',
+              'Professional Credentials',
               style: AppTheme.headingSmall.copyWith(
-                color: isUnlocked ? AppTheme.textPrimaryC(isDark) : AppTheme.textMutedC(isDark),
+                color: AppTheme.textPrimaryC(isDark),
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              isUnlocked 
-                ? 'Congratulations! Your certificate is ready to be viewed and saved.'
-                : 'Complete all topics across all modules to unlock your official certificate.',
+              'Track your progress and earn tiered certificates from Bronze to Platinum.',
               textAlign: TextAlign.center,
               style: AppTheme.bodySmall.copyWith(
-                color: isUnlocked ? AppTheme.textSecondaryC(isDark) : AppTheme.textMutedC(isDark),
+                color: AppTheme.textSecondaryC(isDark),
               ),
             ),
             if (isUnlocked) ...[
@@ -542,7 +536,7 @@ class HomeScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'VIEW CERTIFICATE',
+                  'VIEW PROGRESS',
                   style: AppTheme.buttonText.copyWith(fontSize: 12),
                 ),
               ),
@@ -556,26 +550,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _showCertificateLockedDialog(BuildContext context, bool isDark) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.cardC(isDark),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('🎓 Certificate Locked'),
-        content: const Text(
-          'The AR Explorer Certificate is awarded to those who master the entire curriculum.\n\n'
-          'To unlock it, you must mark all topics as complete across all modules.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('I\'ll get there!'),
-          ),
-        ],
-      ),
-    );
-  }
 
   // ── Level / XP Card ─────────────────────────────────────────────
   Widget _buildLevelCard(BuildContext context, bool isDark, bool enableAnimations) {

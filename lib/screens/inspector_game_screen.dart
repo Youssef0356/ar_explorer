@@ -155,7 +155,6 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
     setState(() => _placedChips[chip.id] = chip.isCorrect);
 
     if (chip.isCorrect) {
-      _addTermLines(chip.addLines);
       for (final obj in chip.activates) {
         _activatedObjects.add(obj);
         _pulseCtrls[obj]?.forward(from: 0);
@@ -221,6 +220,12 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
 
     // ── Success path ──
     _timer?.cancel();
+    for (final entry in _placedChips.entries) {
+      if (entry.value) { // if isCorrect
+        final chip = widget.level.scriptBank.firstWhere((c) => c.id == entry.key);
+        _addTermLines(chip.addLines);
+      }
+    }
     _addTermLines(widget.level.successTerminal);
 
     final stars = _computeStars();

@@ -7,6 +7,7 @@ import '../data/quiz_data.dart';
 import '../models/module_model.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
+import 'bookmarks_screen.dart';
 import 'flashcard_screen.dart';
 import 'quiz_screen.dart';
 import 'topic_screen.dart';
@@ -85,6 +86,10 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                           ),
                         ],
                       ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.bookmark_rounded, color: widget.accentColor),
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BookmarksScreen())),
                     ),
                   ],
                 ),

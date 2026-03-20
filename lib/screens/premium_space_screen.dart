@@ -10,6 +10,10 @@ import '../widgets/animated_google_background.dart';
 import 'paywall_screen.dart';
 import 'quiz_analytics_screen.dart';
 import 'advanced_notes_screen.dart';
+import 'inspector_game_map_screen.dart';
+import 'coding_game_map_screen.dart';
+import 'interview_screen.dart';
+import 'certificate_progression_screen.dart';
 
 import 'main_screen.dart'; // Import for EngineerEntryScreen
 class PremiumSpaceScreen extends StatelessWidget {
@@ -37,7 +41,12 @@ class PremiumSpaceScreen extends StatelessWidget {
                     if (!isPremium) ...[
                       _buildUpgradeTeaser(context, isDark, soundService),
                       const SizedBox(height: 24),
+                    ] else ...[
+                      _buildPremiumActiveBanner(context, isDark),
+                      const SizedBox(height: 24),
                     ],
+                    Text('What\'s included', style: AppTheme.headingMedium.copyWith(color: AppTheme.textPrimaryC(isDark))),
+                    const SizedBox(height: 16),
                     _buildPremiumFeatureCard(
                       context: context,
                       isDark: isDark,
@@ -64,6 +73,69 @@ class PremiumSpaceScreen extends StatelessWidget {
                       isDark: isDark,
                       soundService: soundService,
                       isPremium: isPremium,
+                      title: 'XR Builder',
+                      subtitle: 'Build AR Scenes Visually',
+                      icon: Icons.architecture_rounded,
+                      color: AppTheme.accentPurple,
+                      onTap: () {
+                        if (!isPremium) {
+                          _showPaywall(context);
+                          return;
+                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const InspectorGameMapScreen()),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildPremiumFeatureCard(
+                      context: context,
+                      isDark: isDark,
+                      soundService: soundService,
+                      isPremium: isPremium,
+                      title: 'Code Challenges',
+                      subtitle: 'Solve Algorithms in AR',
+                      icon: Icons.code_rounded,
+                      color: AppTheme.accentBlue,
+                      onTap: () {
+                        if (!isPremium) {
+                          _showPaywall(context);
+                          return;
+                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const CodingGameMapScreen()),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildPremiumFeatureCard(
+                      context: context,
+                      isDark: isDark,
+                      soundService: soundService,
+                      isPremium: isPremium,
+                      title: 'Mock Interview',
+                      subtitle: 'Unlimited Practice Trials',
+                      icon: Icons.timer_rounded,
+                      color: AppTheme.accentAmber,
+                      onTap: () {
+                        if (!isPremium) {
+                          _showPaywall(context);
+                          return;
+                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const InterviewScreen()),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildPremiumFeatureCard(
+                      context: context,
+                      isDark: isDark,
+                      soundService: soundService,
+                      isPremium: isPremium,
                       title: 'Advanced Quiz Analytics',
                       subtitle: 'Visualize Performance',
                       icon: Icons.insights_rounded,
@@ -76,6 +148,25 @@ class PremiumSpaceScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => const QuizAnalyticsScreen()),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildPremiumFeatureCard(
+                      context: context,
+                      isDark: isDark,
+                      soundService: soundService,
+                      isPremium: isPremium,
+                      title: 'Professional Certificates',
+                      subtitle: 'Tiered AR Credentials',
+                      icon: Icons.workspace_premium_rounded,
+                      color: AppTheme.accentCyan,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  const CertificateProgressionScreen()),
                         );
                       },
                     ),
@@ -235,6 +326,64 @@ class PremiumSpaceScreen extends StatelessWidget {
       duration: const Duration(seconds: 3),
       color: AppTheme.accentAmber.withValues(alpha: 0.3),
     );
+  }
+
+  Widget _buildPremiumActiveBanner(BuildContext context, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.successGreen.withValues(alpha: 0.2),
+             AppTheme.successGreen.withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppTheme.successGreen.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.successGreen.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.check_circle_rounded,
+              color: AppTheme.successGreen,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Premium Active',
+                  style: AppTheme.headingSmall.copyWith(
+                    color: AppTheme.textPrimaryC(isDark),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Thank you for subscribing! Enjoy your exclusive tools.',
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.textSecondaryC(isDark),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: const Duration(seconds: 1));
   }
 
   Widget _buildPremiumFeatureCard({
