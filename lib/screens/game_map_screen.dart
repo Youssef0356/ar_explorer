@@ -218,9 +218,9 @@ class _GameMapScreenState extends State<GameMapScreen>
           padding: EdgeInsets.fromLTRB(
             12, MediaQuery.of(context).padding.top + 8, 16, 14),
           decoration: BoxDecoration(
-            color: const Color(0xFF060B14).withOpacity(0.85),
+            color: const Color(0xFF060B14).withValues(alpha: 0.85),
             border: Border(bottom: BorderSide(
-              color: AppTheme.accentCyan.withOpacity(0.15))),
+              color: AppTheme.accentCyan.withValues(alpha: 0.15))),
           ),
           child: Row(
             children: [
@@ -255,9 +255,9 @@ class _GameMapScreenState extends State<GameMapScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 margin: const EdgeInsets.only(right: 8),
                 decoration: BoxDecoration(
-                  color: leagueColor.withOpacity(0.12),
+                  color: leagueColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: leagueColor.withOpacity(0.3)),
+                  border: Border.all(color: leagueColor.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -276,9 +276,9 @@ class _GameMapScreenState extends State<GameMapScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 margin: const EdgeInsets.only(right: 8),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.1),
+                  color: Colors.amber.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.amber.withOpacity(0.25)),
+                  border: Border.all(color: Colors.amber.withValues(alpha: 0.25)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -301,7 +301,7 @@ class _GameMapScreenState extends State<GameMapScreen>
                     CircularProgressIndicator(
                       value: maxStars > 0 ? totalStars / maxStars : 0,
                       strokeWidth: 3,
-                      backgroundColor: Colors.white.withOpacity(0.08),
+                      backgroundColor: Colors.white.withValues(alpha: 0.08),
                       valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
                     ),
                     Column(
@@ -310,7 +310,7 @@ class _GameMapScreenState extends State<GameMapScreen>
                         Text('$totalStars',
                           style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.w800)),
                         Text('/ $maxStars',
-                          style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 7)),
+                          style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 7)),
                       ],
                     ),
                   ],
@@ -354,7 +354,7 @@ class _GameMapScreenState extends State<GameMapScreen>
         decoration: BoxDecoration(
           color: const Color(0xFF0F172A),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          border: Border.all(color: zone.accentColor.withOpacity(0.2)),
+          border: Border.all(color: zone.accentColor.withValues(alpha: 0.2)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -362,7 +362,7 @@ class _GameMapScreenState extends State<GameMapScreen>
             Container(
               width: 36, height: 4,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.12),
+                color: Colors.white.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(2)),
             ),
             const SizedBox(height: 20),
@@ -371,10 +371,10 @@ class _GameMapScreenState extends State<GameMapScreen>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: (level.isBoss ? Colors.red : zone.accentColor).withOpacity(0.12),
+                    color: (level.isBoss ? Colors.red : zone.accentColor).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: (level.isBoss ? Colors.red : zone.accentColor).withOpacity(0.3)),
+                      color: (level.isBoss ? Colors.red : zone.accentColor).withValues(alpha: 0.3)),
                   ),
                   child: Icon(
                     level.isBoss ? Icons.bolt_rounded : Icons.play_arrow_rounded,
@@ -389,7 +389,7 @@ class _GameMapScreenState extends State<GameMapScreen>
                       Text(
                         level.isBoss ? '⚡ BOSS CHALLENGE' : zone.name.toUpperCase(),
                         style: TextStyle(
-                          color: (level.isBoss ? Colors.red : zone.accentColor).withOpacity(0.9),
+                          color: (level.isBoss ? Colors.red : zone.accentColor).withValues(alpha: 0.9),
                           fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
                       const SizedBox(height: 3),
                       Text(level.title,
@@ -404,7 +404,7 @@ class _GameMapScreenState extends State<GameMapScreen>
                     padding: const EdgeInsets.only(left: 2),
                     child: Icon(
                       i < stars ? Icons.star_rounded : Icons.star_outline_rounded,
-                      color: i < stars ? Colors.amber : Colors.white.withOpacity(0.2),
+                      color: i < stars ? Colors.amber : Colors.white.withValues(alpha: 0.2),
                       size: 20),
                   )),
                 ),
@@ -417,19 +417,19 @@ class _GameMapScreenState extends State<GameMapScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.04),
+                  color: Colors.white.withValues(alpha: 0.04),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withOpacity(0.07))),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.07))),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(Icons.assignment_rounded,
-                      color: zone.accentColor.withOpacity(0.8), size: 18),
+                      color: zone.accentColor.withValues(alpha: 0.8), size: 18),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(level.projectTask,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontSize: 13, height: 1.5, fontWeight: FontWeight.w500))),
                   ],
                 ),
@@ -440,22 +440,22 @@ class _GameMapScreenState extends State<GameMapScreen>
               ExpansionTile(
                 tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                 childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                collapsedBackgroundColor: Colors.white.withOpacity(0.03),
-                backgroundColor: Colors.white.withOpacity(0.05),
+                collapsedBackgroundColor: Colors.white.withValues(alpha: 0.03),
+                backgroundColor: Colors.white.withValues(alpha: 0.05),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: Colors.white.withOpacity(0.06)),
+                  side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
                 ),
                 collapsedShape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: Colors.white.withOpacity(0.06)),
+                  side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
                 ),
                 iconColor: zone.accentColor,
-                collapsedIconColor: Colors.white.withOpacity(0.4),
+                collapsedIconColor: Colors.white.withValues(alpha: 0.4),
                 title: Text(
                   'About this build step',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
@@ -464,7 +464,7 @@ class _GameMapScreenState extends State<GameMapScreen>
                   Text(
                     level.buildContext,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.75),
+                      color: Colors.white.withValues(alpha: 0.75),
                       fontSize: 12,
                       height: 1.5,
                     ),
@@ -478,9 +478,9 @@ class _GameMapScreenState extends State<GameMapScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.04),
+                  color: Colors.white.withValues(alpha: 0.04),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withOpacity(0.07))),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.07))),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -489,7 +489,7 @@ class _GameMapScreenState extends State<GameMapScreen>
                     Expanded(
                       child: Text(level.goal,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
+                          color: Colors.white.withValues(alpha: 0.7),
                           fontSize: 13, height: 1.5))),
                   ],
                 ),
@@ -500,9 +500,9 @@ class _GameMapScreenState extends State<GameMapScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.07),
+                  color: Colors.red.withValues(alpha: 0.07),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.red.withOpacity(0.18))),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.18))),
                 child: Row(
                   children: [
                     const Icon(Icons.timer_rounded, color: Colors.red, size: 16),
@@ -556,13 +556,13 @@ class _ZoneLabel extends StatelessWidget {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 10 * scale, vertical: 4 * scale),
             decoration: BoxDecoration(
-              color: zone.accentColor.withOpacity(0.08),
+              color: zone.accentColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: zone.accentColor.withOpacity(0.25))),
+              border: Border.all(color: zone.accentColor.withValues(alpha: 0.25))),
             child: Text(
               zone.name.toUpperCase(),
               style: TextStyle(
-                color: zone.accentColor.withOpacity(0.7),
+                color: zone.accentColor.withValues(alpha: 0.7),
                 fontSize: 8 * scale, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
           ),
         ],
@@ -594,7 +594,7 @@ class _LevelNode extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isLocked
-        ? Colors.white.withOpacity(0.12)
+        ? Colors.white.withValues(alpha: 0.12)
         : (level.isBoss ? Colors.red : zone.accentColor);
     final isCompleted = stars > 0;
     // Only active (unlocked & not yet completed) nodes get the pulse
@@ -627,8 +627,8 @@ class _LevelNode extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: isLocked
-                    ? Colors.white.withOpacity(0.2)
-                    : Colors.white.withOpacity(0.85),
+                    ? Colors.white.withValues(alpha: 0.2)
+                    : Colors.white.withValues(alpha: 0.85),
                 fontSize: (nodeSize * 0.16).clamp(9.0, 13.0),
                 fontWeight: FontWeight.w600,
                 height: 1.2,
@@ -650,7 +650,7 @@ class _LevelNode extends StatelessWidget {
             ? []
             : [
                 BoxShadow(
-                  color: color.withOpacity(0.15 + pulse * 0.25),
+                  color: color.withValues(alpha: 0.15 + pulse * 0.25),
                   blurRadius: 8 + pulse * 16,
                   spreadRadius: pulse * 4,
                 ),
@@ -665,19 +665,19 @@ class _LevelNode extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isLocked
-            ? Colors.white.withOpacity(0.04)
+            ? Colors.white.withValues(alpha: 0.04)
             : isCompleted
-                ? color.withOpacity(0.2)
+                ? color.withValues(alpha: 0.2)
                 : const Color(0xFF060B14),
         border: Border.all(
-          color: color.withOpacity(isLocked ? 0.2 : 0.9),
+          color: color.withValues(alpha: isLocked ? 0.2 : 0.9),
           width: level.isBoss ? 2.5 : 2.0,
         ),
       ),
       child: Center(
         child: isLocked
             ? Icon(Icons.lock_rounded,
-                color: Colors.white.withOpacity(0.2), size: nodeSize * 0.35)
+                color: Colors.white.withValues(alpha: 0.2), size: nodeSize * 0.35)
             : isCompleted
                 ? Icon(Icons.check_rounded, color: color, size: nodeSize * 0.42)
                 : Icon(
@@ -732,7 +732,7 @@ class _StaticMapPainter extends CustomPainter {
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
 
     final dotPaint = Paint()
-      ..color = Colors.white.withOpacity(0.035)
+      ..color = Colors.white.withValues(alpha: 0.035)
       ..style = PaintingStyle.fill;
     const step = 28.0;
     for (double x = 0; x < size.width; x += step) {
@@ -756,10 +756,10 @@ class _StaticMapPainter extends CustomPainter {
       final paint = Paint()
         ..shader = LinearGradient(
           colors: [
-            b.color.withOpacity(0.0),
-            b.color.withOpacity(0.05),
-            b.color.withOpacity(0.05),
-            b.color.withOpacity(0.0),
+            b.color.withValues(alpha: 0.0),
+            b.color.withValues(alpha: 0.05),
+            b.color.withValues(alpha: 0.05),
+            b.color.withValues(alpha: 0.0),
           ],
           stops: const [0.0, 0.2, 0.8, 1.0],
         ).createShader(Rect.fromLTWH(0, b.top, size.width, b.bot - b.top));
@@ -769,7 +769,7 @@ class _StaticMapPainter extends CustomPainter {
       if (b.top > 0) {
         canvas.drawLine(
           Offset(24, b.top), Offset(size.width - 24, b.top),
-          Paint()..color = b.color.withOpacity(0.1)..strokeWidth = 0.5);
+          Paint()..color = b.color.withValues(alpha: 0.1)..strokeWidth = 0.5);
       }
 
       // Static blob (no pulse — that's gone from the canvas)
@@ -781,7 +781,7 @@ class _StaticMapPainter extends CustomPainter {
         Offset(blobX, blobY),
         110,
         Paint()..shader = RadialGradient(
-          colors: [b.color.withOpacity(0.07), b.color.withOpacity(0.0)],
+          colors: [b.color.withValues(alpha: 0.07), b.color.withValues(alpha: 0.0)],
         ).createShader(Rect.fromCircle(center: Offset(blobX, blobY), radius: 110)),
       );
     }
@@ -799,8 +799,8 @@ class _StaticMapPainter extends CustomPainter {
       final toLocked  = progress.isLevelLocked(toId);
       final active    = fromDone && !toLocked;
       final pathColor = active
-          ? _zoneColor(fromId).withOpacity(0.55)
-          : Colors.white.withOpacity(0.07);
+          ? _zoneColor(fromId).withValues(alpha: 0.55)
+          : Colors.white.withValues(alpha: 0.07);
 
       _drawCurvedPath(canvas, from, to, pathColor, active);
     }
@@ -823,7 +823,7 @@ class _StaticMapPainter extends CustomPainter {
     if (active) {
       // Soft glow
       canvas.drawPath(path, Paint()
-        ..color = color.withOpacity(0.12)
+        ..color = color.withValues(alpha: 0.12)
         ..strokeWidth = 7
         ..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round
@@ -840,7 +840,7 @@ class _StaticMapPainter extends CustomPainter {
         canvas.drawCircle(
           Offset(from.dx + dx * t, from.dy + dy * t),
           2.2,
-          Paint()..color = color.withOpacity(0.55)..style = PaintingStyle.fill,
+          Paint()..color = color.withValues(alpha: 0.55)..style = PaintingStyle.fill,
         );
       }
     } else {
@@ -866,7 +866,7 @@ class _StaticMapPainter extends CustomPainter {
 
   void _drawDecorations(Canvas canvas, Size size) {
     final rng = math.Random(42);
-    final starPaint = Paint()..color = Colors.white.withOpacity(0.25)..style = PaintingStyle.fill;
+    final starPaint = Paint()..color = Colors.white.withValues(alpha: 0.25)..style = PaintingStyle.fill;
     for (int i = 0; i < 35; i++) {
       canvas.drawCircle(
         Offset(rng.nextDouble() * size.width, rng.nextDouble() * size.height),

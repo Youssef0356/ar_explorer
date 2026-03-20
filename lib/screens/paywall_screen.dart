@@ -70,7 +70,7 @@ class PaywallScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 32),
                       decoration: AppTheme.glassCard(isDark).copyWith(
-                        border: Border.all(color: AppTheme.accentCyan.withOpacity(0.3)),
+                        border: Border.all(color: AppTheme.accentCyan.withValues(alpha: 0.3)),
                       ),
                       child: Column(
                         children: [
@@ -221,7 +221,7 @@ class PaywallScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppTheme.accentCyan.withOpacity(0.1),
+                color: AppTheme.accentCyan.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(f.$3, color: AppTheme.accentCyan, size: 20),

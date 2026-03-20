@@ -51,7 +51,7 @@ class _MainScreenState extends State<MainScreen> {
           color: AppTheme.cardC(isDark),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -318,7 +318,7 @@ class _EngineerEntryScreen extends StatelessWidget {
           color: AppTheme.cardC(isDark),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: zone.color.withOpacity(isDark ? 0.2 : 0.15),
+            color: zone.color.withValues(alpha: isDark ? 0.2 : 0.15),
           ),
         ),
         child: Row(
@@ -327,7 +327,7 @@ class _EngineerEntryScreen extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: zone.color.withOpacity(0.1),
+                color: zone.color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(zone.icon, color: zone.color, size: 20),
@@ -358,7 +358,7 @@ class _EngineerEntryScreen extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: zone.color.withOpacity(0.1),
+                color: zone.color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(

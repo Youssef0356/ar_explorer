@@ -100,10 +100,10 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                                     AppTheme.successGreen.withOpacity(
                                       0.3,
                                     ),
-                                    AppTheme.accentCyan.withOpacity(0.1),
+                                    AppTheme.accentCyan.withValues(alpha: 0.1),
                                   ]
                                 : [
-                                    AppTheme.errorRed.withOpacity(0.3),
+                                    AppTheme.errorRed.withValues(alpha: 0.3),
                                     AppTheme.warningAmber.withOpacity(
                                       0.1,
                                     ),
@@ -111,8 +111,8 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                           ),
                           border: Border.all(
                             color: _passed
-                                ? AppTheme.successGreen.withOpacity(0.4)
-                                : AppTheme.errorRed.withOpacity(0.4),
+                                ? AppTheme.successGreen.withValues(alpha: 0.4)
+                                : AppTheme.errorRed.withValues(alpha: 0.4),
                             width: 2,
                           ),
                         ),
@@ -291,7 +291,7 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: AppTheme.glassCard(isDark).copyWith(
-                          border: Border.all(color: AppTheme.accentCyan.withOpacity(0.3)),
+                          border: Border.all(color: AppTheme.accentCyan.withValues(alpha: 0.3)),
                         ),
                         child: Column(
                           children: [

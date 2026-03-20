@@ -113,7 +113,7 @@ class QuizAnalyticsScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppTheme.accentCyan.withOpacity(0.15),
+              color: AppTheme.accentCyan.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.insights_rounded, color: AppTheme.accentCyan),
@@ -144,7 +144,7 @@ class QuizAnalyticsScreen extends StatelessWidget {
      return Container(
         padding: const EdgeInsets.all(20),
         decoration: AppTheme.glassCard(isDark).copyWith(
-          border: Border.all(color: AppTheme.textMutedC(isDark).withOpacity(0.1)),
+          border: Border.all(color: AppTheme.textMutedC(isDark).withValues(alpha: 0.1)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,7 +169,7 @@ class QuizAnalyticsScreen extends StatelessWidget {
                      final score = history[index];
                      final heightPercent = score / maxScore;
                      
-                     Color barColor = AppTheme.textMutedC(isDark).withOpacity(0.5);
+                     Color barColor = AppTheme.textMutedC(isDark).withValues(alpha: 0.5);
                      if (score >= 80) {
                        barColor = AppTheme.successGreen;
                      } else if (score >= 50) {
@@ -205,7 +205,7 @@ class QuizAnalyticsScreen extends StatelessWidget {
      return Container(
        padding: const EdgeInsets.all(32),
        decoration: AppTheme.glassCard(isDark).copyWith(
-         border: Border.all(color: AppTheme.successGreen.withOpacity(0.3)),
+         border: Border.all(color: AppTheme.successGreen.withValues(alpha: 0.3)),
        ),
        child: Column(
          children: [
@@ -259,7 +259,7 @@ class QuizAnalyticsScreen extends StatelessWidget {
              height: 12,
              width: double.infinity,
              decoration: BoxDecoration(
-                color: AppTheme.textMutedC(isDark).withOpacity(0.1),
+                color: AppTheme.textMutedC(isDark).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6),
              ),
              child: FractionallySizedBox(
@@ -267,11 +267,11 @@ class QuizAnalyticsScreen extends StatelessWidget {
                 widthFactor: intensity,
                 child: Container(
                    decoration: BoxDecoration(
-                      color: heatColor.withOpacity(0.8),
+                      color: heatColor.withValues(alpha: 0.8),
                       borderRadius: BorderRadius.circular(6),
                       boxShadow: [
                          BoxShadow(
-                            color: heatColor.withOpacity(0.4),
+                            color: heatColor.withValues(alpha: 0.4),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                          )

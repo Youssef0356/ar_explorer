@@ -164,12 +164,12 @@ class _TopicScreenState extends State<TopicScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: isCompleted
-                                ? AppTheme.successGreen.withOpacity(0.15)
+                                ? AppTheme.successGreen.withValues(alpha: 0.15)
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: isCompleted
-                                  ? AppTheme.successGreen.withOpacity(0.4)
+                                  ? AppTheme.successGreen.withValues(alpha: 0.4)
                                   : Colors.transparent,
                             ),
                           ),
@@ -210,7 +210,7 @@ class _TopicScreenState extends State<TopicScreen> {
                   borderRadius: BorderRadius.circular(2),
                   child: LinearProgressIndicator(
                     value: _progress,
-                    backgroundColor: widget.accentColor.withOpacity(0.1),
+                    backgroundColor: widget.accentColor.withValues(alpha: 0.1),
                     valueColor: AlwaysStoppedAnimation<Color>(
                       widget.accentColor,
                     ),
@@ -257,13 +257,13 @@ class _TopicScreenState extends State<TopicScreen> {
                               horizontal: 14, vertical: 10),
                           decoration: BoxDecoration(
                             color: isDark
-                                ? Colors.white.withOpacity(0.04)
-                                : Colors.grey.withOpacity(0.06),
+                                ? Colors.white.withValues(alpha: 0.04)
+                                : Colors.grey.withValues(alpha: 0.06),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                                 color: isPremium 
                                     ? AppTheme.dividerC(isDark)
-                                    : AppTheme.accentAmber.withOpacity(0.3)),
+                                    : AppTheme.accentAmber.withValues(alpha: 0.3)),
                           ),
                           child: Row(
                             children: [

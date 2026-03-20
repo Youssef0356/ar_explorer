@@ -4,7 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
-import 'code_map_screen.dart';
+
 import 'game_map_screen.dart';
 import 'coding_game_map_screen.dart';
 
@@ -97,7 +97,7 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.06),
+                color: Colors.white.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.arrow_back_ios_rounded,
@@ -127,9 +127,9 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.amber.withOpacity(0.12),
+              color: Colors.amber.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.amber.withOpacity(0.35)),
+              border: Border.all(color: Colors.amber.withValues(alpha: 0.35)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -162,11 +162,11 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: RadialGradient(
-              colors: [color.withOpacity(0.25), color.withOpacity(0.05)],
+              colors: [color.withValues(alpha: 0.25), color.withValues(alpha: 0.05)],
             ),
-            border: Border.all(color: color.withOpacity(0.6), width: 3),
+            border: Border.all(color: color.withValues(alpha: 0.6), width: 3),
             boxShadow: [
-              BoxShadow(color: color.withOpacity(0.3), blurRadius: 30),
+              BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 30),
             ],
           ),
           child: Icon(icon, color: color, size: 48),
@@ -186,19 +186,19 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.06),
+            color: Colors.white.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.timer_rounded,
-                  color: Colors.white.withOpacity(0.5), size: 14),
+                  color: Colors.white.withValues(alpha: 0.5), size: 14),
               const SizedBox(width: 6),
               Text('2 DAYS',
                   style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
+                      color: Colors.white.withValues(alpha: 0.5),
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1)),
@@ -215,9 +215,9 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.15)),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
       ),
       child: Column(
         children: [
@@ -225,7 +225,7 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.06),
+              color: color.withValues(alpha: 0.06),
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(20)),
             ),
@@ -242,7 +242,7 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
                         letterSpacing: 2)),
                 const Spacer(),
                 Icon(_leagueIcon(league),
-                    color: color.withOpacity(0.6), size: 16),
+                    color: color.withValues(alpha: 0.6), size: 16),
               ],
             ),
           ),
@@ -256,11 +256,11 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
                 color: e.isPlayer
-                    ? color.withOpacity(0.08)
+                    ? color.withValues(alpha: 0.08)
                     : Colors.transparent,
                 border: Border(
                   bottom: BorderSide(
-                      color: Colors.white.withOpacity(0.04)),
+                      color: Colors.white.withValues(alpha: 0.04)),
                 ),
               ),
               child: Row(
@@ -273,7 +273,7 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
                       style: TextStyle(
                         color: rank <= 3
                             ? Colors.amber
-                            : Colors.white.withOpacity(0.4),
+                            : Colors.white.withValues(alpha: 0.4),
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
                       ),
@@ -286,12 +286,12 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: e.isPlayer
-                          ? color.withOpacity(0.2)
-                          : Colors.white.withOpacity(0.06),
+                          ? color.withValues(alpha: 0.2)
+                          : Colors.white.withValues(alpha: 0.06),
                       border: Border.all(
                         color: e.isPlayer
-                            ? color.withOpacity(0.5)
-                            : Colors.white.withOpacity(0.1),
+                            ? color.withValues(alpha: 0.5)
+                            : Colors.white.withValues(alpha: 0.1),
                       ),
                     ),
                     child: Center(
@@ -317,7 +317,7 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
                                 style: TextStyle(
                                     color: e.isPlayer
                                         ? Colors.white
-                                        : Colors.white.withOpacity(0.85),
+                                        : Colors.white.withValues(alpha: 0.85),
                                     fontSize: 14,
                                     fontWeight: e.isPlayer
                                         ? FontWeight.w800
@@ -328,7 +328,7 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: color.withOpacity(0.15),
+                                  color: color.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text('YOU',
@@ -343,7 +343,7 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
                         if (e.tag.isNotEmpty)
                           Text(e.tag,
                               style: TextStyle(
-                                  color: Colors.white.withOpacity(0.35),
+                                  color: Colors.white.withValues(alpha: 0.35),
                                   fontSize: 11)),
                       ],
                     ),
@@ -353,7 +353,7 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
                       style: TextStyle(
                           color: e.isPlayer
                               ? color
-                              : Colors.white.withOpacity(0.5),
+                              : Colors.white.withValues(alpha: 0.5),
                           fontSize: 13,
                           fontWeight: FontWeight.w700)),
                 ],
@@ -374,12 +374,12 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: streak > 0
-              ? Colors.orange.withOpacity(0.25)
-              : Colors.white.withOpacity(0.08),
+              ? Colors.orange.withValues(alpha: 0.25)
+              : Colors.white.withValues(alpha: 0.08),
         ),
       ),
       child: Row(
@@ -387,7 +387,7 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.12),
+              color: Colors.orange.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -414,7 +414,7 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
                       ? 'All XP earned today gets a 1.5× multiplier!'
                       : 'Play daily to earn bonus XP.',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.45),
+                    color: Colors.white.withValues(alpha: 0.45),
                     fontSize: 12,
                   ),
                 ),
@@ -425,7 +425,7 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.15),
+                color: Colors.orange.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Text('1.5×',
@@ -490,16 +490,16 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.04),
+          color: Colors.white.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withOpacity(0.2)),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(icon, color: color, size: 28),
@@ -522,7 +522,7 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: color.withOpacity(0.15),
+                            color: color.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text('MINI',
@@ -537,13 +537,13 @@ class _LeagueHomeScreenState extends State<LeagueHomeScreen> {
                   const SizedBox(height: 4),
                   Text(subtitle,
                       style: TextStyle(
-                          color: Colors.white.withOpacity(0.4),
+                          color: Colors.white.withValues(alpha: 0.4),
                           fontSize: 12)),
                 ],
               ),
             ),
             Icon(Icons.chevron_right_rounded,
-                color: Colors.white.withOpacity(0.2)),
+                color: Colors.white.withValues(alpha: 0.2)),
           ],
         ),
       ),

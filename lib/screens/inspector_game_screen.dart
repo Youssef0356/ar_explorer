@@ -93,8 +93,12 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
   @override
   void dispose() {
     _timer?.cancel();
-    for (final c in _floatCtrls.values) c.dispose();
-    for (final c in _pulseCtrls.values) c.dispose();
+    for (final c in _floatCtrls.values) {
+      c.dispose();
+    }
+    for (final c in _pulseCtrls.values) {
+      c.dispose();
+    }
     _termScroll.dispose();
     _inspScroll.dispose();
     super.dispose();
@@ -139,7 +143,9 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
   }
 
   void _addTermLines(List<TerminalLine> lines) {
-    for (final l in lines) _addTermLine(l);
+    for (final l in lines) {
+      _addTermLine(l);
+    }
   }
 
   // ── Place script ───────────────────────────────────────────────────────────
@@ -314,7 +320,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
       decoration: BoxDecoration(
         color: const Color(0xFF0F1929),
         border: Border(bottom:
-            BorderSide(color: zone.accentColor.withOpacity(0.25))),
+            BorderSide(color: zone.accentColor.withValues(alpha: 0.25))),
       ),
       child: Row(children: [
         GestureDetector(onTap: () => Navigator.pop(context),
@@ -336,12 +342,12 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
               color: _secondsLeft < 20
-                  ? Colors.red.withOpacity(0.15)
-                  : Colors.white.withOpacity(0.06),
+                  ? Colors.red.withValues(alpha: 0.15)
+                  : Colors.white.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
                   color: _secondsLeft < 20
-                      ? Colors.red.withOpacity(0.4) : Colors.white12)),
+                      ? Colors.red.withValues(alpha: 0.4) : Colors.white12)),
             child: Text(
               '${_secondsLeft ~/ 60}:${(_secondsLeft % 60).toString().padLeft(2, '0')}',
               style: TextStyle(
@@ -360,9 +366,9 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
-        color: zone.accentColor.withOpacity(0.05),
+        color: zone.accentColor.withValues(alpha: 0.05),
         border: Border(bottom:
-            BorderSide(color: zone.accentColor.withOpacity(0.12))),
+            BorderSide(color: zone.accentColor.withValues(alpha: 0.12))),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(widget.level.gameObjectIcon, style: const TextStyle(fontSize: 15)),
@@ -396,7 +402,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
             _vpBtn('Game',  active: false),
             const Spacer(),
             Text('Persp ▾', style: TextStyle(
-                color: Colors.white.withOpacity(0.22), fontSize: 8)),
+                color: Colors.white.withValues(alpha: 0.22), fontSize: 8)),
           ]),
         ),
         Expanded(child: LayoutBuilder(builder: (ctx, constraints) {
@@ -415,7 +421,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
               child: Container(height: 1,
                 decoration: BoxDecoration(gradient: LinearGradient(colors: [
                   Colors.transparent,
-                  Colors.blue.withOpacity(0.28),
+                  Colors.blue.withValues(alpha: 0.28),
                   Colors.transparent,
                 ])))),
             ..._buildSceneObjects(constraints),
@@ -500,7 +506,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
     final xp    = _computeXP(stars);
     return Positioned.fill(
       child: Container(
-        color: Colors.black.withOpacity(0.72),
+        color: Colors.black.withValues(alpha: 0.72),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           const Text('✅', style: TextStyle(fontSize: 28))
               .animate().scale(duration: 400.ms, curve: Curves.elasticOut),
@@ -522,7 +528,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.07),
+                color: Colors.white.withValues(alpha: 0.07),
                 borderRadius: BorderRadius.circular(5),
                 border: Border.all(color: Colors.white24)),
               child: Text(
@@ -747,7 +753,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
                       color: const Color(0xFF0A1A0C),
                       borderRadius: BorderRadius.circular(5),
                       border: Border.all(
-                          color: chip.dotColor.withOpacity(0.2))),
+                          color: chip.dotColor.withValues(alpha: 0.2))),
                     child: Text(_codeSnippet(chip.id),
                       style: const TextStyle(
                           fontFamily: 'Courier New',
@@ -810,7 +816,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.04),
+              color: Colors.white.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(5),
               border: Border.all(color: Colors.white10)),
             child: const Text('Hint 💡',
@@ -826,7 +832,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
                   ? (hasWrong
                       ? const Color(0xFFFF8A65)
                       : const Color(0xFF00E5FF))
-                  : Colors.white.withOpacity(0.04),
+                  : Colors.white.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(5)),
             child: Text('Run Scene ▶',
               style: TextStyle(
@@ -866,16 +872,16 @@ class _SceneObjectWidget extends StatelessWidget {
           width: 34, height: 34,
           decoration: BoxDecoration(
             color: activated
-                ? const Color(0xFF00E5FF).withOpacity(0.10)
-                : Colors.white.withOpacity(0.02),
+                ? const Color(0xFF00E5FF).withValues(alpha: 0.10)
+                : Colors.white.withValues(alpha: 0.02),
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
               color: activated
-                  ? const Color(0xFF00E5FF).withOpacity(0.55)
-                  : Colors.white.withOpacity(0.06),
+                  ? const Color(0xFF00E5FF).withValues(alpha: 0.55)
+                  : Colors.white.withValues(alpha: 0.06),
               width: activated ? 1.5 : 1),
             boxShadow: activated ? [BoxShadow(
-              color: const Color(0xFF00E5FF).withOpacity(0.30),
+              color: const Color(0xFF00E5FF).withValues(alpha: 0.30),
               blurRadius: 10, spreadRadius: 1)] : null),
           child: Center(child: Text(icon,
             style: TextStyle(
@@ -939,15 +945,15 @@ class _ComponentTileState extends State<_ComponentTile> {
   @override
   Widget build(BuildContext context) {
     final bdr = (widget.isError && widget.showStatus)
-        ? Colors.red.withOpacity(0.35)
+        ? Colors.red.withValues(alpha: 0.35)
         : (widget.locked
             ? const Color(0xFF1E3255)
-            : widget.accentColor.withOpacity(0.28));
+            : widget.accentColor.withValues(alpha: 0.28));
     return Container(
       margin: const EdgeInsets.fromLTRB(5, 2, 5, 0),
       decoration: BoxDecoration(
         color: (widget.isError && widget.showStatus)
-            ? Colors.red.withOpacity(0.05)
+            ? Colors.red.withValues(alpha: 0.05)
             : const Color(0xFF162236),
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: bdr)),
@@ -965,7 +971,7 @@ class _ComponentTileState extends State<_ComponentTile> {
               const SizedBox(width: 3),
               Container(width: 13, height: 13,
                 decoration: BoxDecoration(
-                  color: widget.accentColor.withOpacity(0.14),
+                  color: widget.accentColor.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(2)),
                 child: Center(child: Text(widget.icon,
                     style: const TextStyle(fontSize: 7)))),
@@ -986,10 +992,10 @@ class _ComponentTileState extends State<_ComponentTile> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 3, vertical: 1),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF00C853).withOpacity(0.1),
+                    color: const Color(0xFF00C853).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(2),
                     border: Border.all(
-                        color: const Color(0xFF00C853).withOpacity(0.28))),
+                        color: const Color(0xFF00C853).withValues(alpha: 0.28))),
                   child: const Text('● on', style: TextStyle(
                       color: Color(0xFF00C853), fontSize: 7,
                       fontWeight: FontWeight.w600))),
@@ -1064,7 +1070,7 @@ class _ScriptBankChipState extends State<_ScriptBankChip>
               // Neutral style — no green/red giveaway
               color: const Color(0xFF0C1A2E),
               borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: Colors.white.withOpacity(0.08))),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08))),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               Container(width: 5, height: 5,
                 decoration: const BoxDecoration(
@@ -1092,14 +1098,14 @@ class _GridFloorPainter extends CustomPainter {
     const cols = 10; const rows = 6;
     for (int i = 0; i <= cols; i++) {
       final x = size.width * i / cols;
-      paint.color = const Color(0xFF0050A0).withOpacity(0.12);
+      paint.color = const Color(0xFF0050A0).withValues(alpha: 0.12);
       canvas.drawLine(Offset(x, 0),
           Offset(size.width * .5 + (x - size.width * .5) * .06, size.height), paint);
     }
     for (int j = 0; j <= rows; j++) {
       final y = size.height * j / rows;
       paint.color = const Color(0xFF0060C0)
-          .withOpacity(0.16 * (1 - j / rows));
+          .withValues(alpha: 0.16 * (1 - j / rows));
       canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }
   }
@@ -1122,7 +1128,7 @@ class _IntroPopupDialog extends StatelessWidget {
           color: const Color(0xFF0E1828),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-              color: const Color(0xFF00E5FF).withOpacity(0.28))),
+              color: const Color(0xFF00E5FF).withValues(alpha: 0.28))),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Container(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
@@ -1130,11 +1136,11 @@ class _IntroPopupDialog extends StatelessWidget {
               color: const Color(0xFF09121E),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               border: Border(bottom: BorderSide(
-                  color: const Color(0xFF00E5FF).withOpacity(0.14)))),
+                  color: const Color(0xFF00E5FF).withValues(alpha: 0.14)))),
             child: Row(children: [
               Container(width: 38, height: 38,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF00E5FF).withOpacity(0.10),
+                  color: const Color(0xFF00E5FF).withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(10)),
                 child: const Center(child: Text('⬡',
                     style: TextStyle(color: Color(0xFF00E5FF), fontSize: 20)))),

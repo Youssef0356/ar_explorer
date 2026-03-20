@@ -64,9 +64,9 @@ class CodingGameMapScreen extends StatelessWidget {
               margin: const EdgeInsets.only(right: 12),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: Colors.orange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
@@ -92,9 +92,9 @@ class CodingGameMapScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.15),
+                color: Colors.amber.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.amber.withOpacity(0.4)),
+                border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
               ),
               child: const Icon(Icons.emoji_events_rounded,
                   color: Colors.amber, size: 24),
@@ -135,9 +135,9 @@ class CodingGameMapScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFF131927),
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: zone.accentColor.withOpacity(isLocked ? 0.05 : 0.2), width: 1),
+                border: Border.all(color: zone.accentColor.withValues(alpha: isLocked ? 0.05 : 0.2), width: 1),
                 boxShadow: [
-                  BoxShadow(color: zone.accentColor.withOpacity(isLocked ? 0.0 : 0.05), blurRadius: 30, offset: const Offset(0, 10)),
+                  BoxShadow(color: zone.accentColor.withValues(alpha: isLocked ? 0.0 : 0.05), blurRadius: 30, offset: const Offset(0, 10)),
                 ],
               ),
               child: Row(
@@ -146,7 +146,7 @@ class CodingGameMapScreen extends StatelessWidget {
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
-                      color: zone.accentColor.withOpacity(0.1),
+                      color: zone.accentColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Icon(zone.icon, color: zone.accentColor, size: 30),
@@ -168,7 +168,7 @@ class CodingGameMapScreen extends StatelessWidget {
                         Text(
                           zone.platform,
                           style: TextStyle(
-                            color: zone.accentColor.withOpacity(0.6),
+                            color: zone.accentColor.withValues(alpha: 0.6),
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
@@ -184,7 +184,7 @@ class CodingGameMapScreen extends StatelessWidget {
                   if (isLocked)
                     const Icon(Icons.lock_rounded, color: Colors.amber, size: 24)
                   else
-                    Icon(Icons.chevron_right_rounded, color: Colors.white.withOpacity(0.2)),
+                    Icon(Icons.chevron_right_rounded, color: Colors.white.withValues(alpha: 0.2)),
                 ],
               ),
             ),
@@ -203,9 +203,9 @@ class CodingGameMapScreen extends StatelessWidget {
           height: 8,
           margin: const EdgeInsets.only(right: 6),
           decoration: BoxDecoration(
-            color: i < completed ? AppTheme.accentCyan : Colors.white.withOpacity(0.1),
+            color: i < completed ? AppTheme.accentCyan : Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(4),
-            border: isLast ? Border.all(color: AppTheme.accentAmber.withOpacity(0.5)) : null,
+            border: isLast ? Border.all(color: AppTheme.accentAmber.withValues(alpha: 0.5)) : null,
           ),
           child: isLast ? const Center(child: Icon(Icons.bolt, color: AppTheme.accentAmber, size: 6)) : null,
         );

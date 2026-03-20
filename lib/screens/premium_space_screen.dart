@@ -181,15 +181,15 @@ class PremiumSpaceScreen extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              AppTheme.accentAmber.withOpacity(0.2),
-              AppTheme.accentAmber.withOpacity(0.05),
+              AppTheme.accentAmber.withValues(alpha: 0.2),
+              AppTheme.accentAmber.withValues(alpha: 0.05),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: AppTheme.accentAmber.withOpacity(0.3),
+            color: AppTheme.accentAmber.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -198,7 +198,7 @@ class PremiumSpaceScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppTheme.accentAmber.withOpacity(0.2),
+                color: AppTheme.accentAmber.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -233,7 +233,7 @@ class PremiumSpaceScreen extends StatelessWidget {
       ),
     ).animate().shimmer(
       duration: const Duration(seconds: 3),
-      color: AppTheme.accentAmber.withOpacity(0.3),
+      color: AppTheme.accentAmber.withValues(alpha: 0.3),
     );
   }
 
@@ -257,7 +257,7 @@ class PremiumSpaceScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         decoration: AppTheme.glassCard(isDark).copyWith(
           border: Border.all(
-            color: isPremium ? color.withOpacity(0.3) : AppTheme.textMutedC(isDark).withOpacity(0.1),
+            color: isPremium ? color.withValues(alpha: 0.3) : AppTheme.textMutedC(isDark).withValues(alpha: 0.1),
             width: 1.5,
           ),
         ),
@@ -266,7 +266,7 @@ class PremiumSpaceScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isPremium ? color.withOpacity(0.15) : AppTheme.textMutedC(isDark).withOpacity(0.1),
+                color: isPremium ? color.withValues(alpha: 0.15) : AppTheme.textMutedC(isDark).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(
@@ -313,7 +313,7 @@ class PremiumSpaceScreen extends StatelessWidget {
                   Text(
                     subtitle,
                     style: AppTheme.bodySmall.copyWith(
-                      color: isPremium ? AppTheme.textSecondaryC(isDark) : AppTheme.textMutedC(isDark).withOpacity(0.5),
+                      color: isPremium ? AppTheme.textSecondaryC(isDark) : AppTheme.textMutedC(isDark).withValues(alpha: 0.5),
                     ),
                   ),
                 ],

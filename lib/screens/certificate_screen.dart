@@ -94,7 +94,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
                                 ],
                               ),
                               border: Border.all(
-                                color: AppTheme.accentCyan.withOpacity(0.3),
+                                color: AppTheme.accentCyan.withValues(alpha: 0.3),
                                 width: 2,
                               ),
                             ),
@@ -112,7 +112,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
                               shape: BoxShape.circle,
                               gradient: RadialGradient(
                                 colors: [
-                                  AppTheme.accentCyan.withOpacity(0.15),
+                                  AppTheme.accentCyan.withValues(alpha: 0.15),
                                   const Color(0x00000000),
                                 ],
                               ),
@@ -129,7 +129,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
                               shape: BoxShape.circle,
                               gradient: RadialGradient(
                                 colors: [
-                                  AppTheme.accentBlue.withOpacity(0.12),
+                                  AppTheme.accentBlue.withValues(alpha: 0.12),
                                   const Color(0x00000000),
                                 ],
                               ),
@@ -142,7 +142,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
                             margin: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               border: Border.all(
-                                color: AppTheme.accentCyan.withOpacity(0.15),
+                                color: AppTheme.accentCyan.withValues(alpha: 0.15),
                                 width: 1,
                               ),
                               borderRadius: BorderRadius.circular(8),
@@ -168,7 +168,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
                                   letterSpacing: 8,
                                   shadows: [
                                     Shadow(
-                                      color: Colors.black.withOpacity(0.5),
+                                      color: Colors.black.withValues(alpha: 0.5),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -207,7 +207,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
                               style: GoogleFonts.inter(
                                 fontSize: h * 0.022,
                                 fontWeight: FontWeight.w500,
-                                color: Colors.white.withOpacity(0.7),
+                                color: Colors.white.withValues(alpha: 0.7),
                                 letterSpacing: 2,
                               ),
                             ),
@@ -232,7 +232,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
                                   letterSpacing: 1.5,
                                   shadows: [
                                     Shadow(
-                                      color: AppTheme.accentCyan.withOpacity(0.5),
+                                      color: AppTheme.accentCyan.withValues(alpha: 0.5),
                                       blurRadius: 10,
                                     ),
                                   ],
@@ -254,7 +254,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
                               style: GoogleFonts.inter(
                                 fontSize: h * 0.018,
                                 fontWeight: FontWeight.w500,
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                                 letterSpacing: 1.5,
                               ),
                             ),
@@ -280,7 +280,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
                               Container(
                                 width: w * 0.2,
                                 height: 1,
-                                color: AppTheme.accentCyan.withOpacity(0.5),
+                                color: AppTheme.accentCyan.withValues(alpha: 0.5),
                               ),
                               SizedBox(height: h * 0.01),
                               Text(
@@ -288,7 +288,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
                                 style: GoogleFonts.inter(
                                   fontSize: h * 0.016,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white.withOpacity(0.5),
+                                  color: Colors.white.withValues(alpha: 0.5),
                                   letterSpacing: 2,
                                 ),
                               ),
@@ -314,7 +314,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
                               Container(
                                 width: w * 0.25,
                                 height: 1,
-                                color: AppTheme.accentCyan.withOpacity(0.5),
+                                color: AppTheme.accentCyan.withValues(alpha: 0.5),
                               ),
                               SizedBox(height: h * 0.01),
                               Text(
@@ -322,7 +322,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
                                 style: GoogleFonts.inter(
                                   fontSize: h * 0.016,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white.withOpacity(0.5),
+                                  color: Colors.white.withValues(alpha: 0.5),
                                   letterSpacing: 2,
                                 ),
                               ),

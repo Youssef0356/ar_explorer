@@ -93,7 +93,7 @@ class _StatsStrip extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppTheme.cardC(isDark),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.accentCyan.withOpacity(.15)),
+        border: Border.all(color: AppTheme.accentCyan.withValues(alpha: .15)),
       ),
       child: Row(
         children: [
@@ -169,7 +169,7 @@ class _ZoneCardState extends State<_ZoneCard> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: allDone
-              ? zone.accentColor.withOpacity(.4)
+              ? zone.accentColor.withValues(alpha: .4)
               : AppTheme.dividerC(widget.isDark)),
       ),
       child: Column(
@@ -184,7 +184,7 @@ class _ZoneCardState extends State<_ZoneCard> {
                   Container(
                     width: 36, height: 36,
                     decoration: BoxDecoration(
-                      color: zone.accentColor.withOpacity(.12),
+                      color: zone.accentColor.withValues(alpha: .12),
                       borderRadius: BorderRadius.circular(10)),
                     child: Icon(zone.icon,
                         color: zone.accentColor, size: 18)),
@@ -208,10 +208,10 @@ class _ZoneCardState extends State<_ZoneCard> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: zone.accentColor.withOpacity(.08),
+                      color: zone.accentColor.withValues(alpha: .08),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: zone.accentColor.withOpacity(.2)),
+                        color: zone.accentColor.withValues(alpha: .2)),
                     ),
                     child: Text('$doneCount/${levels.length}',
                       style: TextStyle(
@@ -290,14 +290,14 @@ class _LevelTile extends StatelessWidget {
     final bgColor = isLocked
         ? AppTheme.dividerC(isDark)
         : (completed
-            ? zone.accentColor.withOpacity(.12)
-            : zone.accentColor.withOpacity(.06));
+            ? zone.accentColor.withValues(alpha: .12)
+            : zone.accentColor.withValues(alpha: .06));
 
     final borderColor = isLocked
         ? Colors.transparent
         : (completed
-            ? zone.accentColor.withOpacity(.35)
-            : zone.accentColor.withOpacity(.15));
+            ? zone.accentColor.withValues(alpha: .35)
+            : zone.accentColor.withValues(alpha: .15));
 
     return GestureDetector(
       onTap: isLocked

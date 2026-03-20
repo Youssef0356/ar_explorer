@@ -106,7 +106,7 @@ class BookmarksScreen extends StatelessWidget {
                               color: AppTheme.cardC(isDark),
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                color: color.withOpacity(isDark ? 0.2 : 0.15),
+                                color: color.withValues(alpha: isDark ? 0.2 : 0.15),
                               ),
                             ),
                             child: Column(
@@ -163,9 +163,9 @@ class BookmarksScreen extends StatelessWidget {
                                     decoration: BoxDecoration(
                                       color: isDark
                                           ? Colors.white
-                                              .withOpacity(0.03)
+                                              .withValues(alpha: 0.03)
                                           : Colors.grey
-                                              .withOpacity(0.06),
+                                              .withValues(alpha: 0.06),
                                       borderRadius:
                                           BorderRadius.circular(10),
                                     ),

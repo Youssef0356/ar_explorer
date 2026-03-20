@@ -92,18 +92,18 @@ class _ShareableAchievementCardState extends State<ShareableAchievementCard> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  widget.color.withOpacity(widget.isDark ? 0.2 : 0.1),
+                  widget.color.withValues(alpha: widget.isDark ? 0.2 : 0.1),
                   AppTheme.cardC(widget.isDark),
                 ],
               ),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: widget.color.withOpacity(widget.isDark ? 0.3 : 0.2),
+                color: widget.color.withValues(alpha: widget.isDark ? 0.3 : 0.2),
                 width: 2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: widget.color.withOpacity(0.15),
+                  color: widget.color.withValues(alpha: 0.15),
                   blurRadius: 30,
                   offset: const Offset(0, 10),
                 ),
@@ -153,7 +153,7 @@ class _ShareableAchievementCardState extends State<ShareableAchievementCard> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: widget.color.withOpacity(0.1),
+                      color: widget.color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(

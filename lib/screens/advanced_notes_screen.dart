@@ -109,7 +109,7 @@ class _AdvancedNotesScreenState extends State<AdvancedNotesScreen> {
             if (_isExporting)
                Positioned.fill(
                   child: Container(
-                     color: (isDark ? Colors.black : Colors.white).withOpacity(0.8),
+                     color: (isDark ? Colors.black : Colors.white).withValues(alpha: 0.8),
                      child: const Center(
                         child: CircularProgressIndicator(color: AppTheme.accentPink),
                      ),
@@ -169,7 +169,7 @@ class _AdvancedNotesScreenState extends State<AdvancedNotesScreen> {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.accentPink.withOpacity(0.3),
+                        color: AppTheme.accentPink.withValues(alpha: 0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       )
@@ -261,7 +261,7 @@ class _AdvancedNotesScreenState extends State<AdvancedNotesScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.edit_document, size: 64, color: AppTheme.textMutedC(isDark).withOpacity(0.5)),
+            Icon(Icons.edit_document, size: 64, color: AppTheme.textMutedC(isDark).withValues(alpha: 0.5)),
             const SizedBox(height: 24),
             Text(
               'No Notes Yet',
