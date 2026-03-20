@@ -520,24 +520,23 @@ final Map<String, Quiz> allQuizzes = {
   ),
 
   // ───────────────────────────────────────────────────────────────
-  //  QUIZ 4 — Stabilization & Performance
+  //  QUIZ 6 — Stability & Performance Deep Dive
   // ───────────────────────────────────────────────────────────────
-  'quiz_stab': Quiz(
-    id: 'quiz_stab',
-    moduleId: 'mod_stab',
-    title: 'Interview Time: Stabilization & Performance',
+  'quiz_stability_performance': Quiz(
+    id: 'quiz_stability_performance',
+    moduleId: 'mod_stability_performance',
+    title: 'Stability & Performance Quiz',
+    passingScore: 70,
     questions: [
       const QuizQuestion(
-        id: 'q4_1',
-        question:
-            'What is the minimum frame rate recommended for a comfortable AR experience?',
+        id: 'q_stab_perf_1',
+        question: 'What is the minimum frame rate recommended for a comfortable AR experience?',
         options: ['24 FPS', '30 FPS', '60 FPS', '120 FPS'],
         correctIndex: 2,
-        explanation:
-            'AR applications should maintain 60 FPS to prevent jitter and motion sickness. Lower frame rates cause visible tracking artifacts.',
+        explanation: 'AR applications should maintain 60 FPS to prevent jitter and motion sickness. Lower frame rates cause visible tracking artifacts.',
       ),
       const QuizQuestion(
-        id: 'q4_2',
+        id: 'q_stab_perf_2',
         question: 'What causes positional drift in AR?',
         options: [
           'Placing too many high-polygon 3D models within a single AR scene',
@@ -546,24 +545,58 @@ final Map<String, Quiz> allQuizzes = {
           'Setting the screen resolution too high for the device\'s GPU to handle',
         ],
         correctIndex: 1,
-        explanation:
-            'Drift occurs when small errors in position estimation compound over time, causing virtual content to gradually shift from its intended position.',
+        explanation: 'Drift occurs when small errors in position estimation compound over time, causing virtual content to gradually shift from its intended position.',
       ),
       const QuizQuestion(
-        id: 'q4_3',
-        question: 'Which technique helps reduce rendering overhead in AR?',
+        id: 'q_stab_perf_3',
+        question: 'What is a "Draw Call"?',
         options: [
-          'Increasing the polygon count to achieve more realistic visual fidelity',
-          'Enabling real-time ray tracing for accurate dynamic shadow casting',
-          'Using LOD (Level of Detail) to swap lower-poly meshes at distance',
-          'Adding more dynamic light sources to improve environmental realism',
+          'A touch input event triggered when the user taps to draw a line',
+          'A command from the CPU instructing the GPU to render a set of polygons',
+          'A background network request downloading a texture from a CDN server',
+          'An OS-level callback that saves the current rendered frame to storage',
+        ],
+        correctIndex: 1,
+        explanation: 'Draw calls are expensive. Every time a new material or object needs rendering, the CPU must prepare and send a draw call to the GPU.',
+      ),
+      const QuizQuestion(
+        id: 'q_stab_perf_4',
+        question: 'What is the most effective way to reduce Draw Calls?',
+        options: [
+          'Increase the triangle count to allow the GPU to batch more geometry',
+          'Lower the screen brightness so fewer pixels require fragment shading',
+          'Combine multiple textures into a single Texture Atlas to enable batching',
+          'Switch to higher resolution textures to reduce per-object draw overhead',
         ],
         correctIndex: 2,
-        explanation:
-            'LOD reduces polygon count based on distance from the camera, significantly reducing rendering overhead while maintaining visual quality.',
+        explanation: 'By combining multiple textures into an atlas, multiple objects can share the same material, allowing the CPU to send them to the GPU in a single draw call.',
       ),
       const QuizQuestion(
-        id: 'q4_4',
+        id: 'q_stab_perf_5',
+        question: 'What is Thermal Throttling?',
+        options: [
+          'The device lowering CPU/GPU clock speeds automatically to prevent overheating',
+          'A hardware mechanism that pre-warms the battery in cold weather conditions',
+          'A real-time rendering technique used to simulate fire and heat distortion effects',
+          'A reduction in available network bandwidth when the connection is congested',
+        ],
+        correctIndex: 0,
+        explanation: 'AR is extremely demanding. When a phone overheats, the OS throttles the processor, causing frame rates to drop drastically (stuttering).',
+      ),
+      const QuizQuestion(
+        id: 'q_stab_perf_6',
+        question: 'Which tool would you use to profile CPU and Memory usage in a Unity AR Foundation project?',
+        options: [
+          'Google Chrome DevTools (browser profiler for JavaScript applications)',
+          'Unity Profiler (built-in CPU, GPU, memory and rendering analysis tool)',
+          'Adobe Photoshop (image editing software for texture creation workflows)',
+          'Postman (HTTP client used for testing and documenting REST APIs)',
+        ],
+        correctIndex: 1,
+        explanation: 'The Unity Profiler provides deep insights into CPU time, GPU rendering, memory allocation, and garbage collection spikes.',
+      ),
+      const QuizQuestion(
+        id: 'q_stab_perf_7',
         question: 'Why should you limit the number of active anchors?',
         options: [
           'Anchors use significant persistent storage space on the device',
@@ -572,36 +605,19 @@ final Map<String, Quiz> allQuizzes = {
           'The operating system enforces a hard limit of five anchors maximum',
         ],
         correctIndex: 1,
-        explanation:
-            'Each active anchor requires computational resources to maintain and update its pose. Too many anchors degrade tracking performance.',
+        explanation: 'Each active anchor requires computational resources to maintain and update its pose. Too many anchors degrade tracking performance.',
       ),
       const QuizQuestion(
-        id: 'q4_5',
-        question:
-            'What should your app display when tracking state is PAUSED/LIMITED?',
+        id: 'q_stab_perf_8',
+        question: 'Why are transparent (alpha-blended) materials bad for mobile AR performance?',
         options: [
-          'A fully black or white screen to signal that AR is temporarily offline',
-          'A spinning loading indicator that replaces the live camera feed view',
-          'The camera feed with a translucent overlay guiding the user to recover',
-          'A settings menu allowing the user to restart or reconfigure the session',
+          'Transparent materials always look visually unrealistic in AR scenes',
+          'They cause overdraw because each transparent pixel is rendered multiple times',
+          'Transparency causes SLAM tracking to lose visual features in the scene',
+          'Alpha-blended textures occupy much more disk storage space than opaque ones',
         ],
-        correctIndex: 2,
-        explanation:
-            'Never hide the camera feed. Show a translucent guidance overlay to help the user restore tracking without disorienting them.',
-      ),
-      const QuizQuestion(
-        id: 'q4_6',
-        question:
-            'Which texture compression format is recommended for mobile AR?',
-        options: [
-          'PNG (uncompressed, maximum quality lossless bitmap format)',
-          'BMP (Windows bitmap format with no compression applied)',
-          'ASTC/ETC2 (GPU-native compressed formats optimized for mobile)',
-          'TIFF (high-fidelity archival format used in print production)',
-        ],
-        correctIndex: 2,
-        explanation:
-            'ASTC and ETC2 are GPU-native compressed formats optimized for mobile devices, reducing memory usage while maintaining quality.',
+        correctIndex: 1,
+        explanation: 'Overdraw occurs when a pixel on the screen is rendered multiple times in a single frame. Heavy use of transparencies (like dense particle effects) kills mobile GPU performance.',
       ),
     ],
   ),
@@ -1045,75 +1061,5 @@ final Map<String, Quiz> allQuizzes = {
     ],
   ),
 
-  // ───────────────────────────────────────────────────────────────
-  //  QUIZ 11 — Performance Profiling
-  // ───────────────────────────────────────────────────────────────
-  'quiz_performance': Quiz(
-    id: 'quiz_performance',
-    moduleId: 'mod_performance',
-    title: 'Performance Profiling Quiz',
-    passingScore: 70,
-    questions: [
-      const QuizQuestion(
-        id: 'q_perf_1',
-        question: 'What is a "Draw Call"?',
-        options: [
-          'A touch input event triggered when the user taps to draw a line',
-          'A command from the CPU instructing the GPU to render a set of polygons',
-          'A background network request downloading a texture from a CDN server',
-          'An OS-level callback that saves the current rendered frame to storage',
-        ],
-        correctIndex: 1,
-        explanation: 'Draw calls are expensive. Every time a new material or object needs rendering, the CPU must prepare and send a draw call to the GPU.',
-      ),
-      const QuizQuestion(
-        id: 'q_perf_2',
-        question: 'What is the most effective way to reduce Draw Calls?',
-        options: [
-          'Increase the triangle count to allow the GPU to batch more geometry',
-          'Lower the screen brightness so fewer pixels require fragment shading',
-          'Combine multiple textures into a single Texture Atlas to enable batching',
-          'Switch to higher resolution textures to reduce per-object draw overhead',
-        ],
-        correctIndex: 2,
-        explanation: 'By combining multiple textures into an atlas, multiple objects can share the same material, allowing the CPU to send them to the GPU in a single draw call.',
-      ),
-      const QuizQuestion(
-        id: 'q_perf_3',
-        question: 'What is Thermal Throttling?',
-        options: [
-          'The device lowering CPU/GPU clock speeds automatically to prevent overheating',
-          'A hardware mechanism that pre-warms the battery in cold weather conditions',
-          'A real-time rendering technique used to simulate fire and heat distortion effects',
-          'A reduction in available network bandwidth when the connection is congested',
-        ],
-        correctIndex: 0,
-        explanation: 'AR is extremely demanding. When a phone overheats, the OS throttles the processor, causing frame rates to drop drastically (stuttering).',
-      ),
-      const QuizQuestion(
-        id: 'q_perf_4',
-        question: 'Which tool would you use to profile CPU and Memory usage in a Unity AR Foundation project?',
-        options: [
-          'Google Chrome DevTools (browser profiler for JavaScript applications)',
-          'Unity Profiler (built-in CPU, GPU, memory and rendering analysis tool)',
-          'Adobe Photoshop (image editing software for texture creation workflows)',
-          'Postman (HTTP client used for testing and documenting REST APIs)',
-        ],
-        correctIndex: 1,
-        explanation: 'The Unity Profiler provides deep insights into CPU time, GPU rendering, memory allocation, and garbage collection spikes.',
-      ),
-      const QuizQuestion(
-        id: 'q_perf_5',
-        question: 'Why are transparent (alpha-blended) materials bad for mobile AR performance?',
-        options: [
-          'Transparent materials always look visually unrealistic in AR scenes',
-          'They cause overdraw because each transparent pixel is rendered multiple times',
-          'Transparency causes SLAM tracking to lose visual features in the scene',
-          'Alpha-blended textures occupy much more disk storage space than opaque ones',
-        ],
-        correctIndex: 1,
-        explanation: 'Overdraw occurs when a pixel on the screen is rendered multiple times in a single frame. Heavy use of transparencies (like dense particle effects) kills mobile GPU performance.',
-      ),
-    ],
-  ),
+
 };

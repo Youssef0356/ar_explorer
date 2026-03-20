@@ -44,12 +44,16 @@ final Map<String, List<Flashcard>> allFlashcards = {
     const Flashcard(id: 'fc_dev_11', moduleId: 'mod_dev', front: 'People Occlusion (ARKit)?', back: 'Uses ML to render virtual objects behind humans in the camera view.'),
     const Flashcard(id: 'fc_dev_12', moduleId: 'mod_dev', front: 'ARCore Geospatial API?', back: 'Uses Google Street View data to place AR content anywhere globally with GPS.'),
   ],
-  'mod_stab': [
-    const Flashcard(id: 'fc_stab_1', moduleId: 'mod_stab', front: 'Minimum FPS for comfortable AR?', back: '60 FPS — lower causes jitter and motion sickness.'),
-    const Flashcard(id: 'fc_stab_2', moduleId: 'mod_stab', front: 'What causes positional drift?', back: 'Accumulated small tracking errors over time.'),
-    const Flashcard(id: 'fc_stab_3', moduleId: 'mod_stab', front: 'LOD (Level of Detail) means...', back: 'Reducing polygon count based on distance from camera — reduces rendering overhead while maintaining quality.'),
-    const Flashcard(id: 'fc_stab_4', moduleId: 'mod_stab', front: 'Why limit active anchors?', back: 'Each anchor adds computational overhead for tracking.'),
-    const Flashcard(id: 'fc_stab_5', moduleId: 'mod_stab', front: 'ASTC/ETC2 are...', back: 'GPU-native compressed texture formats optimized for mobile devices.'),
+  'mod_stability_performance': [
+    const Flashcard(id: 'fc_stab_1', moduleId: 'mod_stability_performance', front: 'Minimum FPS for comfortable AR?', back: '60 FPS — lower causes jitter and motion sickness.'),
+    const Flashcard(id: 'fc_stab_2', moduleId: 'mod_stability_performance', front: 'What causes positional drift?', back: 'Accumulated small tracking errors over time.'),
+    const Flashcard(id: 'fc_stab_3', moduleId: 'mod_stability_performance', front: 'LOD (Level of Detail) means...', back: 'Reducing polygon count based on distance from camera — reduces rendering overhead while maintaining quality.'),
+    const Flashcard(id: 'fc_stab_4', moduleId: 'mod_stability_performance', front: 'Why limit active anchors?', back: 'Each anchor adds computational overhead for tracking.'),
+    const Flashcard(id: 'fc_stab_5', moduleId: 'mod_stability_performance', front: 'ASTC/ETC2 are...', back: 'GPU-native compressed texture formats optimized for mobile devices.'),
+    const Flashcard(id: 'fc_perf_1', moduleId: 'mod_stability_performance', front: 'What is a Draw Call?', back: 'A command from CPU to GPU to render an object/material. Too many = CPU bottleneck.'),
+    const Flashcard(id: 'fc_perf_2', moduleId: 'mod_stability_performance', front: 'How to reduce Draw Calls?', back: 'Combine multiple textures into a single Texture Atlas (batching).'),
+    const Flashcard(id: 'fc_perf_3', moduleId: 'mod_stability_performance', front: 'What is Thermal Throttling?', back: 'Device lowers CPU/GPU speeds to prevent overheating, causing frame drops.'),
+    const Flashcard(id: 'fc_perf_4', moduleId: 'mod_stability_performance', front: 'Why are transparencies bad for AR performance?', back: 'They cause "overdraw" where pixels are rendered multiple times per frame.'),
   ],
   'mod_advanced': [
     const Flashcard(id: 'fc_adv_1', moduleId: 'mod_advanced', front: 'Cloud Anchors workflow', back: '1. Host creates anchor\n2. Cloud returns an ID\n3. ID shared with other users\n4. Others resolve the anchor to see same content'),
@@ -80,10 +84,5 @@ final Map<String, List<Flashcard>> allFlashcards = {
     const Flashcard(id: 'fc_slam_3', moduleId: 'mod_slam_deepdive', front: 'What is RANSAC?', back: 'Random Sample Consensus—mathematical technique to reject outlier feature matches.'),
     const Flashcard(id: 'fc_slam_4', moduleId: 'mod_slam_deepdive', front: 'What is Bundle Adjustment?', back: 'Refining 3D coordinates and camera poses simultaneously to minimize reprojection error.'),
   ],
-  'mod_performance': [
-    const Flashcard(id: 'fc_perf_1', moduleId: 'mod_performance', front: 'What is a Draw Call?', back: 'A command from CPU to GPU to render an object/material. Too many = CPU bottleneck.'),
-    const Flashcard(id: 'fc_perf_2', moduleId: 'mod_performance', front: 'How to reduce Draw Calls?', back: 'Combine multiple textures into a single Texture Atlas (batching).'),
-    const Flashcard(id: 'fc_perf_3', moduleId: 'mod_performance', front: 'What is Thermal Throttling?', back: 'Device lowers CPU/GPU speeds to prevent overheating, causing frame drops.'),
-    const Flashcard(id: 'fc_perf_4', moduleId: 'mod_performance', front: 'Why are transparencies bad for AR performance?', back: 'They cause "overdraw" where pixels are rendered multiple times per frame.'),
-  ],
+
 };

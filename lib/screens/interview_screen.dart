@@ -22,7 +22,7 @@ class InterviewScreen extends StatefulWidget {
 }
 
 class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingObserver {
-  static const _secondsPerQuestion = 90;
+  static const _totalSessionSeconds = 120;
   static const _totalQuestions = 10;
 
   bool _started = false;
@@ -32,7 +32,7 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
   int? _selectedOption;
   bool _showResult = false;
   int _correctCount = 0;
-  int _secondsRemaining = _secondsPerQuestion;
+  int _secondsRemaining = _totalSessionSeconds;
   Timer? _timer;
   final Stopwatch _totalStopwatch = Stopwatch();
   String? _selectedCategory;
@@ -48,6 +48,7 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
+    _totalStopwatch.stop();
     super.dispose();
   }
 
@@ -68,10 +69,11 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
-      setState(() {
-        _secondsRemaining--;
-      });
-      if (_secondsRemaining <= 0) {
+      if (_secondsRemaining > 0) {
+        setState(() {
+          _secondsRemaining--;
+        });
+      } else {
         _timeUp();
       }
     });
@@ -134,7 +136,7 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
       _selectedOption = null;
       _showResult = false;
       _correctCount = 0;
-      _secondsRemaining = _secondsPerQuestion;
+      _secondsRemaining = _totalSessionSeconds;
     });
 
     _totalStopwatch
@@ -145,13 +147,13 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
 
   void _startTimer() {
     _timer?.cancel();
-    _secondsRemaining = _secondsPerQuestion;
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
-      setState(() {
-        _secondsRemaining--;
-      });
-      if (_secondsRemaining <= 0) {
+      if (_secondsRemaining > 0) {
+        setState(() {
+          _secondsRemaining--;
+        });
+      } else {
         _timeUp();
       }
     });
@@ -159,12 +161,8 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
 
   void _timeUp() {
     _timer?.cancel();
-    if (!_showResult) {
-      setState(() {
-        _showResult = true;
-        _selectedOption = -1; // no selection
-      });
-      Future.delayed(const Duration(seconds: 2), _nextQuestion);
+    if (!_finished) {
+      _finishInterview();
     }
   }
 
@@ -190,7 +188,6 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
         _selectedOption = null;
         _showResult = false;
       });
-      _startTimer();
     } else {
       _finishInterview();
     }
@@ -214,6 +211,28 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
     return '📚 Needs More Study';
   }
 
+  void _watchAdForAttempts() async {
+    final progress = context.read<ProgressService>();
+    final adService = context.read<AdService>();
+
+    setState(() => _isAdLoading = true);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Loading Rewarded Ad...'), duration: Duration(seconds: 2)),
+    );
+
+    bool success = await adService.showRewardedAd();
+
+    if (!mounted) return;
+    setState(() => _isAdLoading = false);
+
+    if (success) {
+      await progress.gainInterviewAttempts(2);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Reward Received: +2 Attempts!')),
+      );
+    }
+  }
+
   Color get _tierColor {
     final pct = ((_correctCount / _questions.length) * 100).round();
     if (pct >= 91) return AppTheme.accentAmber;
@@ -227,15 +246,27 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
   Widget build(BuildContext context) {
     final isDark = context.watch<ThemeService>().isDarkMode;
 
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(isDark)),
-        child: SafeArea(
-          child: _finished
-              ? _buildResults(isDark)
-              : _started
-                  ? _buildQuiz(isDark)
-                  : _buildIntro(isDark),
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          _timer?.cancel();
+          _totalStopwatch.stop();
+          // Reset internal states so re-entry starts fresh
+          _started = false;
+          _finished = false;
+        }
+      },
+      child: Scaffold(
+        body: Container(
+          decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(isDark)),
+          child: SafeArea(
+            child: _finished
+                ? _buildResults(isDark)
+                : _started
+                    ? _buildQuiz(isDark)
+                    : _buildIntro(isDark),
+          ),
         ),
       ),
     );
@@ -326,18 +357,36 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
                        );
                     }
                     final left = progress.interviewAttemptsLeft;
-                    return Text(
-                      left > 0 ? 'Attempts Left: $left' : 'No Attempts Left',
-                      style: AppTheme.bodySmall.copyWith(
-                        color: left > 0 ? AppTheme.accentCyan : AppTheme.errorRed,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    return Column(
+                      children: [
+                        Text(
+                          left > 0 ? 'Attempts Left: $left' : 'No Attempts Left',
+                          style: AppTheme.bodySmall.copyWith(
+                            color: left > 0 ? AppTheme.accentCyan : AppTheme.errorRed,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: _isAdLoading ? null : _watchAdForAttempts,
+                          icon: _isAdLoading
+                              ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                              : const Icon(Icons.video_collection_rounded, size: 18),
+                          label: const Text('GET +2 ATTEMPTS'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.accentAmber,
+                            side: const BorderSide(color: AppTheme.accentAmber),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            textStyle: AppTheme.labelMedium.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
                     );
                   },
                 ),
                 Consumer<ProgressService>(
                    builder: (context, progress, _) {
-                      if (!progress.isPremium) return const SizedBox(height: 32);
+                      if (!progress.isPremium) return const SizedBox(height: 24);
                       return Padding(
                          padding: const EdgeInsets.symmetric(vertical: 24.0),
                          child: Column(
@@ -405,10 +454,10 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
 
   Widget _buildQuiz(bool isDark) {
     final q = _questions[_currentIndex];
-    final timerFraction = _secondsRemaining / _secondsPerQuestion;
-    final timerColor = _secondsRemaining <= 15
+    final timerFraction = (_secondsRemaining / _totalSessionSeconds).clamp(0.0, 1.0);
+    final timerColor = _secondsRemaining <= 20
         ? AppTheme.errorRed
-        : _secondsRemaining <= 30
+        : _secondsRemaining <= 45
             ? AppTheme.warningAmber
             : AppTheme.accentCyan;
 

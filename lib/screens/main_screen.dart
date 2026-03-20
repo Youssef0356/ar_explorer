@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/app_theme.dart';
-import '../data/game_data.dart';
+
 import '../services/theme_service.dart';
 import '../services/sound_service.dart';
 import '../services/subscription_service.dart';
 import 'home_screen.dart';
 import 'roadmap_screen.dart';
-import 'bookmarks_screen.dart';
+
 import 'achievements_screen.dart';
 import 'paywall_screen.dart';
 import 'game_map_screen.dart';
@@ -29,11 +29,9 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     const HomeScreen(),           // 0 — HOME
     const RoadmapScreen(),        // 1 — ROADMAP
-    const _EngineerEntryScreen(), // 2 — ENGINEER  (pipeline drag-drop game)
-    const CodeMapScreen(),        // 3 — CODE       (fill-in-blank coding game)
-    const InspectorGameMapScreen(), // 4 — XR BUILDER (Inspector game)
-    const BookmarksScreen(),      // 5 — SAVED
-    const AchievementsScreen(),   // 6 — REWARDS
+    const CodeMapScreen(),        // 2 — CODE       (fill-in-blank coding game)
+    const InspectorGameMapScreen(), // 3 — XR BUILDER (Inspector game)
+    const AchievementsScreen(),   // 4 — REWARDS
   ];
 
   @override
@@ -86,11 +84,6 @@ class _MainScreenState extends State<MainScreen> {
                   activeIcon: Icon(Icons.map_rounded),
                   label: 'ROADMAP',
                 ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.terminal_rounded),
-                  activeIcon: Icon(Icons.terminal_rounded),
-                  label: 'ENGINEER',
-                ),
                 // ── CODE tab — fill-in-blank coding challenges ──────────────
                 BottomNavigationBarItem(
                   icon: Icon(Icons.code_rounded),
@@ -102,11 +95,6 @@ class _MainScreenState extends State<MainScreen> {
                   icon: Icon(Icons.architecture_rounded),
                   activeIcon: Icon(Icons.architecture_rounded),
                   label: 'XR BUILD',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.bookmark_rounded),
-                  activeIcon: Icon(Icons.bookmark_rounded),
-                  label: 'SAVED',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.emoji_events_rounded),
@@ -123,8 +111,8 @@ class _MainScreenState extends State<MainScreen> {
 }
 
 // ── Engineer Entry Screen (Premium Gate) ──────────────────────────────────────
-class _EngineerEntryScreen extends StatelessWidget {
-  const _EngineerEntryScreen();
+class EngineerEntryScreen extends StatelessWidget {
+  const EngineerEntryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -145,6 +133,20 @@ class _EngineerEntryScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // ── Back Button ──
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 20),
+                        padding: const EdgeInsets.all(12),
+                        decoration: AppTheme.glassCard(isDark),
+                        child: Icon(
+                          Icons.arrow_back_rounded,
+                          color: AppTheme.textPrimaryC(isDark),
+                          size: 24,
+                        ),
+                      ),
+                    ),
                     // ── Header ──
                     Text(
                       'AR Systems',
@@ -197,6 +199,7 @@ class _EngineerEntryScreen extends StatelessWidget {
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: () {
+                          // Gate is handled in Premium Space, but kept here for safety
                           if (isPremium) {
                             Navigator.push(
                               context,
@@ -204,32 +207,18 @@ class _EngineerEntryScreen extends StatelessWidget {
                                   builder: (_) => const GameMapScreen()),
                             );
                           } else {
-                            final hasFreeLevels = arGameZones
-                                .any((z) => z.levels.any((l) => l.isFree));
-                            if (hasFreeLevels) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => const GameMapScreen()),
-                              );
-                            } else {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => const PaywallScreen()),
-                              );
-                            }
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const PaywallScreen()),
+                            );
                           }
                         },
-                        icon: Icon(
-                          isPremium
-                              ? Icons.play_arrow_rounded
-                              : Icons.workspace_premium_rounded,
+                        icon: const Icon(
+                          Icons.play_arrow_rounded,
                           size: 22,
                         ),
-                        label: Text(isPremium
-                            ? 'LAUNCH ENGINEER GAME'
-                            : 'TRY FREE LEVELS'),
+                        label: const Text('LAUNCH ENGINEER GAME'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isPremium
                               ? AppTheme.accentCyan
@@ -245,19 +234,7 @@ class _EngineerEntryScreen extends StatelessWidget {
                       ),
                     ),
 
-                    if (!isPremium) ...[
-                      const SizedBox(height: 12),
-                      Center(
-                        child: Text(
-                          'First 2 levels free — Unlock all 5 zones with Premium',
-                          style: AppTheme.bodySmall.copyWith(
-                            color: AppTheme.textMutedC(isDark),
-                            fontStyle: FontStyle.italic,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
+
 
                     const SizedBox(height: 32),
                   ],

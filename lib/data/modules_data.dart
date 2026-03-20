@@ -1780,8 +1780,8 @@ final List<LearningModule> allModules = [
   //  MODULE 6 — Stabilization & Performance
   // ───────────────────────────────────────────────────────────────
   LearningModule(
-    id: 'mod_stab',
-    title: 'Stabilization & Performance',
+    id: 'mod_stability_performance',
+    title: 'Stability & Performance Deep Dive',
     description: 'Techniques for reliable, smooth, and efficient AR experiences.',
     icon: Icons.speed_rounded,
     order: 6,
@@ -1791,7 +1791,9 @@ final List<LearningModule> allModules = [
       'Occlusion hides virtual objects behind real-world geometry.',
       'Spatial Anchors allow content to persist across sessions.',
       'Relocalization is the process of re-aligning to a stored map.',
-      'Z-Fighting occurs when two surfaces share the same depth.',
+      'Draw calls should be minimized by batching similar objects.',
+      'Thermal throttling reduces CPU/GPU speed when the device overheats.',
+      'Profiling tools (Unity Profiler, Xcode) are essential for AR.',
     ],
     topics: [
       Topic(
@@ -2060,29 +2062,7 @@ final List<LearningModule> allModules = [
           ),
         ],
       ),
-    ],
-  ),
-
-  // ... (unchanged modules)
-
-  // ───────────────────────────────────────────────────────────────
-  //  MODULE 7 — Performance Profiling
-  // ───────────────────────────────────────────────────────────────
-  LearningModule(
-    id: 'performance',
-    title: 'Performance Profiling',
-    description: 'Systematically diagnosing and fixing AR app performance issues.',
-    icon: Icons.analytics_rounded,
-    order: 7,
-    unlockCost: 1,
-    requiredQuizId: 'quiz_stabilization_performance',
-    keyConcepts: [
-      'Draw calls should be minimized by batching similar objects.',
-      'Triangle count impacts both GPU and battery life significantly.',
-      'Thermal throttling reduces CPU/GPU speed when the device overheats.',
-      'Profiling tools (Unity Profiler, Xcode) are essential for AR.',
-    ],
-    topics: [
+      // ✨ Merged from Performance Profiling module
       Topic(
         id: 'perf_methodology',
         title: 'Profiling Methodology',
