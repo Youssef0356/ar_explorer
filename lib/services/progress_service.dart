@@ -374,31 +374,22 @@ class ProgressService extends ChangeNotifier {
   // ── Interview Daily Limits ──────────────────────────────────────
   int get interviewAttemptsLeft {
     if (isPremium) return 999;
-    
-    final lastDate = _prefs?.getString(_interviewAttemptsDateKey);
-    final today = DateTime.now().toIso8601String().substring(0, 10);
-    
-    if (lastDate != today) {
-      return 2; // Resets daily
-    }
-    
-    final count = _prefs?.getInt(_interviewAttemptsCountKey) ?? 0;
-    return (2 - count).clamp(0, 2);
+    return _prefs?.getInt(_interviewAttemptsCountKey) ?? 0;
   }
 
   Future<void> useInterviewAttempt() async {
     if (isPremium) return;
-    
-    final lastDate = _prefs?.getString(_interviewAttemptsDateKey);
-    final today = DateTime.now().toIso8601String().substring(0, 10);
-    int count = 0;
-    
-    if (lastDate == today) {
-      count = _prefs?.getInt(_interviewAttemptsCountKey) ?? 0;
+    final current = interviewAttemptsLeft;
+    if (current > 0) {
+      await _prefs?.setInt(_interviewAttemptsCountKey, current - 1);
+      notifyListeners();
     }
-    
-    await _prefs?.setString(_interviewAttemptsDateKey, today);
-    await _prefs?.setInt(_interviewAttemptsCountKey, count + 1);
+  }
+
+  Future<void> gainInterviewAttempts(int count) async {
+    if (isPremium) return;
+    final current = interviewAttemptsLeft;
+    await _prefs?.setInt(_interviewAttemptsCountKey, current + count);
     notifyListeners();
   }
 

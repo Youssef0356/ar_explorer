@@ -12,7 +12,7 @@ import '../models/quiz_model.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
 import '../widgets/quiz_option_button.dart';
-import 'paywall_screen.dart';
+import '../services/ad_service.dart';
 
 class InterviewScreen extends StatefulWidget {
   const InterviewScreen({super.key});
@@ -36,6 +36,7 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
   Timer? _timer;
   final Stopwatch _totalStopwatch = Stopwatch();
   String? _selectedCategory;
+  bool _isAdLoading = false;
 
   @override
   void initState() {
@@ -78,13 +79,34 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
 
   void _startInterview() async {
     final progress = context.read<ProgressService>();
-    if (progress.interviewAttemptsLeft <= 0 && !progress.isPremium) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
-      return;
-    }
+    final adService = context.read<AdService>();
 
     if (!progress.isPremium) {
-       await progress.useInterviewAttempt();
+      if (progress.interviewAttemptsLeft <= 0) {
+        setState(() => _isAdLoading = true);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Loading Rewarded Ad...'), duration: Duration(seconds: 2)),
+        );
+
+        bool success = await adService.showRewardedAd();
+        
+        if (!mounted) return;
+        setState(() => _isAdLoading = false);
+
+        if (success) {
+          await progress.gainInterviewAttempts(2);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Reward Received: +2 Attempts!')),
+          );
+        } else {
+          // If ad failed, we can't start without attempts
+          return;
+        }
+      }
+      
+      // Use one attempt to start
+      await progress.useInterviewAttempt();
     }
 
     Iterable<QuizQuestion> all = [];
@@ -305,7 +327,7 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
                     }
                     final left = progress.interviewAttemptsLeft;
                     return Text(
-                      'Daily attempts: $left / 2',
+                      left > 0 ? 'Attempts Left: $left' : 'No Attempts Left',
                       style: AppTheme.bodySmall.copyWith(
                         color: left > 0 ? AppTheme.accentCyan : AppTheme.errorRed,
                         fontWeight: FontWeight.bold,
@@ -347,12 +369,30 @@ class _InterviewScreenState extends State<InterviewScreen> with WidgetsBindingOb
                       );
                    },
                 ),
-                SizedBox(
-                  width: 200,
-                  child: ElevatedButton(
-                    onPressed: _startInterview,
-                    child: const Text('Start Interview'),
-                  ),
+                Consumer<ProgressService>(
+                  builder: (context, progress, _) {
+                    final left = progress.interviewAttemptsLeft;
+                    final isPremium = progress.isPremium;
+                    final needsAd = !isPremium && left <= 0;
+
+                    return SizedBox(
+                      width: 240,
+                      child: ElevatedButton.icon(
+                        onPressed: _isAdLoading ? null : _startInterview,
+                        icon: _isAdLoading
+                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
+                            : Icon(needsAd ? Icons.play_circle_fill_rounded : Icons.play_arrow_rounded),
+                        label: Text(
+                          _isAdLoading 
+                            ? 'LOADING AD...' 
+                            : (needsAd ? 'WATCH AD TO START' : 'START INTERVIEW'),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: needsAd ? AppTheme.accentAmber : null,
+                        ),
+                      ),
+                    );
+                  }
                 ),
               ],
             ),
