@@ -8,7 +8,6 @@ import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
 import '../services/subscription_service.dart';
 import 'coding_challenge_screen.dart';
-import 'league_home_screen.dart';
 
 class CodingGameMapScreen extends StatelessWidget {
   const CodingGameMapScreen({super.key});
@@ -79,27 +78,6 @@ class CodingGameMapScreen extends StatelessWidget {
                 ],
               ),
             ),
-          const SizedBox(width: 8),
-          // League Button
-          GestureDetector(
-            onTap: () {
-              sound.playTap();
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const LeagueHomeScreen()),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.amber.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
-              ),
-              child: const Icon(Icons.emoji_events_rounded,
-                  color: Colors.amber, size: 24),
-            ),
-          ),
         ],
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'core/app_theme.dart';
 import 'screens/main_screen.dart';
@@ -17,6 +18,7 @@ import 'services/game_progress_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  GoogleFonts.config.allowRuntimeFetching = false;
   await MobileAds.instance.initialize();
 
   final subscriptionService = SubscriptionService();

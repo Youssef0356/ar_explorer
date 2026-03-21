@@ -9,13 +9,10 @@ import '../services/subscription_service.dart';
 import '../widgets/animated_google_background.dart';
 import 'paywall_screen.dart';
 import 'quiz_analytics_screen.dart';
-import 'advanced_notes_screen.dart';
 import 'inspector_game_map_screen.dart';
-import 'coding_game_map_screen.dart';
 import 'interview_screen.dart';
 import 'certificate_progression_screen.dart';
-
-import 'main_screen.dart'; // Import for EngineerEntryScreen
+import 'ar_debugger_game.dart';
 class PremiumSpaceScreen extends StatelessWidget {
   const PremiumSpaceScreen({super.key});
 
@@ -52,9 +49,9 @@ class PremiumSpaceScreen extends StatelessWidget {
                       isDark: isDark,
                       soundService: soundService,
                       isPremium: isPremium,
-                      title: 'AR Systems Engineer',
-                      subtitle: 'Master AR Logic Pipelines',
-                      icon: Icons.account_tree_rounded,
+                      title: 'AR Scene Debugger',
+                      subtitle: 'Diagnose & Fix AR Issues',
+                      icon: Icons.bug_report_rounded,
                       color: AppTheme.accentCyan,
                       onTap: () {
                         if (!isPremium) {
@@ -63,7 +60,7 @@ class PremiumSpaceScreen extends StatelessWidget {
                         }
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const EngineerEntryScreen()),
+                          MaterialPageRoute(builder: (_) => const ARDebuggerMapScreen()),
                         );
                       },
                     ),
@@ -85,27 +82,6 @@ class PremiumSpaceScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => const InspectorGameMapScreen()),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildPremiumFeatureCard(
-                      context: context,
-                      isDark: isDark,
-                      soundService: soundService,
-                      isPremium: isPremium,
-                      title: 'Code Challenges',
-                      subtitle: 'Solve Algorithms in AR',
-                      icon: Icons.code_rounded,
-                      color: AppTheme.accentBlue,
-                      onTap: () {
-                        if (!isPremium) {
-                          _showPaywall(context);
-                          return;
-                        }
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const CodingGameMapScreen()),
                         );
                       },
                     ),
@@ -170,27 +146,7 @@ class PremiumSpaceScreen extends StatelessWidget {
                         );
                       },
                     ),
-                    const SizedBox(height: 16),
-                    _buildPremiumFeatureCard(
-                      context: context,
-                      isDark: isDark,
-                      soundService: soundService,
-                      isPremium: isPremium,
-                      title: 'Advanced Notes & Export',
-                      subtitle: 'Local PDF Reports',
-                      icon: Icons.picture_as_pdf_rounded,
-                      color: AppTheme.accentPink,
-                      onTap: () {
-                        if (!isPremium) {
-                          _showPaywall(context);
-                          return;
-                        }
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const AdvancedNotesScreen()),
-                        );
-                      },
-                    ),
+
                     const SizedBox(height: 32),
                     Center(
                       child: Text(

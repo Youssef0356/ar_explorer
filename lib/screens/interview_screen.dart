@@ -129,8 +129,27 @@ class _InterviewScreenState extends State<InterviewScreen>
 
     pool.shuffle(Random());
 
+    // Shuffle the OPTIONS within each question so the correct answer
+    // doesn't always sit at the same index (the raw data is biased to index 1).
+    final rng = Random();
+    final shuffled = pool.take(min(_totalQuestions, pool.length)).map((q) {
+      final indices = List<int>.generate(q.options.length, (i) => i);
+      indices.shuffle(rng);
+      final newOptions = [for (final i in indices) q.options[i]];
+      final newCorrect = indices.indexOf(q.correctIndex);
+      return QuizQuestion(
+        id: q.id,
+        question: q.question,
+        options: newOptions,
+        correctIndex: newCorrect,
+        explanation: q.explanation,
+        relatedTopicId: q.relatedTopicId,
+        relatedModuleId: q.relatedModuleId,
+      );
+    }).toList();
+
     setState(() {
-      _questions = pool.take(min(_totalQuestions, pool.length)).toList();
+      _questions = shuffled;
       _started = true;
       _finished = false;
       _currentIndex = 0;

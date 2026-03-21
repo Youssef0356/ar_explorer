@@ -4,16 +4,12 @@ import '../core/app_theme.dart';
 
 import '../services/theme_service.dart';
 import '../services/sound_service.dart';
-import '../services/subscription_service.dart';
 import 'home_screen.dart';
 import 'roadmap_screen.dart';
 
 import 'achievements_screen.dart';
-import 'paywall_screen.dart';
-import 'game_map_screen.dart';
-import 'code_map_screen.dart';           // ← Coding challenge game (fill-in-blank)
-import 'inspector_game_map_screen.dart'; // ← XR Builder (Inspector game)
-import '../widgets/animated_google_background.dart';
+import 'coding_game_map_screen.dart'; // Code challenges (fill-in-blank)
+import 'inspector_game_map_screen.dart'; // XR Builder (Inspector game)
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -25,13 +21,12 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  // ── Screen list — index must match nav items below exactly ──────────────────
   final List<Widget> _screens = [
-    const HomeScreen(),           // 0 — HOME
-    const RoadmapScreen(),        // 1 — ROADMAP
-    const CodeMapScreen(),        // 2 — CODE       (fill-in-blank coding game)
+    const HomeScreen(),             // 0 — HOME
+    const RoadmapScreen(),          // 1 — ROADMAP
+    const CodingGameMapScreen(),    // 2 — CODE (fill-in-blank coding game)
     const InspectorGameMapScreen(), // 3 — XR BUILDER (Inspector game)
-    const AchievementsScreen(),   // 4 — REWARDS
+    const AchievementsScreen(),     // 4 — REWARDS
   ];
 
   @override
@@ -107,248 +102,5 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
     );
-  }
-}
-
-// ── Engineer Entry Screen (Premium Gate) ──────────────────────────────────────
-class EngineerEntryScreen extends StatelessWidget {
-  const EngineerEntryScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.watch<ThemeService>().isDarkMode;
-    final isPremium = context.watch<SubscriptionService>().isPremium;
-
-    return Scaffold(
-      backgroundColor: AppTheme.scaffoldC(isDark),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Stack(
-          children: [
-            if (context.watch<ThemeService>().enableAnimations)
-              const Positioned.fill(child: AnimatedGoogleBackground()),
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ── Back Button ──
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 20),
-                        padding: const EdgeInsets.all(12),
-                        decoration: AppTheme.glassCard(isDark),
-                        child: Icon(
-                          Icons.arrow_back_rounded,
-                          color: AppTheme.textPrimaryC(isDark),
-                          size: 24,
-                        ),
-                      ),
-                    ),
-                    // ── Header ──
-                    Text(
-                      'AR Systems',
-                      style: AppTheme.headingLarge.copyWith(
-                        color: AppTheme.textPrimaryC(isDark),
-                      ),
-                    ),
-                    Text(
-                      'Engineer',
-                      style: AppTheme.headingLarge.copyWith(
-                        color: AppTheme.accentCyan,
-                        fontSize: 32,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Chain. Deploy.',
-                      style: AppTheme.headingSmall.copyWith(
-                        color: AppTheme.accentCyan,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Drag-and-drop AR pipeline nodes in the correct order to pass each level. '
-                      'Master 5 zones from fundamentals to advanced production systems.',
-                      style: AppTheme.bodyMedium.copyWith(
-                        color: AppTheme.textSecondaryC(isDark),
-                        height: 1.5,
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // ── Zone Preview Cards ──
-                    Text(
-                      'GAME ZONES',
-                      style: AppTheme.labelMedium.copyWith(
-                        color: AppTheme.textMutedC(isDark),
-                        letterSpacing: 2,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    ..._buildZonePreviewCards(isDark),
-
-                    const SizedBox(height: 28),
-
-                    // ── CTA Button ──
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          // Gate is handled in Premium Space, but kept here for safety
-                          if (isPremium) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const GameMapScreen()),
-                            );
-                          } else {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const PaywallScreen()),
-                            );
-                          }
-                        },
-                        icon: const Icon(
-                          Icons.play_arrow_rounded,
-                          size: 22,
-                        ),
-                        label: const Text('LAUNCH ENGINEER GAME'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isPremium
-                              ? AppTheme.accentCyan
-                              : AppTheme.accentAmber,
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          textStyle: AppTheme.buttonText
-                              .copyWith(letterSpacing: 1),
-                        ),
-                      ),
-                    ),
-
-
-
-                    const SizedBox(height: 32),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  List<Widget> _buildZonePreviewCards(bool isDark) {
-    final zones = [
-      (
-        name: 'Zone 1 — Fundamentals',
-        description: 'Camera, IMU, Plane Detection basics',
-        color: const Color(0xFF00E5FF),
-        icon: Icons.flag_rounded,
-        levels: '3 levels',
-      ),
-      (
-        name: 'Zone 2 — Tracking',
-        description: 'SLAM, ARKit, 6DOF tracking chains',
-        color: const Color(0xFF2979FF),
-        icon: Icons.track_changes_rounded,
-        levels: '3 levels',
-      ),
-      (
-        name: 'Zone 3 — Platforms',
-        description: 'Unity AR Foundation, Vuforia, OpenXR',
-        color: const Color(0xFFD1C4E9),
-        icon: Icons.devices_rounded,
-        levels: '3 levels',
-      ),
-      (
-        name: 'Zone 4 — Advanced',
-        description: 'OpenXR standards, Occlusion depth',
-        color: const Color(0xFFFFC107),
-        icon: Icons.auto_awesome_rounded,
-        levels: '3 levels',
-      ),
-      (
-        name: 'Zone 5 — Master',
-        description: 'Light estimation, Spatial anchors',
-        color: const Color(0xFFFF4081),
-        icon: Icons.workspace_premium_rounded,
-        levels: '3 levels',
-      ),
-    ];
-
-    return zones.asMap().entries.map((entry) {
-      final zone = entry.value;
-      return Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppTheme.cardC(isDark),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: zone.color.withValues(alpha: isDark ? 0.2 : 0.15),
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: zone.color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(zone.icon, color: zone.color, size: 20),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    zone.name,
-                    style: AppTheme.labelMedium.copyWith(
-                      color: AppTheme.textPrimaryC(isDark),
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    zone.description,
-                    style: AppTheme.bodySmall.copyWith(
-                      color: AppTheme.textMutedC(isDark),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: zone.color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                zone.levels,
-                style: AppTheme.labelMedium.copyWith(
-                  color: zone.color,
-                  fontSize: 11,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }).toList();
   }
 }

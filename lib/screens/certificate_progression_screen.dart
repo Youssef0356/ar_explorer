@@ -17,6 +17,7 @@ import '../data/quiz_data.dart';
 import '../services/game_progress_service.dart';
 import '../services/progress_service.dart';
 import '../services/sound_service.dart';
+import '../services/subscription_service.dart';
 import '../services/theme_service.dart';
 
 // ═══════════════════════════════════════════════════════════════════
@@ -223,6 +224,7 @@ class CertificateProgressionScreen extends StatelessWidget {
     final progress = context.watch<ProgressService>();
     final gameProgress = context.watch<GameProgressService>();
     final sound = context.read<SoundService>();
+    final isPremium = context.watch<SubscriptionService>().isPremium;
     final data = computeProgress(progress, gameProgress);
     final username = progress.username;
 
@@ -247,6 +249,7 @@ class CertificateProgressionScreen extends StatelessWidget {
                             data: data,
                             username: username,
                             isDark: isDark,
+                            isPremium: isPremium,
                           )),
                     ],
                   ),
@@ -387,12 +390,14 @@ class _TierCard extends StatelessWidget {
   final CertProgressData data;
   final String username;
   final bool isDark;
+  final bool isPremium;
 
   const _TierCard({
     required this.tier,
     required this.data,
     required this.username,
     required this.isDark,
+    required this.isPremium,
   });
 
   @override
@@ -537,58 +542,81 @@ class _TierCard extends StatelessWidget {
           // Earned: actions
           if (unlocked) ...[
             const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => _CertificateViewScreen(
-                          tier: tier,
-                          username: username,
+            if (isPremium)
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => _CertificateViewScreen(
+                            tier: tier,
+                            username: username,
+                          ),
+                        ),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: tier.color,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.workspace_premium_rounded,
+                                color: Colors.black, size: 15),
+                            SizedBox(width: 6),
+                            Text('View & Download',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800)),
+                          ],
                         ),
                       ),
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => _shareCertificate(context, tier, username),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: tier.color,
+                        color: tier.color.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(10),
+                        border:
+                            Border.all(color: tier.color.withOpacity(0.3)),
                       ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.workspace_premium_rounded,
-                              color: Colors.black, size: 15),
-                          SizedBox(width: 6),
-                          Text('View & Download',
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w800)),
-                        ],
-                      ),
+                      child: Icon(Icons.share_rounded,
+                          color: tier.color, size: 18),
                     ),
                   ),
+                ],
+              )
+            else
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.amber.withOpacity(0.25)),
                 ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => _shareCertificate(context, tier, username),
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: tier.color.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(10),
-                      border:
-                          Border.all(color: tier.color.withOpacity(0.3)),
-                    ),
-                    child: Icon(Icons.share_rounded,
-                        color: tier.color, size: 18),
-                  ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.lock_rounded, color: Colors.amber, size: 14),
+                    SizedBox(width: 6),
+                    Text('Premium Required to Download',
+                        style: TextStyle(
+                            color: Colors.amber,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700)),
+                  ],
                 ),
-              ],
-            ),
+              ),
           ],
 
           // Perks list (collapsed, show on unlock)

@@ -35,6 +35,7 @@ import 'practice_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'topic_screen.dart';
 import 'premium_space_screen.dart';
+import 'certificate_progression_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -445,15 +446,17 @@ class HomeScreen extends StatelessWidget {
               ),
 
               // ── Certificate Achievement ──
-              Consumer<ProgressService>(
-                builder: (context, progress, _) {
-                  final totalTopics = allModules.fold<int>(0, (sum, m) => sum + m.topics.length);
-                  final isComplete = progress.isCurriculumComplete(totalTopics);
-                  
+              Consumer2<ProgressService, GameProgressService>(
+                builder: (context, progress, gameProgress, _) {
+                  final certData = computeProgress(progress, gameProgress);
+                  final tier = certData.highestUnlocked;
+                  final tierInfo = tier != null
+                      ? kTiers.firstWhere((t) => t.tier == tier)
+                      : null;
                   return SliverPadding(
                     padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
                     sliver: SliverToBoxAdapter(
-                      child: _buildCertificateCard(context, isDark, isComplete),
+                      child: _buildCertificateCard(context, isDark, tierInfo, certData),
                     ),
                   );
                 },
@@ -471,7 +474,18 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCertificateCard(BuildContext context, bool isDark, bool isUnlocked) {
+  Widget _buildCertificateCard(BuildContext context, bool isDark, TierData? tierInfo, CertProgressData certData) {
+    final hasTier = tierInfo != null;
+    final accentColor = hasTier ? tierInfo.color : AppTheme.accentCyan;
+    // Next tier progress
+    final nextTierIdx = hasTier
+        ? kTiers.indexOf(tierInfo) + 1
+        : 0;
+    final hasNextTier = nextTierIdx < kTiers.length;
+    final nextProgress = hasNextTier
+        ? certData.tierProgress(kTiers[nextTierIdx].tier)
+        : 1.0;
+
     return GestureDetector(
       onTap: () {
         context.read<SoundService>().playTap();
@@ -483,69 +497,94 @@ class HomeScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: isUnlocked
-                ? [AppTheme.accentCyan.withValues(alpha: 0.2), AppTheme.accentCyan.withValues(alpha: 0.05)]
-                : [
-                    (isDark ? AppTheme.cardDark : AppTheme.cardLightAlt).withValues(alpha: 0.8),
-                    (isDark ? AppTheme.cardDark : AppTheme.cardLightAlt).withValues(alpha: 0.4),
-                  ],
+            colors: [
+              accentColor.withValues(alpha: 0.15),
+              accentColor.withValues(alpha: 0.03),
+            ],
           ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isUnlocked 
-              ? AppTheme.accentCyan.withValues(alpha: 0.5) 
-              : AppTheme.textMutedC(isDark).withValues(alpha: 0.2),
-            width: 2,
+            color: accentColor.withValues(alpha: 0.4),
+            width: 1.5,
           ),
-          boxShadow: isUnlocked ? [
-            BoxShadow(
-              color: AppTheme.accentCyan.withValues(alpha: 0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            )
-          ] : [],
         ),
         child: Column(
           children: [
-            Icon(
-              isUnlocked ? Icons.verified_rounded : Icons.lock_outline_rounded,
-              size: 48,
-              color: isUnlocked ? AppTheme.accentCyan : AppTheme.textMutedC(isDark),
-            ),
-            const SizedBox(height: 16),
             Text(
-              'Professional Credentials',
+              hasTier ? tierInfo.emoji : '🎯',
+              style: const TextStyle(fontSize: 40),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              hasTier ? '${tierInfo.name} Certificate Earned' : 'Earn Your First Certificate',
               style: AppTheme.headingSmall.copyWith(
-                color: AppTheme.textPrimaryC(isDark),
+                color: hasTier ? accentColor : AppTheme.textPrimaryC(isDark),
+                fontSize: 17,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
-              'Track your progress and earn tiered certificates from Bronze to Platinum.',
+              hasTier
+                  ? tierInfo.description
+                  : 'Complete 3 modules to unlock your Bronze certificate.',
               textAlign: TextAlign.center,
               style: AppTheme.bodySmall.copyWith(
                 color: AppTheme.textSecondaryC(isDark),
+                height: 1.4,
               ),
             ),
-            if (isUnlocked) ...[
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.accentCyan,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'VIEW PROGRESS',
-                  style: AppTheme.buttonText.copyWith(fontSize: 12),
+            if (hasNextTier) ...[
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Text(
+                    'Next: ${kTiers[nextTierIdx].name}',
+                    style: TextStyle(
+                      color: kTiers[nextTierIdx].color.withValues(alpha: 0.7),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${(nextProgress * 100).toInt()}%',
+                    style: TextStyle(
+                      color: kTiers[nextTierIdx].color,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: nextProgress,
+                  backgroundColor: kTiers[nextTierIdx].color.withValues(alpha: 0.1),
+                  valueColor: AlwaysStoppedAnimation(kTiers[nextTierIdx].color),
+                  minHeight: 5,
                 ),
               ),
             ],
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: accentColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: accentColor.withValues(alpha: 0.3)),
+              ),
+              child: Text(
+                'VIEW ALL TIERS',
+                style: AppTheme.buttonText.copyWith(
+                  fontSize: 11,
+                  color: accentColor,
+                ),
+              ),
+            ),
           ],
         ),
-      ).animate(target: isUnlocked ? 1 : 0).shimmer(
-        duration: const Duration(seconds: 3),
-        color: AppTheme.accentCyan.withValues(alpha: 0.3),
       ),
     );
   }
