@@ -426,7 +426,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
   Widget build(BuildContext context) {
     final zone = arGameZones.firstWhere((z) => z.id == widget.level.zoneId);
 
-    return Scaffold(
+    return Theme(data: ThemeData.dark(), child: Scaffold(
       backgroundColor: const Color(0xFF060B14),
       body: Stack(
         children: [
@@ -469,7 +469,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
           if (_isTimeout) _buildTimeoutOverlay(zone),
         ],
       ),
-    );
+    ));
   }
 
   // ── Header ────────────────────────────────────────────────────────────────

@@ -371,15 +371,28 @@ class ProgressService extends ChangeNotifier {
   bool hasAchievement(String achievementId) =>
       _achievements.contains(achievementId);
 
-  // ── Interview Daily Limits ──────────────────────────────────────
+  // ── Interview Daily Limits (2 free per day) ─────────────────────
+  static const _interviewDateKey = 'interview_date';
+
+  void _resetDailyIfNeeded() {
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final lastDate = _prefs?.getString(_interviewDateKey);
+    if (lastDate != today) {
+      _prefs?.setString(_interviewDateKey, today);
+      _prefs?.setInt(_interviewAttemptsCountKey, 2);
+    }
+  }
+
   int get interviewAttemptsLeft {
     if (isPremium) return 999;
-    return _prefs?.getInt(_interviewAttemptsCountKey) ?? 0;
+    _resetDailyIfNeeded();
+    return _prefs?.getInt(_interviewAttemptsCountKey) ?? 2;
   }
 
   Future<void> useInterviewAttempt() async {
     if (isPremium) return;
-    final current = interviewAttemptsLeft;
+    _resetDailyIfNeeded();
+    final current = _prefs?.getInt(_interviewAttemptsCountKey) ?? 2;
     if (current > 0) {
       await _prefs?.setInt(_interviewAttemptsCountKey, current - 1);
       notifyListeners();
@@ -388,7 +401,8 @@ class ProgressService extends ChangeNotifier {
 
   Future<void> gainInterviewAttempts(int count) async {
     if (isPremium) return;
-    final current = interviewAttemptsLeft;
+    _resetDailyIfNeeded();
+    final current = _prefs?.getInt(_interviewAttemptsCountKey) ?? 2;
     await _prefs?.setInt(_interviewAttemptsCountKey, current + count);
     notifyListeners();
   }

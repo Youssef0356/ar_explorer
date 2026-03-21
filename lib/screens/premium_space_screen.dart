@@ -10,9 +10,8 @@ import '../widgets/animated_google_background.dart';
 import 'paywall_screen.dart';
 import 'quiz_analytics_screen.dart';
 import 'inspector_game_map_screen.dart';
-import 'interview_screen.dart';
-import 'certificate_progression_screen.dart';
 import 'ar_debugger_game.dart';
+
 class PremiumSpaceScreen extends StatelessWidget {
   const PremiumSpaceScreen({super.key});
 
@@ -42,78 +41,73 @@ class PremiumSpaceScreen extends StatelessWidget {
                       _buildPremiumActiveBanner(context, isDark),
                       const SizedBox(height: 24),
                     ],
-                    Text('What\'s included', style: AppTheme.headingMedium.copyWith(color: AppTheme.textPrimaryC(isDark))),
+
+                    Text('Premium Tools',
+                        style: AppTheme.headingMedium
+                            .copyWith(color: AppTheme.textPrimaryC(isDark))),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Exclusive features to accelerate your AR career',
+                      style: AppTheme.bodySmall
+                          .copyWith(color: AppTheme.textMutedC(isDark)),
+                    ),
                     const SizedBox(height: 16),
-                    _buildPremiumFeatureCard(
+
+                    // ── AR Scene Debugger (free trial: level 1 only) ──
+                    _buildFeatureCard(
                       context: context,
                       isDark: isDark,
                       soundService: soundService,
                       isPremium: isPremium,
                       title: 'AR Scene Debugger',
-                      subtitle: 'Diagnose & Fix AR Issues',
+                      subtitle: 'Diagnose & fix broken AR apps',
+                      description: isPremium
+                          ? 'Full access to all debugging scenarios.'
+                          : 'First level free. Premium unlocks all scenarios.',
                       icon: Icons.bug_report_rounded,
                       color: AppTheme.accentCyan,
-                      onTap: () {
-                        if (!isPremium) {
-                          _showPaywall(context);
-                          return;
-                        }
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const ARDebuggerMapScreen()),
-                        );
-                      },
+                      badge: isPremium ? null : 'Try Free',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const ARDebuggerMapScreen()),
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    _buildPremiumFeatureCard(
+
+                    const SizedBox(height: 12),
+
+                    // ── XR Builder (free trial: first level of zone 1) ──
+                    _buildFeatureCard(
                       context: context,
                       isDark: isDark,
                       soundService: soundService,
                       isPremium: isPremium,
                       title: 'XR Builder',
-                      subtitle: 'Build AR Scenes Visually',
+                      subtitle: 'Build AR Inspector setups like a pro',
+                      description: isPremium
+                          ? 'All 5 zones unlocked.'
+                          : 'First level free. Premium unlocks all zones.',
                       icon: Icons.architecture_rounded,
                       color: AppTheme.accentPurple,
-                      onTap: () {
-                        if (!isPremium) {
-                          _showPaywall(context);
-                          return;
-                        }
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const InspectorGameMapScreen()),
-                        );
-                      },
+                      badge: isPremium ? null : 'Try Free',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const InspectorGameMapScreen()),
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    _buildPremiumFeatureCard(
-                      context: context,
-                      isDark: isDark,
-                      soundService: soundService,
-                      isPremium: isPremium,
-                      title: 'Mock Interview',
-                      subtitle: 'Unlimited Practice Trials',
-                      icon: Icons.timer_rounded,
-                      color: AppTheme.accentAmber,
-                      onTap: () {
-                        if (!isPremium) {
-                          _showPaywall(context);
-                          return;
-                        }
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const InterviewScreen()),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildPremiumFeatureCard(
+
+                    const SizedBox(height: 12),
+
+                    // ── Advanced Analytics ──
+                    _buildFeatureCard(
                       context: context,
                       isDark: isDark,
                       soundService: soundService,
                       isPremium: isPremium,
                       title: 'Advanced Quiz Analytics',
-                      subtitle: 'Visualize Performance',
+                      subtitle: 'Identify & crush your weak spots',
+                      description: 'Heatmaps, score history, and weak area tracking across all modules.',
                       icon: Icons.insights_rounded,
                       color: AppTheme.accentAmber,
                       onTap: () {
@@ -123,31 +117,16 @@ class PremiumSpaceScreen extends StatelessWidget {
                         }
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const QuizAnalyticsScreen()),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildPremiumFeatureCard(
-                      context: context,
-                      isDark: isDark,
-                      soundService: soundService,
-                      isPremium: isPremium,
-                      title: 'Professional Certificates',
-                      subtitle: 'Tiered AR Credentials',
-                      icon: Icons.workspace_premium_rounded,
-                      color: AppTheme.accentCyan,
-                      onTap: () {
-                        Navigator.push(
-                          context,
                           MaterialPageRoute(
-                              builder: (_) =>
-                                  const CertificateProgressionScreen()),
+                              builder: (_) => const QuizAnalyticsScreen()),
                         );
                       },
                     ),
 
+                    const SizedBox(height: 12),
+
                     const SizedBox(height: 32),
+
                     Center(
                       child: Text(
                         'More exclusive features coming soon.',
@@ -157,6 +136,7 @@ class PremiumSpaceScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
@@ -167,7 +147,8 @@ class PremiumSpaceScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, bool isDark, SoundService soundService) {
+  Widget _buildHeader(
+      BuildContext context, bool isDark, SoundService soundService) {
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Row(
@@ -199,15 +180,15 @@ class PremiumSpaceScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'Exclusive tools to master AR.',
-                  style: AppTheme.bodyMedium.copyWith(
-                    color: AppTheme.successGreen,
+                  'Advanced tools for serious AR developers.',
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.accentCyan,
                   ),
                 ),
               ],
             ),
           ),
-          Icon(
+          const Icon(
             Icons.workspace_premium_rounded,
             color: AppTheme.accentAmber,
             size: 32,
@@ -217,7 +198,8 @@ class PremiumSpaceScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildUpgradeTeaser(BuildContext context, bool isDark, SoundService soundService) {
+  Widget _buildUpgradeTeaser(
+      BuildContext context, bool isDark, SoundService soundService) {
     return GestureDetector(
       onTap: () {
         soundService.playTap();
@@ -228,16 +210,15 @@ class PremiumSpaceScreen extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              AppTheme.accentAmber.withValues(alpha: 0.2),
-              AppTheme.accentAmber.withValues(alpha: 0.05),
+              AppTheme.accentAmber.withOpacity(0.18),
+              AppTheme.accentAmber.withOpacity(0.05),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: AppTheme.accentAmber.withValues(alpha: 0.3),
-            width: 1,
+            color: AppTheme.accentAmber.withOpacity(0.3),
           ),
         ),
         child: Row(
@@ -245,43 +226,38 @@ class PremiumSpaceScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppTheme.accentAmber.withValues(alpha: 0.2),
+                color: AppTheme.accentAmber.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.lock_open_rounded,
-                color: AppTheme.accentAmber,
-                size: 24,
-              ),
+              child: const Icon(Icons.lock_open_rounded,
+                  color: AppTheme.accentAmber, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Unlock Premium Space',
-                    style: AppTheme.headingSmall.copyWith(
-                      color: AppTheme.textPrimaryC(isDark),
-                    ),
-                  ),
+                  Text('Unlock Premium',
+                      style: AppTheme.headingSmall.copyWith(
+                          color: AppTheme.textPrimaryC(isDark))),
                   const SizedBox(height: 4),
                   Text(
-                    'Get instant access to advanced analytics, PDF exports, and the coding game.',
+                    'One-time payment. Lifetime access.',
                     style: AppTheme.bodySmall.copyWith(
-                      color: AppTheme.textSecondaryC(isDark),
-                    ),
+                        color: AppTheme.textSecondaryC(isDark)),
                   ),
                 ],
               ),
             ),
+            Icon(Icons.chevron_right_rounded,
+                color: AppTheme.accentAmber, size: 22),
           ],
         ),
       ),
     ).animate().shimmer(
-      duration: const Duration(seconds: 3),
-      color: AppTheme.accentAmber.withValues(alpha: 0.3),
-    );
+          duration: const Duration(seconds: 3),
+          color: AppTheme.accentAmber.withOpacity(0.3),
+        );
   }
 
   Widget _buildPremiumActiveBanner(BuildContext context, bool isDark) {
@@ -290,16 +266,15 @@ class PremiumSpaceScreen extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppTheme.successGreen.withValues(alpha: 0.2),
-             AppTheme.successGreen.withValues(alpha: 0.05),
+            AppTheme.successGreen.withOpacity(0.18),
+            AppTheme.successGreen.withOpacity(0.04),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppTheme.successGreen.withValues(alpha: 0.3),
-          width: 1,
+          color: AppTheme.successGreen.withOpacity(0.3),
         ),
       ),
       child: Row(
@@ -307,33 +282,24 @@ class PremiumSpaceScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppTheme.successGreen.withValues(alpha: 0.2),
+              color: AppTheme.successGreen.withOpacity(0.2),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.check_circle_rounded,
-              color: AppTheme.successGreen,
-              size: 24,
-            ),
+            child: const Icon(Icons.check_circle_rounded,
+                color: AppTheme.successGreen, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Premium Active',
-                  style: AppTheme.headingSmall.copyWith(
-                    color: AppTheme.textPrimaryC(isDark),
-                  ),
-                ),
+                Text('Premium Active',
+                    style: AppTheme.headingSmall.copyWith(
+                        color: AppTheme.textPrimaryC(isDark))),
                 const SizedBox(height: 4),
-                Text(
-                  'Thank you for subscribing! Enjoy your exclusive tools.',
-                  style: AppTheme.bodySmall.copyWith(
-                    color: AppTheme.textSecondaryC(isDark),
-                  ),
-                ),
+                Text('All features unlocked. Thank you!',
+                    style: AppTheme.bodySmall.copyWith(
+                        color: AppTheme.textSecondaryC(isDark))),
               ],
             ),
           ),
@@ -342,16 +308,18 @@ class PremiumSpaceScreen extends StatelessWidget {
     ).animate().fadeIn(duration: const Duration(seconds: 1));
   }
 
-  Widget _buildPremiumFeatureCard({
+  Widget _buildFeatureCard({
     required BuildContext context,
     required bool isDark,
     required SoundService soundService,
     required bool isPremium,
     required String title,
     required String subtitle,
+    required String description,
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
+    String? badge,
   }) {
     return GestureDetector(
       onTap: () {
@@ -359,71 +327,79 @@ class PremiumSpaceScreen extends StatelessWidget {
         onTap();
       },
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(18),
         decoration: AppTheme.glassCard(isDark).copyWith(
           border: Border.all(
-            color: isPremium ? color.withValues(alpha: 0.3) : AppTheme.textMutedC(isDark).withValues(alpha: 0.1),
+            color: color.withOpacity(0.25),
             width: 1.5,
           ),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isPremium ? color.withValues(alpha: 0.15) : AppTheme.textMutedC(isDark).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
+                color: color.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(
-                icon,
-                color: isPremium ? color : AppTheme.textMutedC(isDark),
-                size: 28,
-              ),
+              child: Icon(icon, color: color, size: 26),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Flexible(
+                      Expanded(
                         child: Text(
                           title,
                           style: AppTheme.headingSmall.copyWith(
-                            color: isPremium ? AppTheme.textPrimaryC(isDark) : AppTheme.textMutedC(isDark),
+                            color: AppTheme.textPrimaryC(isDark),
+                            fontSize: 15,
                           ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
                         ),
                       ),
-                      if (!isPremium) ...[
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.lock_rounded,
-                          size: 14,
-                          color: AppTheme.accentAmber,
-                        ),
-                      ],
-                      if (isPremium) ...[
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          color: color,
-                        ),
-                      ]
+                      if (badge != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                                color: color.withOpacity(0.3)),
+                          ),
+                          child: Text(badge,
+                              style: TextStyle(
+                                  color: color,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800)),
+                        )
+                      else if (!isPremium)
+                        Icon(Icons.lock_outline_rounded,
+                            color: AppTheme.accentAmber, size: 16),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: AppTheme.bodySmall.copyWith(
-                      color: isPremium ? AppTheme.textSecondaryC(isDark) : AppTheme.textMutedC(isDark).withValues(alpha: 0.5),
-                    ),
-                  ),
+                  const SizedBox(height: 3),
+                  Text(subtitle,
+                      style: TextStyle(
+                        color: color.withOpacity(0.8),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      )),
+                  const SizedBox(height: 6),
+                  Text(description,
+                      style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.textSecondaryC(isDark),
+                          height: 1.4)),
                 ],
               ),
             ),
+            const SizedBox(width: 8),
+            Icon(Icons.chevron_right_rounded,
+                color: color.withOpacity(0.5), size: 20),
           ],
         ),
       ),
@@ -433,9 +409,7 @@ class PremiumSpaceScreen extends StatelessWidget {
   void _showPaywall(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const PaywallScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const PaywallScreen()),
     );
   }
 }

@@ -343,7 +343,7 @@ class ARDebuggerMapScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final progress = context.watch<GameProgressService>();
 
-    return Scaffold(
+    return Theme(data: ThemeData.dark(), child: Scaffold(
       backgroundColor: const Color(0xFF060B14),
       body: SafeArea(
         child: Column(
@@ -383,7 +383,7 @@ class ARDebuggerMapScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildHeader(BuildContext context, GameProgressService progress) {
@@ -566,10 +566,11 @@ class _LevelCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   // Symptom count chips
                   if (!isLocked)
-                    Row(
+                    Wrap(
+                      spacing: 5,
+                      runSpacing: 5,
                       children: [
                         ...level.symptoms.map((s) => Container(
-                              margin: const EdgeInsets.only(right: 5),
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 7, vertical: 2),
                               decoration: BoxDecoration(
@@ -784,7 +785,7 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Theme(data: ThemeData.dark(), child: Scaffold(
       backgroundColor: const Color(0xFF060B14),
       body: Stack(
         children: [
@@ -817,7 +818,7 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
           if (_showSuccess) _buildSuccessOverlay(),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildHeader() {

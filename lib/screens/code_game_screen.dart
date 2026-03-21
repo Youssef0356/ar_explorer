@@ -68,7 +68,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
   @override
   Widget build(BuildContext context) {
     final sound = context.read<SoundService>();
-    return Scaffold(
+    return Theme(data: ThemeData.dark(), child: Scaffold(
       backgroundColor: const Color(0xFF0A0E1A),
       body: SafeArea(
         child: Column(
@@ -96,7 +96,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
           ],
         ),
       ),
-    );
+    ));
   }
 
   // ── Top bar ─────────────────────────────────────────────────────────────────

@@ -9,7 +9,8 @@ import 'home_screen.dart';
 import 'roadmap_screen.dart';
 
 import 'achievements_screen.dart';
-import 'coding_game_map_screen.dart'; // Code challenges (fill-in-blank)
+// Code challenges moved to Premium Space
+// import 'coding_game_map_screen.dart';
 import 'inspector_game_map_screen.dart'; // XR Builder (Inspector game)
 
 class MainScreen extends StatefulWidget {
@@ -25,9 +26,8 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     const HomeScreen(),             // 0 — HOME
     const RoadmapScreen(),          // 1 — ROADMAP
-    const CodingGameMapScreen(),    // 2 — CODE (fill-in-blank coding game)
-    const InspectorGameMapScreen(), // 3 — XR BUILDER (Inspector game)
-    const AchievementsScreen(),     // 4 — REWARDS
+    const InspectorGameMapScreen(), // 2 — XR BUILDER (Inspector game)
+    const AchievementsScreen(),     // 3 — REWARDS
   ];
 
   @override
@@ -81,12 +81,7 @@ class _MainScreenState extends State<MainScreen> {
                   activeIcon: Icon(Icons.map_rounded),
                   label: 'ROADMAP',
                 ),
-                // ── CODE tab — fill-in-blank coding challenges ──────────────
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.code_rounded),
-                  activeIcon: Icon(Icons.code_rounded),
-                  label: 'CODE',
-                ),
+
                 // ── XR BUILDER tab — Inspector simulator game ───────────────
                 BottomNavigationBarItem(
                   icon: Icon(Icons.architecture_rounded),

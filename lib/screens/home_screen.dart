@@ -799,7 +799,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: 'Interview',
                       subtitle: subscription.isPremium 
                           ? 'Unlimited Practice' 
-                          : (trialsLeft > 0 ? '$trialsLeft Trials Left' : 'Trial Ended'),
+                          : (trialsLeft > 0 ? '$trialsLeft of 2 Daily Trials Left' : 'Trial Ended'),
                       icon: Icons.timer_rounded,
                       iconColor: AppTheme.accentAmber,
                       enableAnimations: enableAnimations,

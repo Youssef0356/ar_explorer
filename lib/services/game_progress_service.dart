@@ -27,6 +27,9 @@ class GameProgressService extends ChangeNotifier {
   int _totalXP = 0;
   int get totalXP => _totalXP;
 
+  /// Unified XP across all game modes (legacy pipeline + coding game).
+  int get totalUnifiedXP => _totalXP + _codingXP;
+
   String get currentLeague {
     if (_totalXP >= 1500) return 'Diamond';
     if (_totalXP >= 800) return 'Gold';

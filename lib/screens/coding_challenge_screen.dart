@@ -151,7 +151,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Theme(data: ThemeData.dark(), child: Scaffold(
       backgroundColor: const Color(0xFF0A0E1A),
       body: SafeArea(
         child: Column(
@@ -176,7 +176,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildHeader() {

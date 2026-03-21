@@ -167,7 +167,7 @@ class _GameScreenState extends State<GameScreen> {
     final soundService = context.read<SoundService>();
     final level = _levels[_currentLevel];
 
-    return Scaffold(
+    return Theme(data: ThemeData.dark(), child: Scaffold(
       backgroundColor: const Color(0xFF0A0E1A),
       body: Container(
         decoration: BoxDecoration(
@@ -308,7 +308,7 @@ class _GameScreenState extends State<GameScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildHeader(BuildContext context, bool isDark, SoundService soundService) {

@@ -296,7 +296,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
     final hasWrong    = _placedChips.entries.any((e) => !e.value);
     final canRun      = _placedChips.isNotEmpty && !_showSuccess;
 
-    return Scaffold(
+    return Theme(data: ThemeData.dark(), child: Scaffold(
       backgroundColor: const Color(0xFF060B14),
       body: SafeArea(
         child: Column(children: [
@@ -313,7 +313,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
           _buildBottomBar(canRun, hasWrong),
         ]),
       ),
-    );
+    ));
   }
 
   // ── Header ────────────────────────────────────────────────────────────────

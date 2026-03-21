@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../core/app_theme.dart';
 import '../data/quiz_data.dart';
+
 import '../models/quiz_model.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
@@ -90,6 +91,19 @@ class _PracticeScreenState extends State<PracticeScreen> {
     });
   }
 
+  void _startQuickQuiz() {
+    final all = _getAllQuestions()..shuffle(Random());
+    setState(() {
+      _mode = 'Quick Quiz';
+      _questions = all.take(10).toList();
+      _currentIndex = 0;
+      _selectedOption = null;
+      _showResult = false;
+      _correctCount = 0;
+      _showingMenu = false;
+    });
+  }
+
   void _selectOption(int index) {
     if (_showResult) return;
     final progress = context.read<ProgressService>();
@@ -117,7 +131,6 @@ class _PracticeScreenState extends State<PracticeScreen> {
         _showResult = false;
       });
     } else {
-      // Done
       if (_mode == 'Daily Challenge') {
         context.read<ProgressService>().markDailyChallengeComplete();
       }
@@ -168,6 +181,15 @@ class _PracticeScreenState extends State<PracticeScreen> {
                 style: AppTheme.bodyMedium
                     .copyWith(color: AppTheme.accentCyan)),
           ),
+          if (_mode == 'Review Weak Areas')
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _startReviewMode();
+              },
+              child: Text('Practice Again',
+                  style: AppTheme.bodyMedium.copyWith(color: AppTheme.accentPink)),
+            ),
         ],
       ),
     );
@@ -216,28 +238,13 @@ class _PracticeScreenState extends State<PracticeScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Strengthen your weak areas and stay sharp with daily challenges',
+            'Strengthen your knowledge and stay interview-ready',
             style: AppTheme.bodyMedium.copyWith(
                 color: AppTheme.textMutedC(isDark)),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 28),
 
-          // ── Review Weak Areas ──
-          _PracticeModeCard(
-            icon: Icons.replay_circle_filled_rounded,
-            title: 'Review Weak Areas',
-            subtitle: weakCount > 0
-                ? '$weakCount questions to review'
-                : 'No wrong answers yet!',
-            color: AppTheme.accentPink,
-            isDark: isDark,
-            enabled: weakCount > 0,
-            onTap: _startReviewMode,
-          ).animate().fadeIn(duration: const Duration(milliseconds: 400)),
-
-          const SizedBox(height: 16),
-
-          // ── Daily Challenge ──
+          // ── Daily Challenge ── (moved to top)
           _PracticeModeCard(
             icon: Icons.bolt_rounded,
             title: 'Daily Challenge',
@@ -248,22 +255,67 @@ class _PracticeScreenState extends State<PracticeScreen> {
             isDark: isDark,
             enabled: !doneDailyToday,
             onTap: _startDailyChallenge,
-          )
-              .animate()
-              .fadeIn(
+          ).animate().fadeIn(duration: const Duration(milliseconds: 400)),
+
+          const SizedBox(height: 14),
+
+          // ── Review Weak Areas ──
+          _PracticeModeCard(
+            icon: Icons.replay_circle_filled_rounded,
+            title: 'Review Weak Areas',
+            subtitle: weakCount > 0
+                ? '$weakCount questions to review — with explanations'
+                : 'No wrong answers yet — start quizzes first!',
+            color: AppTheme.accentPink,
+            isDark: isDark,
+            enabled: weakCount > 0,
+            onTap: _startReviewMode,
+          ).animate().fadeIn(
                 delay: const Duration(milliseconds: 100),
                 duration: const Duration(milliseconds: 400),
               ),
 
-          const Spacer(),
-          Center(
-            child: Text(
-              '💡 Wrong answers from quizzes are automatically saved here',
-              style: AppTheme.bodySmall.copyWith(
-                  color: AppTheme.textMutedC(isDark)),
-              textAlign: TextAlign.center,
+          const SizedBox(height: 14),
+
+          // ── Quick Quiz ──
+          _PracticeModeCard(
+            icon: Icons.quiz_rounded,
+            title: 'Quick Quiz',
+            subtitle: '10 mixed questions from all modules',
+            color: AppTheme.accentBlue,
+            isDark: isDark,
+            enabled: true,
+            onTap: _startQuickQuiz,
+          ).animate().fadeIn(
+                delay: const Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 400),
+              ),
+
+          const SizedBox(height: 28),
+
+          // ── Info box ──
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppTheme.accentCyan.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.accentCyan.withOpacity(0.15)),
             ),
-          ),
+            child: Row(
+              children: [
+                const Icon(Icons.lightbulb_outline_rounded, color: AppTheme.accentCyan, size: 18),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Wrong answers from quizzes are automatically saved here. '
+                    'In Weak Areas mode you\'ll see explanations for each answer.',
+                    style: AppTheme.bodySmall.copyWith(
+                        color: AppTheme.textSecondaryC(isDark)),
+                  ),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(delay: const Duration(milliseconds: 300)),
         ],
       ),
     );
@@ -271,6 +323,8 @@ class _PracticeScreenState extends State<PracticeScreen> {
 
   Widget _buildQuiz(bool isDark) {
     final q = _questions[_currentIndex];
+    final isReviewMode = _mode == 'Review Weak Areas';
+    
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -284,12 +338,13 @@ class _PracticeScreenState extends State<PracticeScreen> {
                 onPressed: () => setState(() => _showingMenu = true),
               ),
               const SizedBox(width: 8),
-              Text(
-                _mode,
-                style: AppTheme.headingSmall.copyWith(
-                    color: AppTheme.textPrimaryC(isDark)),
+              Expanded(
+                child: Text(
+                  _mode,
+                  style: AppTheme.headingSmall.copyWith(
+                      color: AppTheme.textPrimaryC(isDark)),
+                ),
               ),
-              const Spacer(),
               Text(
                 '${_currentIndex + 1} / ${_questions.length}',
                 style: AppTheme.bodyMedium.copyWith(
@@ -303,8 +358,8 @@ class _PracticeScreenState extends State<PracticeScreen> {
             child: LinearProgressIndicator(
               value: (_currentIndex + 1) / _questions.length,
               backgroundColor: isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.grey.withValues(alpha: 0.12),
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.grey.withOpacity(0.12),
               valueColor: const AlwaysStoppedAnimation(AppTheme.accentCyan),
               minHeight: 4,
             ),
@@ -332,8 +387,70 @@ class _PracticeScreenState extends State<PracticeScreen> {
               ),
             );
           }),
-          if (_showResult) ...[
-            const SizedBox(height: 12),
+          // ── Explanation for weak area review ──
+          if (_showResult && isReviewMode) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: _selectedOption == q.correctIndex
+                    ? AppTheme.successGreen.withOpacity(isDark ? 0.08 : 0.06)
+                    : AppTheme.errorRed.withOpacity(isDark ? 0.08 : 0.06),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _selectedOption == q.correctIndex
+                      ? AppTheme.successGreen.withOpacity(0.2)
+                      : AppTheme.errorRed.withOpacity(0.2),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        _selectedOption == q.correctIndex
+                            ? Icons.check_circle_rounded
+                            : Icons.info_rounded,
+                        color: _selectedOption == q.correctIndex
+                            ? AppTheme.successGreen
+                            : AppTheme.accentCyan,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _selectedOption == q.correctIndex
+                            ? 'Correct!'
+                            : 'Why the correct answer is:',
+                        style: AppTheme.labelMedium.copyWith(
+                          color: _selectedOption == q.correctIndex
+                              ? AppTheme.successGreen
+                              : AppTheme.accentCyan,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_selectedOption != q.correctIndex) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      q.options[q.correctIndex],
+                      style: AppTheme.bodySmall.copyWith(
+                        color: AppTheme.successGreen,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  Text(
+                    q.explanation,
+                    style: AppTheme.bodySmall.copyWith(
+                        color: AppTheme.textSecondaryC(isDark), height: 1.5),
+                  ),
+                ],
+              ),
+            ).animate().fadeIn(duration: 300.ms),
+          ] else if (_showResult) ...[
+            const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -347,6 +464,8 @@ class _PracticeScreenState extends State<PracticeScreen> {
                     color: AppTheme.textSecondaryC(isDark)),
               ),
             ),
+          ],
+          if (_showResult) ...[
             const Spacer(),
             SizedBox(
               width: double.infinity,
@@ -397,7 +516,7 @@ class _PracticeModeCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: enabled
-                ? color.withValues(alpha: isDark ? 0.3 : 0.2)
+                ? color.withOpacity(isDark ? 0.3 : 0.2)
                 : AppTheme.dividerC(isDark),
           ),
         ),
@@ -407,7 +526,7 @@ class _PracticeModeCard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: enabled ? 0.15 : 0.05),
+                color: color.withOpacity(enabled ? 0.15 : 0.05),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(

@@ -144,6 +144,7 @@ class BookmarksScreen extends StatelessWidget {
                                         ],
                                       ),
                                     ),
+
                                     IconButton(
                                       icon: Icon(
                                           Icons.bookmark_remove_rounded,
@@ -155,30 +156,60 @@ class BookmarksScreen extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                                if (note.isNotEmpty) ...[
-                                  const SizedBox(height: 10),
-                                  Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: isDark
-                                          ? Colors.white
-                                              .withValues(alpha: 0.03)
-                                          : Colors.grey
-                                              .withValues(alpha: 0.06),
-                                      borderRadius:
-                                          BorderRadius.circular(10),
-                                    ),
-                                    child: Text(
-                                      '📝 $note',
-                                      style:
-                                          AppTheme.bodySmall.copyWith(
-                                        color: AppTheme.textSecondaryC(
-                                            isDark),
-                                        fontStyle: FontStyle.italic,
+                                if (note.isEmpty) ...[
+                                  const SizedBox(height: 12),
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: TextButton.icon(
+                                      onPressed: () => _showEditNoteDialog(context, progress, key, note),
+                                      icon: const Icon(Icons.add_comment_rounded, size: 16),
+                                      label: const Text('Add Note', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: color.withValues(alpha: 0.9),
+                                        backgroundColor: color.withValues(alpha: 0.1),
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                        minimumSize: Size.zero,
+                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                       ),
-                                      maxLines: 3,
-                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ] else ...[
+                                  const SizedBox(height: 10),
+                                  GestureDetector(
+                                    onTap: () => _showEditNoteDialog(context, progress, key, note),
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: isDark
+                                            ? Colors.white
+                                                .withValues(alpha: 0.03)
+                                            : Colors.grey
+                                                .withValues(alpha: 0.06),
+                                        borderRadius:
+                                            BorderRadius.circular(10),
+                                        border: Border.all(color: color.withValues(alpha: 0.1)),
+                                      ),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Icon(Icons.edit_note_rounded, size: 16, color: AppTheme.textMutedC(isDark)),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              note,
+                                              style:
+                                                  AppTheme.bodySmall.copyWith(
+                                                color: AppTheme.textSecondaryC(
+                                                    isDark),
+                                              ),
+                                              maxLines: 4,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -218,5 +249,39 @@ class BookmarksScreen extends StatelessWidget {
       }
     }
     return null;
+  }
+
+  void _showEditNoteDialog(BuildContext context, ProgressService progress, String key, String currentNote) {
+    final controller = TextEditingController(text: currentNote);
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final isDark = ctx.watch<ThemeService>().isDarkMode;
+        return AlertDialog(
+          backgroundColor: AppTheme.cardC(isDark),
+          title: Text('Edit Note', style: AppTheme.headingSmall.copyWith(color: AppTheme.textPrimaryC(isDark))),
+          content: TextField(
+            controller: controller,
+            maxLines: 3,
+            style: AppTheme.bodyMedium.copyWith(color: AppTheme.textPrimaryC(isDark)),
+            decoration: AppTheme.inputDecoration(isDark: isDark, label: 'Note', hint: 'Add a personal note...'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('Cancel', style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark))),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                progress.saveNote(key, controller.text);
+                Navigator.pop(ctx);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accentCyan, foregroundColor: Colors.black),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

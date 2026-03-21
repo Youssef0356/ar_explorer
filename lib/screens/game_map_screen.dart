@@ -100,7 +100,7 @@ class _GameMapScreenState extends State<GameMapScreen>
     final scale = screenWidth / _mapWidth;
     final scaledHeight = _mapHeight * scale;
 
-    return Scaffold(
+    return Theme(data: ThemeData.dark(), child: Scaffold(
       backgroundColor: const Color(0xFF060B14),
       body: Stack(
         children: [
@@ -189,7 +189,7 @@ class _GameMapScreenState extends State<GameMapScreen>
           ),
         ],
       ),
-    );
+    ));
   }
 
   double _getZoneLabelY(String zoneId) => const {

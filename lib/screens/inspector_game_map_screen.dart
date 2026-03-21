@@ -23,7 +23,7 @@ class InspectorGameMapScreen extends StatelessWidget {
     final isDark    = context.watch<ThemeService>().isDarkMode;
     final progress  = context.watch<GameProgressService>();
 
-    return Scaffold(
+    return Theme(data: ThemeData.dark(), child: Scaffold(
       backgroundColor: AppTheme.scaffoldC(isDark),
       body: CustomScrollView(
         slivers: [
@@ -69,7 +69,7 @@ class InspectorGameMapScreen extends StatelessWidget {
           const SliverToBoxAdapter(child: SizedBox(height: 32)),
         ],
       ),
-    );
+    ));
   }
 }
 

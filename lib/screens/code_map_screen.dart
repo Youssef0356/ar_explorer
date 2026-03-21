@@ -326,7 +326,7 @@ class CodeMapScreen extends StatelessWidget {
       CodeZone zone, int challengeIndex, GameProgressService progress, bool isPremium) {
     final challenge = zone.challenges[challengeIndex];
 
-    // Premium check for zones 2-5
+    // Premium check — zone 0 is always free; zones 1+ require premium
     final zoneIdx = codeGameZones.indexOf(zone);
     if (!isPremium && zoneIdx > 0) return true;
 
