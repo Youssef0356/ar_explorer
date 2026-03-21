@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:showcaseview/showcaseview.dart';
 import '../core/app_theme.dart';
 
 import '../services/theme_service.dart';
@@ -34,11 +35,12 @@ class _MainScreenState extends State<MainScreen> {
     final isDark = context.watch<ThemeService>().isDarkMode;
     final soundService = context.read<SoundService>();
 
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+    return ShowCaseWidget(
+      builder: (context) => Scaffold(
+        body: IndexedStack(
+          index: _currentIndex,
+          children: _screens,
+        ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: AppTheme.cardC(isDark),
@@ -101,6 +103,6 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 }

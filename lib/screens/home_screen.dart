@@ -37,8 +37,41 @@ import 'topic_screen.dart';
 import 'premium_space_screen.dart';
 import 'certificate_progression_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+import 'package:showcaseview/showcaseview.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/tour_keys.dart';
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkFirstTimeTour();
+    });
+  }
+
+  Future<void> _checkFirstTimeTour() async {
+    final prefs = await SharedPreferences.getInstance();
+    final tourCompleted = prefs.getBool('tour_completed_v1') ?? false;
+    // Don't run tour if already completed
+    if (tourCompleted) return;
+
+    if (mounted) {
+      ShowCaseWidget.of(context).startShowCase([
+        TourKeys.dailyKeywordKey,
+        TourKeys.firstModuleKey,
+        TourKeys.certificateKey,
+      ]);
+      await prefs.setBool('tour_completed_v1', true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -340,11 +373,9 @@ class HomeScreen extends StatelessWidget {
                           return (isLocked: isLocked, progress: moduleProgress);
                         },
                         builder: (context, data, child) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: ModuleCard(
-                              key: ValueKey(module.id),
-                              title: module.title,
+                          final card = ModuleCard(
+                            key: ValueKey(module.id),
+                            title: module.title,
                               description: module.description,
                               icon: module.icon,
                               accentColor: color,
@@ -433,7 +464,23 @@ class HomeScreen extends StatelessWidget {
                                   }
                                 });
                               },
-                            ),
+                            );
+
+                          if (index == 0) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: Showcase(
+                                key: TourKeys.firstModuleKey,
+                                description: 'Start your journey here. Complete topics to unlock the next modules.',
+                                tooltipBackgroundColor: color,
+                                child: card,
+                              ),
+                            );
+                          }
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: card,
                           );
                         },
                       );
@@ -456,7 +503,13 @@ class HomeScreen extends StatelessWidget {
                   return SliverPadding(
                     padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
                     sliver: SliverToBoxAdapter(
-                      child: _buildCertificateCard(context, isDark, tierInfo, certData),
+                      child: Showcase(
+                        key: TourKeys.certificateKey,
+                        description: 'Track your progress. Earn your certificates by completing modules and games!',
+                        tooltipBackgroundColor: AppTheme.accentCyan,
+                        textColor: Colors.black,
+                        child: _buildCertificateCard(context, isDark, tierInfo, certData),
+                      ),
                     ),
                   );
                 },
