@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/module_model.dart';
+import '../data/modules_data.dart';
 import 'subscription_service.dart';
 import 'game_progress_service.dart';
 
@@ -122,6 +123,13 @@ class ProgressService extends ChangeNotifier {
     await _prefs?.setString(_usernameKey, _username);
   }
 
+  bool get hasSeenStarterMission =>
+      _prefs?.getBool('starter_mission_shown') ?? false;
+
+  Future<void> markStarterMissionShown() async {
+    await _prefs?.setBool('starter_mission_shown', true);
+  }
+
   // ── Topic Progress ─────────────────────────────────────────────
   bool isTopicCompleted(String topicId) => _completedTopics.contains(topicId);
 
@@ -165,7 +173,15 @@ class ProgressService extends ChangeNotifier {
     return score != null && score >= passingScore;
   }
 
-  Future<void> saveQuizScore(String quizId, int scorePercent) async {
+  Future<List<String>> saveQuizScore(String quizId, int scorePercent) async {
+    final subscription = _subscriptionService?.isPremium ?? false;
+
+    // Snapshot currently unlocked modules before saving
+    final lockedBefore = allModules
+        .where((m) => !isModuleUnlocked(m, isPremium: subscription))
+        .map((m) => m.id)
+        .toSet();
+
     final existing = _quizScores[quizId] ?? -1;
     if (existing == -1 || scorePercent > existing) {
       _quizScores[quizId] = scorePercent;
@@ -178,6 +194,15 @@ class ProgressService extends ChangeNotifier {
 
     await _saveProgress();
     notifyListeners();
+
+    // Snapshot currently unlocked modules after saving
+    final stillLocked = allModules
+        .where((m) => !isModuleUnlocked(m, isPremium: subscription))
+        .map((m) => m.id)
+        .toSet();
+
+    // Return the newly unlocked ones
+    return lockedBefore.difference(stillLocked).toList();
   }
 
   // ── Module Unlock Logic ────────────────────────────────────────

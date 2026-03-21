@@ -7,8 +7,12 @@ import '../models/quiz_model.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
 import '../services/ad_service.dart';
+import '../services/sound_service.dart';
+import '../data/modules_data.dart';
 import '../widgets/shareable_achievement_card.dart';
+import 'main_screen.dart';
 import 'paywall_screen.dart';
+import 'practice_screen.dart';
 
 class QuizResultsScreen extends StatefulWidget {
   final Quiz quiz;
@@ -30,6 +34,7 @@ class QuizResultsScreen extends StatefulWidget {
 
 class _QuizResultsScreenState extends State<QuizResultsScreen> {
   bool _saved = false;
+  List<String> _newlyUnlockedModuleIds = [];
 
   @override
   void initState() {
@@ -39,9 +44,41 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
 
   Future<void> _saveScore() async {
     final progress = context.read<ProgressService>();
-    await progress.saveQuizScore(widget.quiz.id, widget.scorePercent);
-    setState(() => _saved = true);
-    
+    final newlyUnlocked = await progress.saveQuizScore(widget.quiz.id, widget.scorePercent);
+    if (mounted) {
+      setState(() {
+        _saved = true;
+        _newlyUnlockedModuleIds = newlyUnlocked;
+      });
+    }
+
+    if (mounted) {
+      final wrongCount = widget.totalQuestions - widget.correctCount;
+      if (wrongCount >= 2) {
+        final isDark = context.read<ThemeService>().isDarkMode;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '$wrongCount mistakes made. Want to strengthen your weak areas?',
+              style: AppTheme.bodyMedium.copyWith(color: AppTheme.textPrimaryC(isDark)),
+            ),
+            backgroundColor: AppTheme.cardC(isDark),
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Practice Now',
+              textColor: AppTheme.accentPink,
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PracticeScreen()),
+                );
+              },
+            ),
+          ),
+        );
+      }
+    }
+
     // Show interstitial ad with 1/3 probability
     if (mounted) {
       context.read<AdService>().showInterstitialAdWithProbability(0.33);
@@ -211,6 +248,26 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
 
                   const SizedBox(height: 32),
 
+                  // ── Newly Unlocked Module Card ──
+                  if (_newlyUnlockedModuleIds.isNotEmpty)
+                    ..._newlyUnlockedModuleIds.map((id) {
+                      final module = allModules.firstWhere((m) => m.id == id, orElse: () => allModules[0]);
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 24),
+                        child: ShareableAchievementCard(
+                          title: 'New Module Unlocked! 🔓',
+                          subtitle: module.title,
+                          icon: module.icon,
+                          color: AppTheme.accentCyan,
+                          score: '',
+                          isDark: isDark,
+                        ),
+                      ).animate().fadeIn(delay: const Duration(milliseconds: 600)).scale(
+                        begin: const Offset(0.8, 0.8),
+                        end: const Offset(1.0, 1.0),
+                      );
+                    }),
+
                   // ── Achievement Badge ──
                   // ── Shareable Achievement Card ──
                   if (_aced)
@@ -337,6 +394,9 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                     ),
+                  
+                  const SizedBox(height: 32),
+                  _buildXRBuilderPromo(context, isDark),
                 ],
               ),
             ),
@@ -344,5 +404,58 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildXRBuilderPromo(BuildContext context, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.black, // Dark focus for cyberpunk style
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.accentCyan.withValues(alpha: 0.5), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.accentCyan.withValues(alpha: 0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          const Text('🛠️', style: TextStyle(fontSize: 40)),
+          const SizedBox(height: 12),
+          Text(
+            'Try the XR Builder',
+            style: AppTheme.headingSmall.copyWith(color: AppTheme.accentCyan, fontSize: 20),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Master 3D spatial alignment in our interactive simulator. Learn coding through building!',
+            textAlign: TextAlign.center,
+            style: AppTheme.bodySmall.copyWith(color: Colors.white70, height: 1.4),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                context.read<SoundService>().playTap();
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const MainScreen(initialIndex: 2)),
+                  (route) => false,
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accentCyan,
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Play Now 🚀'),
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(delay: const Duration(milliseconds: 1200)).slideY(begin: 0.2, end: 0);
   }
 }

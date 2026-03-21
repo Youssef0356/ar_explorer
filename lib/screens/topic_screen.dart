@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:collection/collection.dart';
 
 import '../core/app_theme.dart';
 import '../models/topic_model.dart';
@@ -9,8 +10,9 @@ import '../services/theme_service.dart';
 import '../services/sound_service.dart';
 import '../services/subscription_service.dart';
 import '../widgets/content_renderer.dart';
+import '../data/quiz_data.dart';
 import 'paywall_screen.dart';
-
+import 'quiz_screen.dart';
 class TopicScreen extends StatefulWidget {
   final Topic topic;
   final String moduleId;
@@ -400,15 +402,40 @@ class _TopicScreenState extends State<TopicScreen> {
           // Only show this if NOT opened from bookmarks.
           if (widget.fromBookmark) return const SizedBox.shrink();
 
-          return FloatingActionButton.extended(
-            onPressed: () {
-              Navigator.pop<bool>(context, true);
-            },
-            backgroundColor: widget.accentColor,
-            foregroundColor: AppTheme.primaryDark,
-            icon: const Icon(Icons.arrow_forward_rounded, size: 20),
-            label: Text('Next topic', style: AppTheme.buttonText),
-          );
+          return Builder(builder: (context) {
+            final quiz = allQuizzes.values.firstWhereOrNull(
+              (q) => q.moduleId == widget.moduleId,
+            );
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (quiz != null)
+                  FloatingActionButton.extended(
+                    heroTag: 'fab_quiz',
+                    onPressed: () {
+                      soundService.playTap();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => QuizScreen(quiz: quiz)),
+                      );
+                    },
+                    backgroundColor: AppTheme.accentPink,
+                    foregroundColor: AppTheme.primaryDark,
+                    icon: const Icon(Icons.quiz_rounded, size: 20),
+                    label: Text('Quick Quiz', style: AppTheme.buttonText),
+                  ),
+                if (quiz != null) const SizedBox(height: 8),
+                FloatingActionButton.extended(
+                  heroTag: 'fab_next',
+                  onPressed: () => Navigator.pop<bool>(context, true),
+                  backgroundColor: widget.accentColor,
+                  foregroundColor: AppTheme.primaryDark,
+                  icon: const Icon(Icons.arrow_forward_rounded, size: 20),
+                  label: Text('Next topic', style: AppTheme.buttonText),
+                ),
+              ],
+            );
+          });
         },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,

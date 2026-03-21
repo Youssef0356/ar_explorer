@@ -1,9 +1,12 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:collection/collection.dart';
 
 import '../core/app_theme.dart';
 import '../data/quiz_data.dart';
+import '../data/modules_data.dart';
 import '../models/module_model.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
@@ -528,6 +531,81 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     );
   }
 
+  Widget _buildLockedModulePreview(BuildContext context, bool isDark) {
+    // Find the next module in sequence (order = current order + 1)
+    final currentOrder = widget.module.order;
+    final nextModule = allModules.firstWhereOrNull(
+      (m) => m.order == currentOrder + 1,
+    );
+    if (nextModule == null) return const SizedBox.shrink();
+
+    final concepts = nextModule.keyConcepts.take(3).toList();
+    if (concepts.isEmpty) return const SizedBox.shrink();
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Stack(
+        children: [
+          // Content behind blur
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: AppTheme.glassCard(isDark),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Unlocks next: ${nextModule.title}',
+                  style: AppTheme.labelMedium.copyWith(
+                    color: AppTheme.accentCyan,
+                    letterSpacing: 1,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...concepts.map(
+                  (c) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('•  ', style: TextStyle(color: AppTheme.accentCyan)),
+                        Expanded(
+                          child: Text(
+                            c,
+                            style: AppTheme.bodySmall.copyWith(
+                              color: AppTheme.textSecondaryC(isDark),
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Frosted blur overlay
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: Container(
+                color: AppTheme.cardC(isDark).withValues(alpha: 0.55),
+                child: Center(
+                  child: Icon(
+                    Icons.lock_outline_rounded,
+                    size: 28,
+                    color: AppTheme.accentCyan.withValues(alpha: 0.6),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildQuizButton(BuildContext context, bool isDark) {
     final quiz = allQuizzes.values.where((q) => q.moduleId == widget.module.id).firstOrNull;
     if (quiz == null) return const SizedBox.shrink();
@@ -664,6 +742,10 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                   ),
                 ),
               ),
+              if (!hasPassed && allTopicsDone) ...[
+                const SizedBox(height: 12),
+                _buildLockedModulePreview(context, isDark),
+              ],
             ],
           ),
         ).animate().fadeIn(
