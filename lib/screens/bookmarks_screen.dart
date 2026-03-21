@@ -38,6 +38,140 @@ class BookmarksScreen extends StatelessWidget {
                 onPressed: () => Navigator.pop(context),
               ),
             ),
+
+            // ── General Notes Section ──
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text('📝', style: TextStyle(fontSize: 18)),
+                        const SizedBox(width: 8),
+                        Text(
+                          'MY GENERAL NOTES',
+                          style: AppTheme.labelMedium.copyWith(
+                            letterSpacing: 1.5,
+                            color: AppTheme.textMutedC(isDark),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Builder(
+                      builder: (context) {
+                        final generalNote = progress.getNote('general_notes');
+                        final color = AppTheme.accentCyan;
+                        
+                        if (generalNote.isEmpty) {
+                          return GestureDetector(
+                            onTap: () => _showEditNoteDialog(
+                                context, isDark, progress, 'general_notes', generalNote, color),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: color.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: color.withValues(alpha: 0.3),
+                                    style: BorderStyle.solid),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.add_comment_rounded,
+                                      size: 18, color: color),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    'Add a general note...',
+                                    style: AppTheme.bodyMedium.copyWith(
+                                      color: color,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        } else {
+                          return GestureDetector(
+                            onTap: () => _showEditNoteDialog(
+                                context, isDark, progress, 'general_notes', generalNote, color),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppTheme.cardC(isDark),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                    color: color.withValues(alpha: 0.3)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: color.withValues(alpha: 0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  Icon(Icons.edit_note_rounded,
+                                      size: 20,
+                                      color: color),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      generalNote,
+                                      style: AppTheme.bodyMedium.copyWith(
+                                        color: AppTheme.textPrimaryC(
+                                            isDark),
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Icon(Icons.chevron_right_rounded,
+                                      size: 16,
+                                      color:
+                                          AppTheme.textMutedC(isDark)),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            ),
+            
+            if (bookmarkedKeys.isNotEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+                  child: Row(
+                    children: [
+                      const Text('🔖', style: TextStyle(fontSize: 18)),
+                      const SizedBox(width: 8),
+                      Text(
+                        'SAVED TOPICS',
+                        style: AppTheme.labelMedium.copyWith(
+                          letterSpacing: 1.5,
+                          color: AppTheme.textMutedC(isDark),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
             if (bookmarkedKeys.isEmpty)
               SliverFillRemaining(
                 child: Center(
@@ -71,8 +205,6 @@ class BookmarksScreen extends StatelessWidget {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final key = bookmarkedKeys[index];
-                      // key format: moduleId_topicId
-                      // Find the module and topic
                       final result = _findTopic(key);
                       if (result == null) return const SizedBox.shrink();
 
@@ -110,8 +242,7 @@ class BookmarksScreen extends StatelessWidget {
                               ),
                             ),
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   children: [
@@ -128,15 +259,13 @@ class BookmarksScreen extends StatelessWidget {
                                             style: AppTheme.headingSmall
                                                 .copyWith(
                                               fontSize: 15,
-                                              color:
-                                                  AppTheme.textPrimaryC(
-                                                      isDark),
+                                              color: AppTheme.textPrimaryC(
+                                                  isDark),
                                             ),
                                           ),
                                           Text(
                                             module.title,
-                                            style:
-                                                AppTheme.bodySmall.copyWith(
+                                            style: AppTheme.bodySmall.copyWith(
                                               color: AppTheme.textMutedC(
                                                   isDark),
                                             ),
@@ -144,63 +273,78 @@ class BookmarksScreen extends StatelessWidget {
                                         ],
                                       ),
                                     ),
-
                                     IconButton(
                                       icon: Icon(
                                           Icons.bookmark_remove_rounded,
-                                          color:
-                                              AppTheme.textMutedC(isDark),
+                                          color: AppTheme.textMutedC(isDark),
                                           size: 20),
                                       onPressed: () =>
                                           progress.toggleBookmark(key),
                                     ),
                                   ],
                                 ),
-                                if (note.isEmpty) ...[
-                                  const SizedBox(height: 12),
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: TextButton.icon(
-                                      onPressed: () => _showEditNoteDialog(context, progress, key, note),
-                                      icon: const Icon(Icons.add_comment_rounded, size: 16),
-                                      label: const Text('Add Note', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: color.withValues(alpha: 0.9),
-                                        backgroundColor: color.withValues(alpha: 0.1),
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                        minimumSize: Size.zero,
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+
+                                const SizedBox(height: 12),
+
+                                // Note section — always visible, no premium gate
+                                if (note.isEmpty)
+                                  GestureDetector(
+                                    onTap: () => _showEditNoteDialog(
+                                        context, isDark, progress, key, note, color),
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 14, vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: color.withValues(alpha: 0.06),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                            color: color.withValues(alpha: 0.2),
+                                            style: BorderStyle.solid),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.add_comment_rounded,
+                                              size: 16, color: color),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Add a note…',
+                                            style: AppTheme.bodySmall.copyWith(
+                                              color: color.withValues(alpha: 0.8),
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ),
-                                ] else ...[
-                                  const SizedBox(height: 10),
+                                  )
+                                else
                                   GestureDetector(
-                                    onTap: () => _showEditNoteDialog(context, progress, key, note),
+                                    onTap: () => _showEditNoteDialog(
+                                        context, isDark, progress, key, note, color),
                                     child: Container(
                                       width: double.infinity,
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
                                         color: isDark
-                                            ? Colors.white
-                                                .withValues(alpha: 0.03)
-                                            : Colors.grey
-                                                .withValues(alpha: 0.06),
-                                        borderRadius:
-                                            BorderRadius.circular(10),
-                                        border: Border.all(color: color.withValues(alpha: 0.1)),
+                                            ? Colors.white.withValues(alpha: 0.03)
+                                            : Colors.grey.withValues(alpha: 0.06),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                            color: color.withValues(alpha: 0.15)),
                                       ),
                                       child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Icon(Icons.edit_note_rounded, size: 16, color: AppTheme.textMutedC(isDark)),
+                                          Icon(Icons.edit_note_rounded,
+                                              size: 16,
+                                              color: AppTheme.textMutedC(isDark)),
                                           const SizedBox(width: 8),
                                           Expanded(
                                             child: Text(
                                               note,
-                                              style:
-                                                  AppTheme.bodySmall.copyWith(
+                                              style: AppTheme.bodySmall.copyWith(
                                                 color: AppTheme.textSecondaryC(
                                                     isDark),
                                               ),
@@ -208,19 +352,21 @@ class BookmarksScreen extends StatelessWidget {
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
+                                          const SizedBox(width: 4),
+                                          Icon(Icons.chevron_right_rounded,
+                                              size: 14,
+                                              color:
+                                                  AppTheme.textMutedC(isDark)),
                                         ],
                                       ),
                                     ),
                                   ),
-                                ],
                               ],
                             ),
                           ),
                         ).animate().fadeIn(
-                              delay: Duration(
-                                  milliseconds: 80 * index),
-                              duration:
-                                  const Duration(milliseconds: 400),
+                              delay: Duration(milliseconds: 80 * index),
+                              duration: const Duration(milliseconds: 400),
                             ).slideX(
                               begin: 0.1,
                               end: 0,
@@ -251,37 +397,110 @@ class BookmarksScreen extends StatelessWidget {
     return null;
   }
 
-  void _showEditNoteDialog(BuildContext context, ProgressService progress, String key, String currentNote) {
+  // FIX: isDark is passed in from the outer widget context,
+  // not read inside the dialog builder where the context is different.
+  void _showEditNoteDialog(
+    BuildContext context,
+    bool isDark,
+    ProgressService progress,
+    String key,
+    String currentNote,
+    Color accentColor,
+  ) {
     final controller = TextEditingController(text: currentNote);
+
     showDialog(
       context: context,
-      builder: (ctx) {
-        final isDark = ctx.watch<ThemeService>().isDarkMode;
-        return AlertDialog(
-          backgroundColor: AppTheme.cardC(isDark),
-          title: Text('Edit Note', style: AppTheme.headingSmall.copyWith(color: AppTheme.textPrimaryC(isDark))),
-          content: TextField(
-            controller: controller,
-            maxLines: 3,
-            style: AppTheme.bodyMedium.copyWith(color: AppTheme.textPrimaryC(isDark)),
-            decoration: AppTheme.inputDecoration(isDark: isDark, label: 'Note', hint: 'Add a personal note...'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text('Cancel', style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark))),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                progress.saveNote(key, controller.text);
-                Navigator.pop(ctx);
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accentCyan, foregroundColor: Colors.black),
-              child: const Text('Save'),
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.cardC(isDark),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.edit_note_rounded, color: accentColor, size: 22),
+            const SizedBox(width: 10),
+            Text(
+              currentNote.isEmpty ? 'Add Note' : 'Edit Note',
+              style: AppTheme.headingSmall
+                  .copyWith(color: AppTheme.textPrimaryC(isDark)),
             ),
           ],
-        );
-      },
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: controller,
+              maxLines: 5,
+              minLines: 3,
+              autofocus: true,
+              style: AppTheme.bodyMedium
+                  .copyWith(color: AppTheme.textPrimaryC(isDark)),
+              decoration: InputDecoration(
+                hintText: 'Write your thoughts, key takeaways…',
+                hintStyle: AppTheme.bodyMedium
+                    .copyWith(color: AppTheme.textMutedC(isDark)),
+                filled: true,
+                fillColor: isDark
+                    ? Colors.white.withValues(alpha: 0.04)
+                    : Colors.grey.withValues(alpha: 0.06),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      BorderSide(color: AppTheme.dividerC(isDark)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      BorderSide(color: AppTheme.dividerC(isDark)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: accentColor, width: 1.5),
+                ),
+              ),
+            ),
+            if (currentNote.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () {
+                  progress.saveNote(key, '');
+                  Navigator.pop(ctx);
+                },
+                child: Text(
+                  'Delete note',
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.errorRed.withValues(alpha: 0.7),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Cancel',
+                style: AppTheme.bodySmall
+                    .copyWith(color: AppTheme.textMutedC(isDark))),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final text = controller.text.trim();
+              // Only save if there's actual content, or delete if cleared
+              progress.saveNote(key, text);
+              Navigator.pop(ctx);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: accentColor,
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
     );
   }
 }
