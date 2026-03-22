@@ -2,7 +2,7 @@ name: ar_explorer
 description: "AR Explorer – Interactive mobile learning platform for Augmented Reality concepts."
 publish_to: 'none'
 
-version: 1.1.1+6
+version: 1.1.1+7
 
 environment:
   sdk: ^3.11.0
