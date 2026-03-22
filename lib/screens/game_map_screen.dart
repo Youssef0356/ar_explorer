@@ -173,7 +173,9 @@ class _GameMapScreenState extends State<GameMapScreen>
                           stars: stars,
                           nodeSize: nodeSize,
                           pulseAnimation: _pulseController,
-                          onTap: isLocked ? null : () => _showLevelSheet(level, zone),
+                          onTap: isLocked 
+                            ? () => Navigator.pushNamed(context, '/paywall') 
+                            : () => _showLevelSheet(level, zone),
                         )
                           .animate(delay: delay)
                           .fadeIn(duration: 400.ms)
@@ -197,11 +199,11 @@ class _GameMapScreenState extends State<GameMapScreen>
   }
 
   double _getZoneLabelY(String zoneId) => const {
-    'zone_1': 1350.0,
-    'zone_2': 1145.0,
-    'zone_3': 905.0,
-    'zone_4': 665.0,
-    'zone_5': 425.0,
+    'zone_1': 1365.0, // Shifted down
+    'zone_2': 1130.0, // Shifted up away from z1_boss (1180)
+    'zone_3': 890.0,  // Shifted up
+    'zone_4': 650.0,  // Shifted up
+    'zone_5': 410.0,  // Shifted up
   }[zoneId] ?? 0.0;
 
   Widget _buildHeader(GameProgressService progress) {
@@ -561,8 +563,10 @@ class _ZoneLabel extends StatelessWidget {
             child: Text(
               zone.name.toUpperCase(),
               style: TextStyle(
-                color: zone.accentColor.withValues(alpha: 0.7),
-                fontSize: 7 * scale, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
+                color: zone.accentColor.withValues(alpha: 0.75), // Slightly more visible
+                fontSize: 6.5 * scale, // Reduced from 7
+                fontWeight: FontWeight.w900, // Made bolder
+                letterSpacing: 1.8)), // Increased spacing
           ),
         ],
       ),

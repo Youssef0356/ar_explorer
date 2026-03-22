@@ -134,16 +134,12 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                           gradient: LinearGradient(
                             colors: _passed
                                 ? [
-                                    AppTheme.successGreen.withOpacity(
-                                      0.3,
-                                    ),
+                                     AppTheme.successGreen.withValues(alpha: 0.3),
                                     AppTheme.accentCyan.withValues(alpha: 0.1),
                                   ]
                                 : [
                                     AppTheme.errorRed.withValues(alpha: 0.3),
-                                    AppTheme.warningAmber.withOpacity(
-                                      0.1,
-                                    ),
+                                    AppTheme.warningAmber.withValues(alpha: 0.1),
                                   ],
                           ),
                           border: Border.all(

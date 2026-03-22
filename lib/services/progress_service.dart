@@ -28,6 +28,11 @@ class ProgressService extends ChangeNotifier {
   static const _readKeyConceptsKey = 'read_key_concepts';
   static const _interviewAttemptsDateKey = 'interview_attempts_date';
   static const _interviewAttemptsCountKey = 'interview_attempts_count';
+  static const _weeklyTopicsKey = 'weekly_topics_count';
+  static const _weeklyStartKey = 'weekly_start_date';
+  static const _weeklyCompletedKey = 'weekly_challenge_done';
+  static const _streakFreezeKey = 'streak_freeze_active';
+  static const int weeklyTopicsGoal = 5;
 
   SharedPreferences? _prefs;
   String _username = '';
@@ -42,6 +47,10 @@ class ProgressService extends ChangeNotifier {
   int _interviewBestScore = 0;
   List<int> _interviewHistory = [];
   bool _debugUnlockAll = false;
+  int _weeklyTopicsCount = 0;
+  bool _weeklyChallengeDone = false;
+  bool _streakFreezeActive = false;
+  DateTime? _weeklyStartDate;
 
   ProgressService();
 
@@ -113,6 +122,31 @@ class ProgressService extends ChangeNotifier {
     _interviewHistory = historyStrings.map((e) => int.tryParse(e) ?? 0).toList();
     
     _username = _prefs?.getString(_usernameKey) ?? '';
+
+    // Weekly challenge
+    final weeklyStart = _prefs?.getString(_weeklyStartKey);
+    if (weeklyStart != null) {
+      _weeklyStartDate = DateTime.tryParse(weeklyStart);
+    }
+    _resetWeeklyIfNeeded();
+    _weeklyTopicsCount = _prefs?.getInt(_weeklyTopicsKey) ?? 0;
+    _weeklyChallengeDone = _prefs?.getBool(_weeklyCompletedKey) ?? false;
+    _streakFreezeActive = _prefs?.getBool(_streakFreezeKey) ?? false;
+  }
+
+  void _resetWeeklyIfNeeded() {
+    final now = DateTime.now();
+    // Find this week's Monday at midnight
+    final monday = now.subtract(Duration(days: now.weekday - 1));
+    final weekStart = DateTime(monday.year, monday.month, monday.day);
+    if (_weeklyStartDate == null || _weeklyStartDate!.isBefore(weekStart)) {
+      _weeklyStartDate = weekStart;
+      _weeklyTopicsCount = 0;
+      _weeklyChallengeDone = false;
+      _prefs?.setInt(_weeklyTopicsKey, 0);
+      _prefs?.setBool(_weeklyCompletedKey, false);
+      _prefs?.setString(_weeklyStartKey, weekStart.toIso8601String());
+    }
   }
 
   Future<void> _saveProgress() async {
@@ -127,6 +161,10 @@ class ProgressService extends ChangeNotifier {
     await _prefs?.setInt(_interviewBestKey, _interviewBestScore);
     await _prefs?.setStringList(_interviewHistoryKey, _interviewHistory.map((e) => e.toString()).toList());
     await _prefs?.setString(_usernameKey, _username);
+    await _prefs?.setString(_weeklyStartKey, (_weeklyStartDate ?? DateTime.now()).toIso8601String());
+    await _prefs?.setInt(_weeklyTopicsKey, _weeklyTopicsCount);
+    await _prefs?.setBool(_weeklyCompletedKey, _weeklyChallengeDone);
+    await _prefs?.setBool(_streakFreezeKey, _streakFreezeActive);
   }
 
   bool get hasSeenStarterMission =>
@@ -143,6 +181,11 @@ class ProgressService extends ChangeNotifier {
     if (_completedTopics.contains(topicId)) return;
     _completedTopics.add(topicId);
     _gameProgressService?.addUnifiedXP(15);
+    _weeklyTopicsCount++;
+    if (_weeklyTopicsCount >= weeklyTopicsGoal && !_weeklyChallengeDone) {
+      _weeklyChallengeDone = true;
+      _gameProgressService?.addUnifiedXP(50); // Weekly challenge bonus
+    }
     await _saveProgress();
     notifyListeners();
   }
@@ -318,6 +361,40 @@ class ProgressService extends ChangeNotifier {
     final today = DateTime.now().toIso8601String().substring(0, 10);
     await _prefs?.setString(_lastDailyChallengeKey, today);
     _gameProgressService?.addUnifiedXP(25);
+    _weeklyTopicsCount++; // Daily challenge counts toward weekly goal too
+    if (_weeklyTopicsCount >= weeklyTopicsGoal && !_weeklyChallengeDone) {
+      _weeklyChallengeDone = true;
+      _gameProgressService?.addUnifiedXP(50);
+    }
+    await _saveProgress();
+    notifyListeners();
+  }
+
+  // ── Weekly Challenge ───────────────────────────────────────────
+  int get weeklyTopicsCount => _weeklyTopicsCount;
+  bool get weeklyChallengeDone => _weeklyChallengeDone;
+  DateTime? get weeklyStartDate => _weeklyStartDate;
+
+  // ── Streak Freeze ──────────────────────────────────────────────
+  bool get hasStreakFreeze => _streakFreezeActive;
+
+  /// Spend 50 XP to activate a streak freeze for the next day.
+  /// Returns false if not enough XP.
+  Future<bool> purchaseStreakFreeze() async {
+    const cost = 50;
+    final xp = _gameProgressService?.unifiedXP ?? 0;
+    if (xp < cost) return false;
+    final success = await (_gameProgressService?.spendUnifiedXP(cost) ?? Future.value(false));
+    if (!success) return false;
+    _streakFreezeActive = true;
+    await _saveProgress();
+    notifyListeners();
+    return true;
+  }
+
+  Future<void> consumeStreakFreeze() async {
+    _streakFreezeActive = false;
+    await _saveProgress();
     notifyListeners();
   }
 

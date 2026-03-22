@@ -4,13 +4,13 @@ import '../core/app_theme.dart';
 
 import '../services/theme_service.dart';
 import '../services/sound_service.dart';
+import '../services/subscription_service.dart';
+import '../services/game_progress_service.dart';
 import 'home_screen.dart';
 import 'roadmap_screen.dart';
 
 import 'achievements_screen.dart';
-// Code challenges moved to Premium Space
-// import 'coding_game_map_screen.dart';
-import 'inspector_game_map_screen.dart'; // XR Builder (Inspector game)
+import 'play_screen.dart'; // Unified Play Tab
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
@@ -30,16 +30,24 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   final List<Widget> _screens = [
-    const HomeScreen(),             // 0 — HOME
-    const RoadmapScreen(),          // 1 — ROADMAP
-    const InspectorGameMapScreen(), // 2 — XR BUILDER (Inspector game)
-    const AchievementsScreen(),     // 3 — REWARDS
+    const HomeScreen(),         // 0 — HOME
+    const RoadmapScreen(),      // 1 — ROADMAP
+    const PlayScreen(),         // 2 — PLAY (Unified games tab)
+    const AchievementsScreen(), // 3 — REWARDS
   ];
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.watch<ThemeService>().isDarkMode;
+    final themeService = context.watch<ThemeService>();
+    final isDark = themeService.isDarkMode;
+    final isNeon = themeService.isNeonMode;
     final soundService = context.read<SoundService>();
+    final isPremium = context.watch<SubscriptionService>().isPremium;
+    
+    // Sync premium status to progress service for XP multipliers
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<GameProgressService>().isPremium = isPremium;
+    });
 
     return Scaffold(
       body: IndexedStack(
@@ -48,18 +56,18 @@ class _MainScreenState extends State<MainScreen> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: isDark ? AppTheme.primaryDark.withValues(alpha: 0.95) : Colors.white,
+          color: isNeon ? const Color(0xFF030303) : (isDark ? AppTheme.primaryDark.withValues(alpha: 0.95) : Colors.white),
           border: Border(
             top: BorderSide(
-              color: isDark ? AppTheme.accentPurple.withValues(alpha: 0.3) : AppTheme.dividerColorLight,
+              color: isNeon ? AppTheme.neonPurple.withValues(alpha: 0.5) : (isDark ? AppTheme.accentPurple.withValues(alpha: 0.3) : AppTheme.dividerColorLight),
               width: 1.5,
             ),
           ),
           boxShadow: [
             BoxShadow(
-              color: isDark ? AppTheme.accentPurple.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
-              blurRadius: 8,
-              offset: const Offset(0, -2),
+              color: isNeon ? AppTheme.neonPurple.withValues(alpha: 0.15) : (isDark ? AppTheme.accentPurple.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03)),
+              blurRadius: 15,
+              offset: const Offset(0, -3),
             ),
           ],
         ),
@@ -75,8 +83,8 @@ class _MainScreenState extends State<MainScreen> {
               backgroundColor: Colors.transparent,
               elevation: 0,
               type: BottomNavigationBarType.fixed,
-              selectedItemColor: AppTheme.accentPurple,
-              unselectedItemColor: AppTheme.textMutedC(isDark),
+              selectedItemColor: isNeon ? AppTheme.neonPurple : AppTheme.accentPurple,
+              unselectedItemColor: isNeon ? Colors.white30 : AppTheme.textMutedC(isDark),
               selectedLabelStyle: AppTheme.labelMedium.copyWith(
                   fontSize: 10, fontWeight: FontWeight.bold),
               unselectedLabelStyle:
@@ -93,11 +101,11 @@ class _MainScreenState extends State<MainScreen> {
                   label: 'ROADMAP',
                 ),
 
-                // ── XR BUILDER tab — Inspector simulator game ───────────────
+                // ── PLAY tab — Unified games hub ───────────────
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.architecture_rounded),
-                  activeIcon: Icon(Icons.architecture_rounded),
-                  label: 'XR BUILD',
+                  icon: Icon(Icons.gamepad_rounded),
+                  activeIcon: Icon(Icons.gamepad_rounded),
+                  label: 'PLAY',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.emoji_events_rounded),

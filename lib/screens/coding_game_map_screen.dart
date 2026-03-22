@@ -192,11 +192,6 @@ class CodingGameMapScreen extends StatelessWidget {
   }
 
   void _showLockedMessage(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('This zone requires a Premium subscription.'),
-        backgroundColor: Colors.amber[900],
-      ),
-    );
+    Navigator.pushNamed(context, '/paywall');
   }
 }

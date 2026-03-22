@@ -22,7 +22,6 @@ import '../services/game_progress_service.dart';
 import '../services/review_service.dart';
 import '../services/subscription_service.dart'; 
 import '../widgets/animated_google_background.dart';
-import '../widgets/banner_ad_widget.dart';
 import '../widgets/daily_keyword_card.dart';
 import '../widgets/module_card.dart';
 import 'achievements_screen.dart';
@@ -839,12 +838,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   );
                 },
-              ),
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: 24.0),
-                  child: BannerAdWidget(),
-                ),
               ),
             ],
           ),

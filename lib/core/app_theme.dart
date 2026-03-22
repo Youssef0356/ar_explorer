@@ -7,6 +7,7 @@ class AppTheme {
   static const Color surfaceDark = Color(0xFF1A1A1E);
   static const Color cardDark = Color(0xFF1E1E24);
   static const Color cardDarkAlt = Color(0xFF25252D);
+  static const Color neonDark = Color(0xFF030303); // Near true black
 
   // ── Light Palette ──────────────────────────────────────────────
   static const Color primaryLight = Color(0xFFF5F7FA);
@@ -22,8 +23,13 @@ class AppTheme {
   static const Color accentAmber = Color(0xFFFFCA28);
   static const Color accentPink = Color(0xFFFF6B9D);
   static const Color accentOrange = Color(0xFFFF8A65);
+  
+  // Neon specific vibrant accents
+  static const Color neonPurple = Color(0xFFD500F9);
+  static const Color neonCyan   = Color(0xFF00E5FF);
+  static const Color neonPink   = Color(0xFFFF1744);
 
-  static const Color successGreen = Color(0xFFBB86FC); // Replaced with Purple per user's latest request
+  static const Color successGreen = Color(0xFF4CAF50); // True green for correct/passed states
   static const Color errorRed = Color(0xFFEF5350);
   static const Color warningAmber = Color(0xFFFFB74D);
 
@@ -54,12 +60,14 @@ class AppTheme {
   }
 
   // ── Gradients ──────────────────────────────────────────────────
-  static LinearGradient backgroundGradient(bool isDark) => LinearGradient(
+  static LinearGradient backgroundGradient(bool isDark, {bool isNeon = false}) => LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: isDark
-        ? [primaryDark, const Color(0xFF1E1E24)]
-        : [const Color(0xFFF0F4FF), const Color(0xFFE8ECFF)],
+    colors: isNeon 
+        ? [neonDark, const Color(0xFF0A0A0F)]
+        : (isDark
+            ? [primaryDark, const Color(0xFF1E1E24)]
+            : [const Color(0xFFF0F4FF), const Color(0xFFE8ECFF)]),
   );
 
   static LinearGradient moduleGradient(Color color, bool isDark) =>
@@ -79,9 +87,11 @@ class AppTheme {
   static Color textMutedC(bool isDark) => isDark ? textMuted : textMutedLight;
   static Color dividerC(bool isDark) =>
       isDark ? dividerColor : dividerColorLight;
-  static Color cardC(bool isDark) => isDark ? cardDark : cardLight;
-  static Color surfaceC(bool isDark) => isDark ? surfaceDark : surfaceLight;
-  static Color scaffoldC(bool isDark) => isDark ? primaryDark : primaryLight;
+  static Color cardC(bool isDark, {bool isNeon = false}) => isNeon ? const Color(0xFF0D0D12) : (isDark ? cardDark : cardLight);
+  static Color surfaceC(bool isDark, {bool isNeon = false}) => isNeon ? const Color(0xFF08080A) : (isDark ? surfaceDark : surfaceLight);
+  static Color scaffoldC(bool isDark, {bool isNeon = false}) => isNeon ? neonDark : (isDark ? primaryDark : primaryLight);
+  static Color accentP(bool isNeon) => isNeon ? neonPurple : accentPurple;
+  static Color accentC(bool isNeon) => isNeon ? neonCyan : accentCyan;
 
   // ── Text Styles (cached — GoogleFonts is expensive per-call) ──
   static final TextStyle headingLarge = GoogleFonts.outfit(
@@ -137,41 +147,56 @@ class AppTheme {
   );
 
   // ── Theme Data ─────────────────────────────────────────────────
+  static ThemeData get neonTheme => _buildTheme(isDark: true, isNeon: true);
   static ThemeData get darkTheme => _buildTheme(isDark: true);
   static ThemeData get lightTheme => _buildTheme(isDark: false);
 
-  static ThemeData _buildTheme({required bool isDark}) {
-    final scaffold = scaffoldC(isDark);
-    final card = cardC(isDark);
+  static ThemeData _buildTheme({required bool isDark, bool isNeon = false}) {
+    final scaffold = scaffoldC(isDark, isNeon: isNeon);
+    final card = cardC(isDark, isNeon: isNeon);
     final txtPrimary = textPrimaryC(isDark);
     final txtSecondary = textSecondaryC(isDark);
     final divider = dividerC(isDark);
+
+    final primaryColor = isNeon ? neonPurple : accentPurple;
+    // secondaryColor removed as it was unused (originally accentBlue / neonCyan)
 
     return ThemeData(
       useMaterial3: true,
       brightness: isDark ? Brightness.dark : Brightness.light,
       scaffoldBackgroundColor: scaffold,
-      colorScheme: isDark
+      colorScheme: isNeon
           ? const ColorScheme.dark(
-              primary: accentPurple,
-              secondary: accentBlue,
-              surface: surfaceDark,
+              primary: neonPurple,
+              secondary: neonCyan,
+              surface: Color(0xFF08080A),
               error: errorRed,
-              onPrimary: Color(0xFF111111),
-              onSecondary: textPrimary,
-              onSurface: textPrimary,
-              onError: textPrimary,
+              onPrimary: Colors.black,
+              onSecondary: Colors.white,
+              onSurface: Colors.white,
+              onError: Colors.white,
             )
-          : const ColorScheme.light(
-              primary: accentPurple,
-              secondary: accentBlue,
-              surface: surfaceLight,
-              error: errorRed,
-              onPrimary: Color(0xFFF5F7FA),
-              onSecondary: textPrimaryLight,
-              onSurface: textPrimaryLight,
-              onError: textPrimary,
-            ),
+          : (isDark
+              ? const ColorScheme.dark(
+                  primary: accentPurple,
+                  secondary: accentBlue,
+                  surface: surfaceDark,
+                  error: errorRed,
+                  onPrimary: Color(0xFF111111),
+                  onSecondary: textPrimary,
+                  onSurface: textPrimary,
+                  onError: textPrimary,
+                )
+              : const ColorScheme.light(
+                  primary: accentPurple,
+                  secondary: accentBlue,
+                  surface: surfaceLight,
+                  error: errorRed,
+                  onPrimary: Color(0xFFF5F7FA),
+                  onSecondary: textPrimaryLight,
+                  onSurface: textPrimaryLight,
+                  onError: textPrimary,
+                )),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -188,10 +213,10 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: accentPurple,
-          foregroundColor: Colors.black,
-          elevation: 0,
-          shadowColor: accentPurple.withValues(alpha: 0.3),
+          backgroundColor: primaryColor,
+          foregroundColor: isNeon ? Colors.white : Colors.black,
+          elevation: isNeon ? 4 : 0,
+          shadowColor: primaryColor.withValues(alpha: isNeon ? 0.3 : 0.0),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

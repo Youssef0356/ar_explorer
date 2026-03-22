@@ -513,6 +513,8 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.6), fontSize: 13, height: 1.5)),
+                const SizedBox(height: 16),
+                _buildGuidanceBox(zone),
                 const SizedBox(height: 32),
                 SizedBox(
                   width: double.infinity,
@@ -537,6 +539,54 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildGuidanceBox(ARZone zone) {
+    final tip = _getZoneGuidance(zone.id);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: zone.accentColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: zone.accentColor.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.lightbulb_outline_rounded, color: zone.accentColor, size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('SYSTEM ENGINEERING TIP',
+                  style: TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1)),
+                const SizedBox(height: 4),
+                Text(tip,
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 12, height: 1.45, fontWeight: FontWeight.w500)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getZoneGuidance(String zoneId) {
+    switch (zoneId) {
+      case 'zone_1':
+        return 'Establish the basics: The Camera feed and IMU data must always be initialized before any rendering can occur.';
+      case 'zone_2':
+        return 'Tracking stability is key. Ensure your SLAM node has a direct data path from sensors to maintain coordinate consistency.';
+      case 'zone_3':
+        return 'Plane detection is a process, not an input. It requires the raw camera feed as a source to identify physical surfaces.';
+      case 'zone_4':
+        return 'Occlusion requires depth-awareness. Your pipeline needs both SLAM for position and a Depth/Occlusion node for Z-buffering.';
+      case 'zone_5':
+        return 'Spatial persistence survives session death. Connect SLAM feature maps to a Spatial Anchor to save your world-state to the cloud.';
+      default:
+        return 'Connect logic nodes in the correct order to ensure a stable data flow through the AR pipeline.';
+    }
   }
 
   // ── Header ────────────────────────────────────────────────────────────────
@@ -1056,7 +1106,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
     final allFilled   = filledCount == _slots.length;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4), // Reduced bottom from 16 to 4 to fix "padding for no reason"
       child: Column(
         children: [
           SizedBox(

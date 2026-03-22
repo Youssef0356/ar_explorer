@@ -208,9 +208,11 @@ class PaywallScreen extends StatelessWidget {
   Widget _buildFeatureList(bool isDark) {
     final features = [
       ('No More Ads', 'Remove all banner and rewarded ads forever.', Icons.block_rounded),
+      ('Unlock All Games', 'Access Pipeline, Coding Games, and AR Debugger instantly.', Icons.gamepad_rounded),
+      ('2x XP Multiplier', 'Progress twice as fast with double XP on all training activities.', Icons.bolt_rounded),
+      ('Exclusive Certificates', 'Get sharable certificates that prove your learning progress.', Icons.verified_user_rounded),
       ('Skip Quiz Gates', 'Access any module without passing previous quizzes.', Icons.vibration_rounded),
-      ('Unlimited Interviews', 'Practice the job interview mode without trial limits.', Icons.timer_rounded),
-      ('Exclusive Modules', 'Get instant access to all present and future modules.', Icons.auto_awesome_rounded),
+      ('Express Learning', 'Unlock all present and future modules immediately.', Icons.auto_awesome_rounded),
     ];
 
     return Column(

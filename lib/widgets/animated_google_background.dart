@@ -52,9 +52,13 @@ class _AnimatedGoogleBackgroundState extends State<AnimatedGoogleBackground>
     } else if (!enableAnimations && _controller.isAnimating) {
       _controller.stop();
     }
-    final bool isDark = widget.isDark ?? context.watch<ThemeService>().isDarkMode;
-    final Color baseColor =
-        isDark ? AppTheme.primaryDark : const Color(0xFFFAFCFF);
+    final themeService = context.watch<ThemeService>();
+    final bool isDark = widget.isDark ?? themeService.isDarkMode;
+    final bool isNeon = themeService.isNeonMode;
+
+    final Color baseColor = isNeon 
+        ? AppTheme.neonDark 
+        : (isDark ? AppTheme.primaryDark : const Color(0xFFFAFCFF));
 
     return Container(
       color: baseColor,
@@ -71,6 +75,7 @@ class _AnimatedGoogleBackgroundState extends State<AnimatedGoogleBackground>
                     painter: _AmbientGlowPainter(
                       t: _controller.value * 2 * math.pi,
                       isDark: isDark,
+                      isNeon: isNeon,
                       baseColor: baseColor,
                       glowColors: widget.glowColors,
                     ),
@@ -97,12 +102,14 @@ class _AnimatedGoogleBackgroundState extends State<AnimatedGoogleBackground>
 class _AmbientGlowPainter extends CustomPainter {
   final double t;
   final bool isDark;
+  final bool isNeon;
   final Color baseColor;
   final List<Color>? glowColors;
 
   _AmbientGlowPainter({
     required this.t,
     required this.isDark,
+    required this.isNeon,
     required this.baseColor,
     this.glowColors,
   });
@@ -112,8 +119,12 @@ class _AmbientGlowPainter extends CustomPainter {
     final cx = size.width / 2;
     final cy = size.height / 2;
 
-    final color1 = glowColors != null && glowColors!.isNotEmpty ? glowColors![0] : AppTheme.accentPurple;
-    final color2 = glowColors != null && glowColors!.length > 1 ? glowColors![1] : AppTheme.accentBlue;
+    final color1 = glowColors != null && glowColors!.isNotEmpty 
+        ? glowColors![0] 
+        : (isNeon ? AppTheme.neonPurple : AppTheme.accentPurple);
+    final color2 = glowColors != null && glowColors!.length > 1 
+        ? glowColors![1] 
+        : (isNeon ? AppTheme.neonCyan : AppTheme.accentBlue);
 
     // Glow positions — slow swirling orbits
     final x1 = cx + math.sin(t) * cx * 0.5;

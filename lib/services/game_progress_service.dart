@@ -31,6 +31,12 @@ class GameProgressService extends ChangeNotifier {
   // ── Unified XP Wallet ──────────────────────────────────────────────────────
   int _unifiedXP = 0;
   int get unifiedXP => _unifiedXP;
+  
+  bool _isPremium = false; // Internal flag for 2x XP
+  set isPremium(bool value) {
+    _isPremium = value;
+    notifyListeners();
+  }
 
   Future<void> addUnifiedXP(int amount) async {
     _unifiedXP += amount;
@@ -182,9 +188,9 @@ class GameProgressService extends ChangeNotifier {
     }
 
     if (currentLevel == null) return true;
-
-    // Premium Lock: Zones 3, 4, 5 are locked for free users
-    if (zoneIndex >= 2 && !isPremium) return true;
+    
+    // PREMIUM LOCK: Pipeline Challenge (arGameZones) is now 100% Premium
+    if (!isPremium) return true;
 
     if (zoneIndex == 0 && levelIndex == 0) return false;
 
@@ -211,8 +217,9 @@ class GameProgressService extends ChangeNotifier {
     }
 
     if (!alreadyCompleted) {
-      final amount = unifiedXPReward ?? (isBoss ? 50 : 25);
-      _unifiedXP += amount;
+      final baseAmount = unifiedXPReward ?? (isBoss ? 50 : 25);
+      final finalAmount = _isPremium ? baseAmount * 2 : baseAmount;
+      _unifiedXP += finalAmount;
       await _prefs?.setInt(_unifiedXPKey, _unifiedXP);
     }
 
@@ -230,8 +237,9 @@ class GameProgressService extends ChangeNotifier {
     }
 
     if (!alreadyCompleted) {
-      final amount = unifiedXPReward ?? (isBoss ? 50 : 25);
-      _unifiedXP += amount;
+      final baseAmount = unifiedXPReward ?? (isBoss ? 50 : 25);
+      final finalAmount = _isPremium ? baseAmount * 2 : baseAmount;
+      _unifiedXP += finalAmount;
       await _prefs?.setInt(_unifiedXPKey, _unifiedXP);
     }
 
@@ -333,6 +341,7 @@ class GameProgressService extends ChangeNotifier {
     // Unified XP & Inspector Zones
     _unifiedXP = 0;
     _unlockedInspectorZones = {'zone_inspector_1'};
+    _isPremium = false;
     await _prefs?.remove(_unifiedXPKey);
     await _prefs?.remove(_unlockedInspectorKey);
 

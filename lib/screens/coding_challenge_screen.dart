@@ -29,7 +29,6 @@ class CodingChallengeScreen extends StatefulWidget {
 class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
   late Map<String, String?> _slotAnswers; // slotId -> wordChipId
   late List<WordChip> _wordBank;
-  WordChip? _selectedChip;
   bool _checked = false;
   Map<String, bool> _results = {}; // slotId -> correct?
   int _timeRemaining = 0;
@@ -43,7 +42,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
   void initState() {
     super.initState();
     final isPremium = context.read<SubscriptionService>().isPremium;
-    if (!isPremium && !widget.level.id.startsWith('z1_')) {
+    if (!isPremium && !widget.level.id.startsWith('v1_')) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pop(context); // Pop off challenge screen
         Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
@@ -135,14 +134,15 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
       int stars = 3;
       if (_mistakes >= 3) {
         stars = 1;
-      } else if (_mistakes >= 1) stars = 2;
+      } else if (_mistakes >= 1) { stars = 2; }
       
       progress.completeCodingLevel(widget.level.id, stars, isBoss: widget.level.isBoss);
       progress.updateCodingStreak();
 
       if (widget.level.isBoss) {
-        context.read<AdService>().showInterstitialAdWithProbability(0.5);
+        context.read<AdService>().showInterstitialAdWithProbability(0.25); // Reduced from 50% — boss wins are high-emotion moments
       }
+
       
       _showVictoryDialog(xpEarned, stars);
     } else {

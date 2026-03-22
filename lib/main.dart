@@ -8,6 +8,7 @@ import 'screens/main_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/certificate_progression_screen.dart';
 import 'screens/privacy_policy_screen.dart';
+import 'screens/paywall_screen.dart';
 import 'services/progress_service.dart';
 import 'services/theme_service.dart';
 import 'services/sound_service.dart';
@@ -91,19 +92,22 @@ class ARExplorerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.watch<ThemeService>().isDarkMode;
+    final themeService = context.watch<ThemeService>();
+    final isDark = themeService.isDarkMode;
+    final isNeon = themeService.isNeonMode;
     final progress = context.read<ProgressService>();
 
     return MaterialApp(
       title: 'AR Explorer',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: isNeon ? AppTheme.neonTheme : AppTheme.lightTheme,
+      darkTheme: isNeon ? AppTheme.neonTheme : AppTheme.darkTheme,
       themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
       routes: {
         '/home': (_) => const MainScreen(),
         '/certificate': (_) => const CertificateProgressionScreen(),
         '/onboarding': (_) => const OnboardingScreen(),
+        '/paywall': (_) => const PaywallScreen(),
       },
       home: !progress.hasAcceptedPrivacy
           ? const PrivacyPolicyScreen(showConfirmButton: true)

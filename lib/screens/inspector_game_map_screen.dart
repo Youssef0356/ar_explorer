@@ -8,6 +8,7 @@ import '../models/inspector_game_models.dart';
 import '../services/game_progress_service.dart';
 import '../services/theme_service.dart';
 import '../services/sound_service.dart';
+import '../services/subscription_service.dart';
 import 'inspector_game_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -158,7 +159,16 @@ class _ZoneCardState extends State<_ZoneCard> {
   Widget build(BuildContext context) {
     final zone      = widget.zone;
     final levels    = zone.levels;
-    final isUnlocked = widget.progress.isInspectorZoneUnlocked(zone.id);
+    final isPremium = context.watch<SubscriptionService>().isPremium;
+    
+    // PREMIUM GATING: Last two zones (Zones 4 & 5) are Premium only
+    final zoneIndex = inspectorGameZones.indexOf(zone);
+    final isPremiumZone = zoneIndex >= 3; 
+    
+    final isUnlocked = isPremiumZone 
+        ? isPremium 
+        : widget.progress.isInspectorZoneUnlocked(zone.id);
+        
     final cost      = kInspectorZoneUnlockCost[zone.id] ?? 0;
     
     final doneCount = levels
@@ -182,7 +192,12 @@ class _ZoneCardState extends State<_ZoneCard> {
           GestureDetector(
             onTap: () {
               if (!isUnlocked) {
-                _showUnlockDialog(context, cost);
+                if (isPremiumZone && !isPremium) {
+                  // Show Paywall for premium zones
+                  Navigator.pushNamed(context, '/paywall');
+                } else {
+                  _showUnlockDialog(context, cost);
+                }
               } else {
                 setState(() => _expanded = !_expanded);
               }
@@ -225,9 +240,12 @@ class _ZoneCardState extends State<_ZoneCard> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.lock_rounded, color: AppTheme.accentAmber, size: 10),
+                          Icon(
+                            isPremiumZone ? Icons.star_rounded : Icons.lock_rounded, 
+                            color: AppTheme.accentAmber, size: 10
+                          ),
                           const SizedBox(width: 4),
-                          Text('$cost XP',
+                          Text(isPremiumZone ? 'PREMIUM' : '$cost XP',
                             style: const TextStyle(
                               color: AppTheme.accentAmber,
                               fontSize: 10, fontWeight: FontWeight.w700)),
