@@ -37,6 +37,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
   String  _errorMessage  = '';
 
   int  _secondsRemaining = 0;
+  bool _showPreLevelInfo = true;
 
   // ── Pipeline scroll controller (auto-scroll to latest slot) ──────────────
   final ScrollController _pipelineScrollCtrl = ScrollController();
@@ -47,9 +48,10 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
     _slots      = List.filled(widget.level.correctSequence.length, null);
     _slotPulsed = List.filled(widget.level.correctSequence.length, false);
     _pool       = List.from(widget.level.availableNodes)..shuffle();
+    _pool       = List.from(widget.level.availableNodes)..shuffle();
     if (widget.level.isBoss) {
       _secondsRemaining = widget.level.timeLimit;
-      _startTimer();
+      // Timer starts after dismissing pre-level info
     }
   }
 
@@ -162,7 +164,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
       _isValidating = false;
       _showSuccess  = true;
     });
-    context.read<GameProgressService>().completeLevel(widget.level.id, _starsEarned);
+    context.read<GameProgressService>().completeLevel(widget.level.id, _starsEarned, isBoss: widget.level.isBoss);
   }
 
   void _onFailure(int wrongIndex) {
@@ -441,7 +443,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                 _buildContextSection(zone.accentColor),
                 const SizedBox(height: 8),
                 // ── Pipeline slots ──
-                _buildPipelineRow(zone.accentColor),
+                RepaintBoundary(child: _buildPipelineRow(zone.accentColor)),
                 // ── Error / hint message ──
                 AnimatedSize(
                   duration: const Duration(milliseconds: 200),
@@ -458,7 +460,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                 ),
                 const SizedBox(height: 8),
                 // ── Node pool ──
-                Expanded(child: _buildNodePool(zone.accentColor)),
+                Expanded(child: RepaintBoundary(child: _buildNodePool(zone.accentColor))),
                 // ── Submit button ──
                 _buildSubmitBar(zone.accentColor),
               ],
@@ -466,11 +468,75 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
           ),
           // ── Success overlay ──
           if (_showSuccess) _buildSuccessOverlay(zone),
-          // ── Timeout overlay ──
+          // ── Timeline / Pre-level overlay ──
           if (_isTimeout) _buildTimeoutOverlay(zone),
+          if (_showPreLevelInfo) _buildPreLevelInfo(zone),
         ],
       ),
     ));
+  }
+
+  // ── Pre-level info overlay ────────────────────────────────────────────────
+  Widget _buildPreLevelInfo(ARZone zone) {
+    return Container(
+      color: const Color(0xFF060B14).withValues(alpha: 0.95),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0E1621),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: zone.accentColor.withValues(alpha: 0.3)),
+              boxShadow: [
+                BoxShadow(color: zone.accentColor.withValues(alpha: 0.1), blurRadius: 30)
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.precision_manufacturing_rounded, size: 48, color: zone.accentColor),
+                const SizedBox(height: 16),
+                Text(widget.level.title.toUpperCase(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: zone.accentColor,
+                    fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 2)),
+                const SizedBox(height: 12),
+                Text(widget.level.projectTask,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600, height: 1.4)),
+                const SizedBox(height: 16),
+                Text(widget.level.buildContext,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.6), fontSize: 13, height: 1.5)),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() => _showPreLevelInfo = false);
+                      if (widget.level.isBoss) _startTimer();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: zone.accentColor,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('START CONFIGURATION',
+                      style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 1.5)),
+                  ),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack),
+        ),
+      ),
+    );
   }
 
   // ── Header ────────────────────────────────────────────────────────────────
@@ -707,7 +773,8 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
 
     return GestureDetector(
       onTap: node != null ? () => _removeSlot(index) : null,
-      child: AnimatedContainer(
+      child: RepaintBoundary(
+        child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         width: 80,
         margin: const EdgeInsets.symmetric(vertical: 8),
@@ -768,6 +835,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
             ],
           ],
         ),
+      ),
       ),
     );
   }
@@ -1067,6 +1135,17 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                 ).animate(delay: Duration(milliseconds: 500 + i * 150))
                     .scale(curve: Curves.elasticOut)),
               ),
+
+              const SizedBox(height: 12),
+              Text(
+                '+${widget.level.isBoss ? 50 : 25} XP',
+                style: const TextStyle(
+                  color: Colors.amber,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1,
+                ),
+              ).animate(delay: 1000.ms).fadeIn().scale(),
 
               const SizedBox(height: 32),
               Row(

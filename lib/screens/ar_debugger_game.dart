@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 
 import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
+import '../services/subscription_service.dart';
+import 'paywall_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════════
 //  AR SCENE DEBUGGER — Data Models
@@ -342,13 +344,14 @@ class ARDebuggerMapScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progress = context.watch<GameProgressService>();
+    final isPremium = context.watch<SubscriptionService>().isPremium;
 
     return Theme(data: ThemeData.dark(), child: Scaffold(
       backgroundColor: const Color(0xFF060B14),
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(context, progress),
+            _buildHeader(context, progress, isPremium),
             Expanded(
               child: ListView.separated(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
@@ -361,15 +364,19 @@ class ARDebuggerMapScreen extends StatelessWidget {
                   final isCompleted = progress.isLevelCompleted(level.id);
                   final stars = progress.getStars(level.id);
 
+                  final isPremiumLocked = !level.isFree && !isPremium;
                   return _LevelCard(
                     level: level,
                     index: i,
-                    isLocked: isLocked,
+                    isLocked: isLocked || isPremiumLocked,
+                    isPremiumLocked: isPremiumLocked,
                     isCompleted: isCompleted,
                     stars: stars,
-                    onTap: isLocked
-                        ? null
-                        : () => Navigator.push(
+                    onTap: isPremiumLocked
+                        ? () => Navigator.push(ctx, MaterialPageRoute(builder: (_) => const PaywallScreen()))
+                        : isLocked
+                            ? null
+                            : () => Navigator.push(
                               ctx,
                               MaterialPageRoute(
                                 builder: (_) =>
@@ -386,7 +393,7 @@ class ARDebuggerMapScreen extends StatelessWidget {
     ));
   }
 
-  Widget _buildHeader(BuildContext context, GameProgressService progress) {
+  Widget _buildHeader(BuildContext context, GameProgressService progress, bool isPremium) {
     final completed = debugLevels
         .where((l) => progress.isLevelCompleted(l.id))
         .length;
@@ -399,52 +406,83 @@ class ARDebuggerMapScreen extends StatelessWidget {
             bottom: BorderSide(
                 color: const Color(0xFF00E5FF).withOpacity(0.15))),
       ),
-      child: Row(
+      child: Column(
         children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.06),
-                borderRadius: BorderRadius.circular(10),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.arrow_back_ios_rounded,
+                      color: Colors.white70, size: 16),
+                ),
               ),
-              child: const Icon(Icons.arrow_back_ios_rounded,
-                  color: Colors.white70, size: 16),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('AR SCENE DEBUGGER',
-                    style: TextStyle(
-                        color: Color(0xFF00E5FF),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 2.5)),
-                const Text('Fix the broken AR app',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('AR SCENE DEBUGGER',
+                        style: TextStyle(
+                            color: Color(0xFF00E5FF),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 2.5)),
+                    const Text('Fix the broken AR app',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700)),
+                  ],
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text('$completed / ${debugLevels.length}',
+                    style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700)),
-              ],
-            ),
+              ),
+            ],
           ),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.06),
-              borderRadius: BorderRadius.circular(10),
+          if (!isPremium)
+            GestureDetector(
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const PaywallScreen())),
+              child: Container(
+                margin: const EdgeInsets.only(top: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.amber.withOpacity(0.25)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.workspace_premium_rounded,
+                        color: Colors.amber, size: 11),
+                    SizedBox(width: 5),
+                    Text('Unlock all 5 levels with Premium',
+                        style: TextStyle(
+                            color: Colors.amber,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
             ),
-            child: Text('$completed / ${debugLevels.length}',
-                style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700)),
-          ),
         ],
       ),
     );
@@ -455,6 +493,7 @@ class _LevelCard extends StatelessWidget {
   final DebugLevel level;
   final int index;
   final bool isLocked;
+  final bool isPremiumLocked;
   final bool isCompleted;
   final int stars;
   final VoidCallback? onTap;
@@ -463,6 +502,7 @@ class _LevelCard extends StatelessWidget {
     required this.level,
     required this.index,
     required this.isLocked,
+    this.isPremiumLocked = false,
     required this.isCompleted,
     required this.stars,
     this.onTap,
@@ -507,12 +547,14 @@ class _LevelCard extends StatelessWidget {
                         : level.accentColor.withOpacity(0.3)),
               ),
               child: Center(
-                child: Text(
-                  isLocked ? '🔒' : level.screenshotEmoji,
-                  style: TextStyle(
-                      fontSize: isLocked ? 22 : 26,
-                      color: isLocked ? null : null),
-                ),
+                child: isPremiumLocked
+                    ? const Icon(Icons.workspace_premium_rounded,
+                        color: Colors.amber, size: 26)
+                    : Text(
+                        isLocked ? '🔒' : level.screenshotEmoji,
+                        style: TextStyle(
+                            fontSize: isLocked ? 22 : 26),
+                      ),
               ),
             ),
             const SizedBox(width: 14),
@@ -538,15 +580,46 @@ class _LevelCard extends StatelessWidget {
                                   fontWeight: FontWeight.w900)),
                         ),
                       Expanded(
-                        child: Text(
-                          level.title,
-                          style: TextStyle(
-                            color: isLocked
-                                ? Colors.white.withOpacity(0.3)
-                                : Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              level.title,
+                              style: TextStyle(
+                                color: isLocked
+                                    ? Colors.white.withOpacity(0.3)
+                                    : Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            if (isPremiumLocked)
+                              Container(
+                                margin: const EdgeInsets.only(top: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 7, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                      color: Colors.amber.withOpacity(0.3)),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.workspace_premium_rounded,
+                                        color: Colors.amber, size: 10),
+                                    SizedBox(width: 4),
+                                    Text('PREMIUM',
+                                        style: TextStyle(
+                                            color: Colors.amber,
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: 1)),
+                                  ],
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     ],
@@ -678,6 +751,17 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
   @override
   void initState() {
     super.initState();
+    if (!widget.level.isFree) {
+      final isPremium = context.read<SubscriptionService>().isPremium;
+      if (!isPremium) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Navigator.pop(context);
+          Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const PaywallScreen()));
+        });
+        return;
+      }
+    }
     for (final s in widget.level.symptoms) {
       _assignments[s.id] = null;
       _feedback[s.id] = null;
@@ -755,8 +839,8 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
       _successCtrl.forward();
 
       final stars = _computeStars();
-      final xp = 50 + (stars - 1) * 20 + (widget.level.isBoss ? 60 : 0);
-      context.read<GameProgressService>().completeLevel(widget.level.id, stars, isBoss: widget.level.isBoss, unifiedXPReward: 20);
+      final xp = widget.level.isBoss ? 50 : 25;
+      context.read<GameProgressService>().completeLevel(widget.level.id, stars, isBoss: widget.level.isBoss);
       context.read<GameProgressService>().addXP(xp);
 
       setState(() => _showSuccess = true);
@@ -1277,7 +1361,7 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
 
   Widget _buildSuccessOverlay() {
     final stars = _computeStars();
-    final xp = 50 + (stars - 1) * 20 + (widget.level.isBoss ? 60 : 0);
+    final xp = widget.level.isBoss ? 50 : 25;
 
     return Container(
       color: Colors.black.withOpacity(0.88),

@@ -111,9 +111,10 @@ class _GameMapScreenState extends State<GameMapScreen>
           SingleChildScrollView(
             controller: _scrollController,
             physics: const BouncingScrollPhysics(),
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 20, top: 20),
             child: SizedBox(
               width: screenWidth,
-              height: scaledHeight + 120,
+              height: scaledHeight,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -196,11 +197,11 @@ class _GameMapScreenState extends State<GameMapScreen>
   }
 
   double _getZoneLabelY(String zoneId) => const {
-    'zone_1': 1345.0,
-    'zone_2': 1100.0,
-    'zone_3': 870.0,
-    'zone_4': 660.0,
-    'zone_5': 120.0,
+    'zone_1': 1350.0,
+    'zone_2': 1145.0,
+    'zone_3': 905.0,
+    'zone_4': 665.0,
+    'zone_5': 425.0,
   }[zoneId] ?? 0.0;
 
   Widget _buildHeader(GameProgressService progress) {
@@ -285,7 +286,7 @@ class _GameMapScreenState extends State<GameMapScreen>
                   children: [
                     const Icon(Icons.bolt_rounded, color: Colors.amber, size: 12),
                     const SizedBox(width: 3),
-                    Text('${progress.totalXP}',
+                    Text('${progress.unifiedXP}',
                       style: const TextStyle(
                         color: Colors.amber, fontSize: 10,
                         fontWeight: FontWeight.w800)),
@@ -552,7 +553,7 @@ class _ZoneLabel extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 10 * scale, vertical: 4 * scale),
+            padding: EdgeInsets.symmetric(horizontal: 8 * scale, vertical: 3 * scale),
             decoration: BoxDecoration(
               color: zone.accentColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(20),
@@ -561,7 +562,7 @@ class _ZoneLabel extends StatelessWidget {
               zone.name.toUpperCase(),
               style: TextStyle(
                 color: zone.accentColor.withValues(alpha: 0.7),
-                fontSize: 8 * scale, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
+                fontSize: 7 * scale, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
           ),
         ],
       ),
@@ -639,22 +640,36 @@ class _LevelNode extends StatelessWidget {
   }
 
   Widget _buildCircle(Color color, bool isCompleted, double pulse, Widget inner) {
-    return Container(
+    return SizedBox(
       width: nodeSize,
       height: nodeSize,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: isLocked
-            ? []
-            : [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.15 + pulse * 0.25),
-                  blurRadius: 8 + pulse * 16,
-                  spreadRadius: pulse * 4,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          // Render hardware-accelerated gradient glow behind unlocked nodes
+          if (!isLocked && !isCompleted)
+            Positioned.fill(
+              left: -8, right: -8, top: -8, bottom: -8,
+              child: Transform.scale(
+                scale: 1.0 + pulse * 0.4,
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        color.withValues(alpha: 0.4),
+                        color.withValues(alpha: 0.0),
+                      ],
+                      stops: const [0.4, 1.0],
+                    ),
+                  ),
                 ),
-              ],
+              ),
+            ),
+          inner,
+        ],
       ),
-      child: inner,
     );
   }
 

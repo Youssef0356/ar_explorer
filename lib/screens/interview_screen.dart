@@ -660,6 +660,13 @@ class _InterviewScreenState extends State<InterviewScreen>
                 Text('Time: ${minutes}m ${seconds}s',
                     style: AppTheme.bodyMedium.copyWith(
                         color: AppTheme.textMutedC(isDark))),
+                const SizedBox(height: 12),
+                Text(
+                  '+${pct >= 90 ? 110 : (pct >= 70 ? 80 : 30)} XP earned!',
+                  style: AppTheme.bodyMedium.copyWith(
+                      color: AppTheme.accentAmber,
+                      fontWeight: FontWeight.w800),
+                ),
                 const SizedBox(height: 32),
                 SizedBox(
                   width: 200,

@@ -229,8 +229,8 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
     _addTermLines(widget.level.successTerminal);
 
     final stars = _computeStars();
-    final xp    = _computeXP(stars);
-    context.read<GameProgressService>().completeLevel(widget.level.id, stars);
+    final xp    = widget.level.isBoss ? 50 : 25;
+    context.read<GameProgressService>().completeLevel(widget.level.id, stars, isBoss: widget.level.isBoss);
     context.read<GameProgressService>().addXP(xp);
     if (widget.level.isBoss) context.read<GameProgressService>().updateStreak();
 
@@ -242,8 +242,6 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
     if (_mistakeCount <= 1) return 2;
     return 1;
   }
-
-  int _computeXP(int stars) => 50 + (stars - 1) * 15 + (widget.level.isBoss ? 60 : 0);
 
   void _showHint() {
     setState(() => _hintsUsed++);
@@ -508,7 +506,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
 
   Widget _buildSuccessOverlay() {
     final stars = _computeStars();
-    final xp    = _computeXP(stars);
+    final xp    = widget.level.isBoss ? 50 : 25;
     return Positioned.fill(
       child: Container(
         color: Colors.black.withValues(alpha: 0.72),

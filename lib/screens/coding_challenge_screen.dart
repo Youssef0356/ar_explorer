@@ -128,7 +128,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
     if (allCorrect) {
       sound.playSuccess();
       final progress = context.read<GameProgressService>();
-      final xpEarned = widget.level.isBoss ? 150 : 50;
+      final xpEarned = widget.level.isBoss ? 50 : 25;
       progress.addCodingXP(xpEarned);
       
       // Calculate stars: 0 mistakes = 3, 1-2 = 2, 3+ = 1
@@ -137,7 +137,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
         stars = 1;
       } else if (_mistakes >= 1) stars = 2;
       
-      progress.completeCodingLevel(widget.level.id, stars);
+      progress.completeCodingLevel(widget.level.id, stars, isBoss: widget.level.isBoss);
       progress.updateCodingStreak();
 
       if (widget.level.isBoss) {

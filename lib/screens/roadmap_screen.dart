@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../widgets/animated_google_background.dart';
 import '../core/app_theme.dart';
 import '../data/modules_data.dart';
+import '../models/module_model.dart';
 import '../data/quiz_data.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
@@ -48,7 +49,7 @@ class RoadmapScreen extends StatelessWidget {
                     Text(
                       'Your path to AR mastery',
                       style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.accentPurple.withOpacity(0.8),
+                        color: AppTheme.accentPurple.withValues(alpha: 0.8),
                       ),
                     ),
                   ],
@@ -70,10 +71,10 @@ class RoadmapScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: AppTheme.accentPurple.withOpacity(0.08),
+                      color: AppTheme.accentPurple.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                          color: AppTheme.accentPurple.withOpacity(0.2)),
+                          color: AppTheme.accentPurple.withValues(alpha: 0.2)),
                     ),
                     child: Row(
                       children: [
@@ -84,7 +85,7 @@ class RoadmapScreen extends StatelessWidget {
                           child: Text(
                             'Complete each module and pass its quiz at 70%+ to unlock the next stage.',
                             style: AppTheme.bodySmall.copyWith(
-                                color: AppTheme.accentPurple.withOpacity(0.9)),
+                                color: AppTheme.accentPurple.withValues(alpha: 0.9)),
                           ),
                         ),
                       ],
@@ -166,7 +167,7 @@ class RoadmapScreen extends StatelessWidget {
 }
 
 class _RoadmapNode extends StatelessWidget {
-  final dynamic module;
+  final LearningModule module;
   final Color color;
   final bool isLocked;
   final bool isCompleted;
@@ -219,7 +220,7 @@ class _RoadmapNode extends StatelessWidget {
                             Container(
                               width: 2.5,
                               color: isCompleted
-                                  ? color.withOpacity(0.55)
+                                  ? color.withValues(alpha: 0.55)
                                   : AppTheme.dividerC(isDark),
                             ),
                             // Dashed overlay for locked
@@ -236,7 +237,7 @@ class _RoadmapNode extends StatelessWidget {
                                         color: i.isEven
                                             ? Colors.transparent
                                             : AppTheme.dividerC(isDark)
-                                                .withOpacity(0.4),
+                                                .withValues(alpha: 0.4),
                                       ),
                                     ),
                                   ),
@@ -254,7 +255,7 @@ class _RoadmapNode extends StatelessWidget {
               // ── Right side: card ──
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(bottom: 16, top: 2),
+                  padding: const EdgeInsets.only(bottom: 20, top: 4),
                   child: _buildCard(context),
                 ),
               ),
@@ -277,8 +278,8 @@ class _RoadmapNode extends StatelessWidget {
             height: 38,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: color.withOpacity(0.12),
-              border: Border.all(color: color.withOpacity(0.3), width: 1),
+              color: color.withValues(alpha: 0.12),
+              border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
             ),
           ).animate(onPlay: (c) => c.repeat(reverse: true))
               .scale(begin: const Offset(1.0, 1.0), end: const Offset(1.15, 1.15),
@@ -296,7 +297,7 @@ class _RoadmapNode extends StatelessWidget {
                 ? AppTheme.cardC(isDark)
                 : isCompleted
                     ? color
-                    : color.withOpacity(0.25),
+                    : color.withValues(alpha: 0.25),
             border: Border.all(
               color: isLocked ? AppTheme.dividerC(isDark) : color,
               width: 2.5,
@@ -304,7 +305,7 @@ class _RoadmapNode extends StatelessWidget {
             boxShadow: isCompleted
                 ? [
                     BoxShadow(
-                      color: color.withOpacity(0.4),
+                      color: color.withValues(alpha: 0.4),
                       blurRadius: 10,
                       spreadRadius: 1,
                     ),
@@ -328,19 +329,19 @@ class _RoadmapNode extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isLocked
-            ? AppTheme.cardC(isDark).withOpacity(0.5)
+            ? AppTheme.cardC(isDark).withValues(alpha: 0.5)
             : AppTheme.cardC(isDark),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isLocked
               ? AppTheme.dividerC(isDark)
-              : color.withOpacity(isDark ? 0.3 : 0.22),
+              : color.withValues(alpha: isDark ? 0.3 : 0.22),
           width: 1.5,
         ),
         boxShadow: !isLocked && !isDark
             ? [
                 BoxShadow(
-                  color: color.withOpacity(0.06),
+                  color: color.withValues(alpha: 0.06),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -359,8 +360,8 @@ class _RoadmapNode extends StatelessWidget {
                 height: 36,
                 decoration: BoxDecoration(
                   color: isLocked
-                      ? AppTheme.dividerC(isDark).withOpacity(0.5)
-                      : color.withOpacity(0.12),
+                      ? AppTheme.dividerC(isDark).withValues(alpha: 0.5)
+                      : color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
@@ -373,6 +374,8 @@ class _RoadmapNode extends StatelessWidget {
               Expanded(
                 child: Text(
                   module.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: AppTheme.headingSmall.copyWith(
                     fontSize: 14,
                     color: isLocked
@@ -386,7 +389,7 @@ class _RoadmapNode extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -402,7 +405,7 @@ class _RoadmapNode extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppTheme.successGreen.withOpacity(0.15),
+                    color: AppTheme.successGreen.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -424,8 +427,8 @@ class _RoadmapNode extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: progress,
                 backgroundColor: isDark
-                    ? Colors.white.withOpacity(0.05)
-                    : Colors.grey.withOpacity(0.12),
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.grey.withValues(alpha: 0.12),
                 valueColor: AlwaysStoppedAnimation<Color>(color),
                 minHeight: 4,
               ),
@@ -455,7 +458,7 @@ class _RoadmapNode extends StatelessWidget {
 
           // ── Lock message ──
           if (isLocked) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text(
               isPremiumModule
                   ? '👑 Premium — Unlock for ${subscriptionService.localizedPrice}'

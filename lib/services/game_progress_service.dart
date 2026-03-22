@@ -230,7 +230,7 @@ class GameProgressService extends ChangeNotifier {
     }
 
     if (!alreadyCompleted) {
-      final amount = unifiedXPReward ?? (isBoss ? 40 : 20);
+      final amount = unifiedXPReward ?? (isBoss ? 50 : 25);
       _unifiedXP += amount;
       await _prefs?.setInt(_unifiedXPKey, _unifiedXP);
     }

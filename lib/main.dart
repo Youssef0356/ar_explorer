@@ -19,7 +19,13 @@ import 'services/game_progress_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = true;
-  await MobileAds.instance.initialize();
+  
+  // Initialize Ads with timeout to prevent hanging on emulators
+  try {
+    await MobileAds.instance.initialize().timeout(const Duration(seconds: 5));
+  } catch (e) {
+    debugPrint('MobileAds initialization error or timeout: $e');
+  }
 
   final subscriptionService = SubscriptionService();
   final themeService = ThemeService();
@@ -29,13 +35,38 @@ void main() async {
   final reviewService = ReviewService();
   final gameProgressService = GameProgressService();
 
-  // Initialize all services
-  await subscriptionService.init();
-  await themeService.init();
-  await progressService.init();
-  await gameProgressService.init();
-  adService.setSubscriptionService(subscriptionService);
-  adService.init();
+  // Initialize all services with resilience
+  try {
+    await subscriptionService.init();
+  } catch (e) {
+    debugPrint('SubscriptionService init error: $e');
+  }
+
+  try {
+    await themeService.init();
+  } catch (e) {
+    debugPrint('ThemeService init error: $e');
+  }
+
+  try {
+    await progressService.init();
+  } catch (e) {
+    debugPrint('ProgressService init error: $e');
+  }
+
+  try {
+    await gameProgressService.init();
+  } catch (e) {
+    debugPrint('GameProgressService init error: $e');
+  }
+
+  try {
+    adService.setSubscriptionService(subscriptionService);
+    adService.init();
+  } catch (e) {
+    debugPrint('AdService init error: $e');
+  }
+
   progressService.setSubscriptionService(subscriptionService);
   progressService.setGameProgressService(gameProgressService);
 

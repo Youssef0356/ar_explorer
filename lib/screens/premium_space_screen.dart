@@ -11,6 +11,7 @@ import 'paywall_screen.dart';
 import 'quiz_analytics_screen.dart';
 import 'inspector_game_map_screen.dart';
 import 'ar_debugger_game.dart';
+import 'game_map_screen.dart';
 
 class PremiumSpaceScreen extends StatelessWidget {
   const PremiumSpaceScreen({super.key});
@@ -94,6 +95,29 @@ class PremiumSpaceScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                             builder: (_) => const InspectorGameMapScreen()),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // ── Systems Engineer (Pipeline Online) ──
+                    _buildFeatureCard(
+                      context: context,
+                      isDark: isDark,
+                      soundService: soundService,
+                      isPremium: isPremium,
+                      title: 'Systems Engineer',
+                      subtitle: 'Master AR logic & pipelines',
+                      description: isPremium
+                          ? 'Build advanced AR systems with all 5 zones fully unlocked.'
+                          : 'Try the first zone free. Premium unlocks all 5 complexity zones.',
+                      icon: Icons.account_tree_outlined,
+                      color: AppTheme.accentPurple,
+                      badge: isPremium ? null : 'Try Free',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const GameMapScreen()),
                       ),
                     ),
 

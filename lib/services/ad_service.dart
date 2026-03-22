@@ -52,21 +52,26 @@ class AdService extends ChangeNotifier {
     
     debugPrint('Loading InterstitialAd...');
 
-    InterstitialAd.load(
-      adUnitId: _interstitialAdUnitId,
-      request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) {
-          debugPrint('InterstitialAd loaded successfully.');
-          _interstitialAd = ad;
-          _isInterstitialAdLoading = false;
-        },
-        onAdFailedToLoad: (error) {
-          debugPrint('InterstitialAd failed to load: $error');
-          _isInterstitialAdLoading = false;
-        },
-      ),
-    );
+    try {
+      InterstitialAd.load(
+        adUnitId: _interstitialAdUnitId,
+        request: const AdRequest(),
+        adLoadCallback: InterstitialAdLoadCallback(
+          onAdLoaded: (ad) {
+            debugPrint('InterstitialAd loaded successfully.');
+            _interstitialAd = ad;
+            _isInterstitialAdLoading = false;
+          },
+          onAdFailedToLoad: (error) {
+            debugPrint('InterstitialAd failed to load: $error');
+            _isInterstitialAdLoading = false;
+          },
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error loading interstitial ad: $e');
+      _isInterstitialAdLoading = false;
+    }
   }
 
   void _loadRewardedAd() {
@@ -77,27 +82,35 @@ class AdService extends ChangeNotifier {
 
     debugPrint('Loading RewardedAd...');
 
-    RewardedAd.load(
-      adUnitId: _rewardedAdUnitId,
-      request: const AdRequest(),
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded: (ad) {
-          debugPrint('RewardedAd loaded successfully.');
-          _rewardedAd = ad;
-          _isRewardedAdLoading = false;
-          if (_rewardedLoadCompleter != null && !_rewardedLoadCompleter!.isCompleted) {
-            _rewardedLoadCompleter!.complete(true);
-          }
-        },
-        onAdFailedToLoad: (error) {
-          debugPrint('RewardedAd failed to load: $error');
-          _isRewardedAdLoading = false;
-          if (_rewardedLoadCompleter != null && !_rewardedLoadCompleter!.isCompleted) {
-            _rewardedLoadCompleter!.complete(false);
-          }
-        },
-      ),
-    );
+    try {
+      RewardedAd.load(
+        adUnitId: _rewardedAdUnitId,
+        request: const AdRequest(),
+        rewardedAdLoadCallback: RewardedAdLoadCallback(
+          onAdLoaded: (ad) {
+            debugPrint('RewardedAd loaded successfully.');
+            _rewardedAd = ad;
+            _isRewardedAdLoading = false;
+            if (_rewardedLoadCompleter != null && !_rewardedLoadCompleter!.isCompleted) {
+              _rewardedLoadCompleter!.complete(true);
+            }
+          },
+          onAdFailedToLoad: (error) {
+            debugPrint('RewardedAd failed to load: $error');
+            _isRewardedAdLoading = false;
+            if (_rewardedLoadCompleter != null && !_rewardedLoadCompleter!.isCompleted) {
+              _rewardedLoadCompleter!.complete(false);
+            }
+          },
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error loading rewarded ad: $e');
+      _isRewardedAdLoading = false;
+      if (_rewardedLoadCompleter != null && !_rewardedLoadCompleter!.isCompleted) {
+        _rewardedLoadCompleter!.complete(false);
+      }
+    }
   }
 
   Future<void> showInterstitialAdWithProbability(double probability) async {

@@ -232,7 +232,7 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                             if (_passed) ...[
                               const SizedBox(height: 8),
                               Text(
-                                '+${widget.scorePercent * 2} XP earned!',
+                                '+${_aced ? 100 : 60} XP earned!',
                                 style: AppTheme.bodySmall.copyWith(
                                   color: AppTheme.accentAmber,
                                   fontWeight: FontWeight.w700,
