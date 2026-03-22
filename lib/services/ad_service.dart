@@ -17,18 +17,16 @@ class AdService extends ChangeNotifier {
   // Ad Unit IDs (Test IDs vs Real IDs based on debug/release)
   String get _interstitialAdUnitId {
     if (kDebugMode) {
-      return 'ca-app-pub-3940256099942544/1033173712';
+      return 'ca-app-pub-3940256099942544/1033173712'; // keep test ID for debug
     }
-    // Replace with real AdMob Unit ID when deploying to stores
-    return 'ca-app-pub-3940256099942544/1033173712'; 
+    return 'ca-app-pub-6774620515484669/6026080464'; // your real ID
   }
 
   String get _rewardedAdUnitId {
     if (kDebugMode) {
-      return 'ca-app-pub-3940256099942544/5224354917';
+      return 'ca-app-pub-3940256099942544/5224354917'; // keep test ID for debug
     }
-    // Replace with real AdMob Unit ID when deploying to stores
-    return 'ca-app-pub-3940256099942544/5224354917';
+    return 'ca-app-pub-6774620515484669/5977979008'; // your real ID
   }
 
   void setSubscriptionService(SubscriptionService service) {

@@ -37,6 +37,8 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        manifestPlaceholders["adMobAppId"] = keystoreProperties["admob_app_id"] ?: "ca-app-pub-3940256099942544~3347511713"
     }
 
     signingConfigs {

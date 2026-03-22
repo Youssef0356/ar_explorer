@@ -10,8 +10,8 @@ import '../widgets/animated_google_background.dart';
 import 'paywall_screen.dart';
 import 'quiz_analytics_screen.dart';
 import 'inspector_game_map_screen.dart';
+import 'coding_game_map_screen.dart';
 import 'ar_debugger_game.dart';
-import 'game_map_screen.dart';
 
 class PremiumSpaceScreen extends StatelessWidget {
   const PremiumSpaceScreen({super.key});
@@ -54,7 +54,7 @@ class PremiumSpaceScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // ── AR Scene Debugger (free trial: level 1 only) ──
+                    // ── AR Scene Debugger (100% Premium) ──
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
@@ -62,22 +62,21 @@ class PremiumSpaceScreen extends StatelessWidget {
                       isPremium: isPremium,
                       title: 'AR Scene Debugger',
                       subtitle: 'Diagnose & fix broken AR apps',
-                      description: isPremium
-                          ? 'Full access to all debugging scenarios.'
-                          : 'First level free. Premium unlocks all scenarios.',
+                      description: 'Master spatial debugging. Identify and resolve complex rendering artifacts.',
                       icon: Icons.bug_report_rounded,
                       color: AppTheme.accentPurple,
-                      badge: isPremium ? null : 'Try Free',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const ARDebuggerMapScreen()),
-                      ),
+                      onTap: () {
+                        if (isPremium) {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const ARDebuggerMapScreen()));
+                        } else {
+                          _showPaywall(context);
+                        }
+                      },
                     ),
 
                     const SizedBox(height: 12),
 
-                    // ── XR Builder (free trial: first level of zone 1) ──
+                    // ── XR Builder (Zones 1-3 Free) ──
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
@@ -86,11 +85,11 @@ class PremiumSpaceScreen extends StatelessWidget {
                       title: 'XR Builder',
                       subtitle: 'Build AR Inspector setups like a pro',
                       description: isPremium
-                          ? 'All 5 zones unlocked.'
-                          : 'First level free. Premium unlocks all zones.',
+                          ? 'All 5 zones unlocked. Build advanced spatial layouts.'
+                          : 'Try the first 3 zones free. Premium unlocks Zones 4 & 5.',
                       icon: Icons.architecture_rounded,
                       color: AppTheme.accentPurple,
-                      badge: isPremium ? null : 'Try Free',
+                      badge: isPremium ? null : '3 Zones Free',
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -100,24 +99,24 @@ class PremiumSpaceScreen extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    // ── Systems Engineer (Pipeline Online) ──
+                    // ── Systems Engineer (Code Challenges - Zone 1 Free) ──
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
                       soundService: soundService,
                       isPremium: isPremium,
                       title: 'Systems Engineer',
-                      subtitle: 'Master AR logic & pipelines',
+                      subtitle: 'Master AR logic & scripts',
                       description: isPremium
-                          ? 'Build advanced AR systems with all 5 zones fully unlocked.'
-                          : 'Try the first zone free. Premium unlocks all 5 complexity zones.',
+                          ? 'All developer zones unlocked. Master Vuforia, ARKit, ARCore and more.'
+                          : 'Try the first zone free. Premium unlocks all 5 engineering platforms.',
                       icon: Icons.account_tree_outlined,
                       color: AppTheme.accentPurple,
                       badge: isPremium ? null : 'Try Free',
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) => const GameMapScreen()),
+                            builder: (_) => const CodingGameMapScreen()),
                       ),
                     ),
 

@@ -16,8 +16,8 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   // These are test ad unit IDs provided by Google.
   // Replace with your real AdMob Ad Unit ID before Play Store release!
   final String _adUnitId = Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/6300978111'
-      : 'ca-app-pub-3940256099942544/2934735716';
+      ? 'ca-app-pub-6774620515484669/6606199818'
+      : 'ca-app-pub-6774620515484669/6606199818';
 
   @override
   void initState() {
