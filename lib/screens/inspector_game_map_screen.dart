@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/app_theme.dart';
 import '../data/inspector_game_data.dart';
+import '../data/xr_builder_config.dart';
 import '../models/inspector_game_models.dart';
 import '../services/game_progress_service.dart';
 import '../services/theme_service.dart';
@@ -121,12 +122,12 @@ class _StatsStrip extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('${progress.totalXP} XP',
+              Text('${progress.unifiedXP} XP',
                 style: AppTheme.headingSmall.copyWith(
                   color: AppTheme.accentAmber, fontSize: 18)),
-              Text(progress.currentLeague,
+              Text('Wallet — spend to unlock zones',
                 style: AppTheme.bodySmall.copyWith(
-                  color: AppTheme.textMutedC(isDark))),
+                  color: AppTheme.textMutedC(isDark), fontSize: 10)),
             ],
           ),
         ],
@@ -157,10 +158,13 @@ class _ZoneCardState extends State<_ZoneCard> {
   Widget build(BuildContext context) {
     final zone      = widget.zone;
     final levels    = zone.levels;
+    final isUnlocked = widget.progress.isInspectorZoneUnlocked(zone.id);
+    final cost      = kInspectorZoneUnlockCost[zone.id] ?? 0;
+    
     final doneCount = levels
         .where((l) => widget.progress.isLevelCompleted(l.id))
         .length;
-    final allDone   = doneCount == levels.length;
+    final allDone   = doneCount == levels.length && isUnlocked;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -174,9 +178,15 @@ class _ZoneCardState extends State<_ZoneCard> {
       ),
       child: Column(
         children: [
-          // Zone header — tap to expand
+          // Zone header — tap to expand or unlock
           GestureDetector(
-            onTap: () => setState(() => _expanded = !_expanded),
+            onTap: () {
+              if (!isUnlocked) {
+                _showUnlockDialog(context, cost);
+              } else {
+                setState(() => _expanded = !_expanded);
+              }
+            },
             child: Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
               child: Row(
@@ -203,27 +213,49 @@ class _ZoneCardState extends State<_ZoneCard> {
                       ],
                     ),
                   ),
-                  // Progress badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: zone.accentColor.withValues(alpha: .08),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: zone.accentColor.withValues(alpha: .2)),
+                  // Progress badge or Locked Cost
+                  if (!isUnlocked)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppTheme.cardC(widget.isDark),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppTheme.accentAmber.withValues(alpha: .3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.lock_rounded, color: AppTheme.accentAmber, size: 10),
+                          const SizedBox(width: 4),
+                          Text('$cost XP',
+                            style: const TextStyle(
+                              color: AppTheme.accentAmber,
+                              fontSize: 10, fontWeight: FontWeight.w700)),
+                        ],
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: zone.accentColor.withValues(alpha: .08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: zone.accentColor.withValues(alpha: .2)),
+                      ),
+                      child: Text('$doneCount/${levels.length}',
+                        style: TextStyle(
+                          color: zone.accentColor,
+                          fontSize: 10, fontWeight: FontWeight.w700)),
                     ),
-                    child: Text('$doneCount/${levels.length}',
-                      style: TextStyle(
-                        color: zone.accentColor,
-                        fontSize: 10, fontWeight: FontWeight.w700)),
-                  ),
                   const SizedBox(width: 8),
                   AnimatedRotation(
-                    turns: _expanded ? .5 : 0,
+                    turns: (!isUnlocked) ? 0 : (_expanded ? .5 : 0),
                     duration: const Duration(milliseconds: 200),
-                    child: Icon(Icons.expand_more_rounded,
-                        color: AppTheme.textMutedC(widget.isDark)),
+                    child: Icon(
+                      !isUnlocked ? Icons.chevron_right_rounded : Icons.expand_more_rounded,
+                      color: AppTheme.textMutedC(widget.isDark)),
                   ),
                 ],
               ),
@@ -265,7 +297,89 @@ class _ZoneCardState extends State<_ZoneCard> {
       ),
     );
   }
+
+  void _showUnlockDialog(BuildContext context, int cost) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final progress = context.watch<GameProgressService>();
+        final canAfford = progress.unifiedXP >= cost;
+        
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppTheme.scaffoldC(widget.isDark),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Unlock ${widget.zone.name}',
+                style: AppTheme.headingMedium.copyWith(
+                  color: AppTheme.textPrimaryC(widget.isDark), fontSize: 20)),
+              const SizedBox(height: 12),
+              Text(
+                'Unlock this XR Builder zone and access its interactive 3D content.',
+                style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(widget.isDark)),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Your Balance:', style: AppTheme.bodyMedium.copyWith(color: AppTheme.textPrimaryC(widget.isDark))),
+                  Text('${progress.unifiedXP} XP', style: AppTheme.bodyMedium.copyWith(color: AppTheme.accentCyan, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Unlock Cost:', style: AppTheme.bodyMedium.copyWith(color: AppTheme.textPrimaryC(widget.isDark))),
+                  Text('$cost XP', style: AppTheme.bodyMedium.copyWith(color: AppTheme.accentAmber, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: canAfford ? AppTheme.accentAmber : AppTheme.dividerC(widget.isDark),
+                    foregroundColor: canAfford ? Colors.black : AppTheme.textMutedC(widget.isDark),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () async {
+                    if (canAfford) {
+                      context.read<SoundService>().playTap();
+                      final success = await context.read<GameProgressService>().unlockInspectorZone(widget.zone.id, cost);
+                      if (success && context.mounted) {
+                        Navigator.pop(ctx);
+                        setState(() => _expanded = true);
+                      }
+                    } else {
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Not enough Unified XP!')),
+                      );
+                    }
+                  },
+                  child: Text(
+                    canAfford ? 'Unlock' : 'Not Enough XP',
+                    style: AppTheme.buttonText,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
+
 
 // ── Level tile ─────────────────────────────────────────────────────────────
 class _LevelTile extends StatelessWidget {

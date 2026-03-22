@@ -756,7 +756,7 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
 
       final stars = _computeStars();
       final xp = 50 + (stars - 1) * 20 + (widget.level.isBoss ? 60 : 0);
-      context.read<GameProgressService>().completeLevel(widget.level.id, stars);
+      context.read<GameProgressService>().completeLevel(widget.level.id, stars, isBoss: widget.level.isBoss, unifiedXPReward: 20);
       context.read<GameProgressService>().addXP(xp);
 
       setState(() => _showSuccess = true);

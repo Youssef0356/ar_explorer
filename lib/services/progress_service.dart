@@ -4,11 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/module_model.dart';
 import '../data/modules_data.dart';
+import '../data/quiz_data.dart';
 import 'subscription_service.dart';
 import 'game_progress_service.dart';
 
 class ProgressService extends ChangeNotifier {
   SubscriptionService? _subscriptionService;
+  GameProgressService? _gameProgressService;
 
   static const _completedTopicsKey = 'completed_topics';
   static const _quizScoresKey = 'quiz_scores';
@@ -48,6 +50,10 @@ class ProgressService extends ChangeNotifier {
     _subscriptionService!.addListener(() {
       notifyListeners();
     });
+  }
+
+  void setGameProgressService(GameProgressService service) {
+    _gameProgressService = service;
   }
 
   bool get isPremium => _subscriptionService?.isPremium ?? false;
@@ -134,7 +140,9 @@ class ProgressService extends ChangeNotifier {
   bool isTopicCompleted(String topicId) => _completedTopics.contains(topicId);
 
   Future<void> completeTopic(String topicId) async {
+    if (_completedTopics.contains(topicId)) return;
     _completedTopics.add(topicId);
+    _gameProgressService?.addUnifiedXP(15);
     await _saveProgress();
     notifyListeners();
   }
@@ -182,6 +190,9 @@ class ProgressService extends ChangeNotifier {
         .map((m) => m.id)
         .toSet();
 
+    final quiz = allQuizzes[quizId];
+    final alreadyPassed = quiz != null && hasPassedQuiz(quizId, quiz.passingScore);
+
     final existing = _quizScores[quizId] ?? -1;
     if (existing == -1 || scorePercent > existing) {
       _quizScores[quizId] = scorePercent;
@@ -190,6 +201,13 @@ class ProgressService extends ChangeNotifier {
     // Award achievement for ≥80%
     if (scorePercent >= 80) {
       _achievements.add('quiz_ace_$quizId');
+    }
+
+    if (quiz != null && !alreadyPassed && scorePercent >= quiz.passingScore) {
+      _gameProgressService?.addUnifiedXP(60);
+      if (scorePercent >= 80) {
+        _gameProgressService?.addUnifiedXP(40);
+      }
     }
 
     await _saveProgress();
@@ -299,6 +317,7 @@ class ProgressService extends ChangeNotifier {
   Future<void> markDailyChallengeComplete() async {
     final today = DateTime.now().toIso8601String().substring(0, 10);
     await _prefs?.setString(_lastDailyChallengeKey, today);
+    _gameProgressService?.addUnifiedXP(25);
     notifyListeners();
   }
 
@@ -378,6 +397,13 @@ class ProgressService extends ChangeNotifier {
       _interviewBestScore = scorePercent;
     }
     
+    _gameProgressService?.addUnifiedXP(30);
+    if (scorePercent >= 90) {
+      _gameProgressService?.addUnifiedXP(80);
+    } else if (scorePercent >= 70) {
+      _gameProgressService?.addUnifiedXP(50);
+    }
+
     _interviewHistory.add(scorePercent);
     // Keep last 15 scores for chart
     if (_interviewHistory.length > 15) {

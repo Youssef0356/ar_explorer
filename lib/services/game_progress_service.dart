@@ -18,10 +18,47 @@ class GameProgressService extends ChangeNotifier {
   static const _codingLastPlayedKey   = 'coding_last_played';
   static const _codingStreakKey       = 'coding_streak';
 
+  // Unified XP Wallet & Inspector Zones
+  static const _unifiedXPKey          = 'unified_xp_wallet';
+  static const _unlockedInspectorKey  = 'inspector_unlocked_zones';
+
   SharedPreferences? _prefs;
   Set<String> _completedLevelIds = {};
   Set<String> _completedCodingLevelIds = {}; // New
+  Set<String> _unlockedInspectorZones = {'zone_inspector_1'}; // Zone 1 is always free
   final Map<String, int> _levelStars = {};
+
+  // ── Unified XP Wallet ──────────────────────────────────────────────────────
+  int _unifiedXP = 0;
+  int get unifiedXP => _unifiedXP;
+
+  Future<void> addUnifiedXP(int amount) async {
+    _unifiedXP += amount;
+    await _saveProgress();
+    notifyListeners();
+  }
+
+  Future<bool> spendUnifiedXP(int amount) async {
+    if (_unifiedXP < amount) return false;
+    _unifiedXP -= amount;
+    await _saveProgress();
+    notifyListeners();
+    return true;
+  }
+
+  // ── Inspector Zone Unlocks ────────────────────────────────────────────────
+  bool isInspectorZoneUnlocked(String zoneId) =>
+      _unlockedInspectorZones.contains(zoneId);
+
+  Future<bool> unlockInspectorZone(String zoneId, int cost) async {
+    final success = await spendUnifiedXP(cost);
+    if (success) {
+      _unlockedInspectorZones.add(zoneId);
+      await _saveProgress();
+      notifyListeners();
+    }
+    return success;
+  }
 
   // ── XP & League (Legacy Pipeline) ──────────────────────────────────────────
   int _totalXP = 0;
@@ -88,6 +125,15 @@ class GameProgressService extends ChangeNotifier {
     // Load Coding Game Progress
     _codingXP = _prefs?.getInt(_codingGameXPKey) ?? 0;
     _codingStreak = _prefs?.getInt(_codingStreakKey) ?? 0;
+
+    // Load Unified XP & Inspector Zones
+    _unifiedXP = _prefs?.getInt(_unifiedXPKey) ?? 0;
+    final unlockedZonesJson = _prefs?.getStringList(_unlockedInspectorKey);
+    if (unlockedZonesJson != null && unlockedZonesJson.isNotEmpty) {
+      _unlockedInspectorZones = unlockedZonesJson.toSet();
+    } else {
+      _unlockedInspectorZones = {'zone_inspector_1'};
+    }
   }
 
   Future<void> _saveProgress() async {
@@ -105,6 +151,10 @@ class GameProgressService extends ChangeNotifier {
     await _prefs?.setStringList(_codingGameProgressKey, _completedCodingLevelIds.toList());
     await _prefs?.setInt(_codingGameXPKey, _codingXP);
     await _prefs?.setInt(_codingStreakKey, _codingStreak);
+
+    // Save Unified XP & Inspector Zones
+    await _prefs?.setInt(_unifiedXPKey, _unifiedXP);
+    await _prefs?.setStringList(_unlockedInspectorKey, _unlockedInspectorZones.toList());
   }
 
   // ── Existing getters (unchanged) ──────────────────────────────────────────
@@ -150,8 +200,9 @@ class GameProgressService extends ChangeNotifier {
     return true;
   }
 
-  // ── Level completion (unchanged interface, now also triggers streak) ──────
-  Future<void> completeLevel(String levelId, int stars) async {
+  // ── Level completion (unchanged interface, now also triggers streak + unified XP) ──────
+  Future<void> completeLevel(String levelId, int stars, {bool isBoss = false, int? unifiedXPReward}) async {
+    final alreadyCompleted = isLevelCompleted(levelId);
     _completedLevelIds.add(levelId);
 
     final existingStars = _levelStars[levelId] ?? -1;
@@ -159,16 +210,29 @@ class GameProgressService extends ChangeNotifier {
       _levelStars[levelId] = stars;
     }
 
+    if (!alreadyCompleted) {
+      final amount = unifiedXPReward ?? (isBoss ? 50 : 25);
+      _unifiedXP += amount;
+      await _prefs?.setInt(_unifiedXPKey, _unifiedXP);
+    }
+
     await _saveProgress();
     notifyListeners();
   }
 
-  Future<void> completeCodingLevel(String levelId, int stars) async {
+  Future<void> completeCodingLevel(String levelId, int stars, {bool isBoss = false, int? unifiedXPReward}) async {
+    final alreadyCompleted = isCodingLevelCompleted(levelId);
     _completedCodingLevelIds.add(levelId);
 
     final existingStars = _levelStars[levelId] ?? -1;
     if (existingStars == -1 || stars > existingStars) {
       _levelStars[levelId] = stars;
+    }
+
+    if (!alreadyCompleted) {
+      final amount = unifiedXPReward ?? (isBoss ? 40 : 20);
+      _unifiedXP += amount;
+      await _prefs?.setInt(_unifiedXPKey, _unifiedXP);
     }
 
     await _saveProgress();
@@ -265,6 +329,12 @@ class GameProgressService extends ChangeNotifier {
     await _prefs?.remove(_codingGameXPKey);
     await _prefs?.remove(_codingStreakKey);
     await _prefs?.remove(_codingLastPlayedKey);
+
+    // Unified XP & Inspector Zones
+    _unifiedXP = 0;
+    _unlockedInspectorZones = {'zone_inspector_1'};
+    await _prefs?.remove(_unifiedXPKey);
+    await _prefs?.remove(_unlockedInspectorKey);
 
     await _saveProgress();
     notifyListeners();

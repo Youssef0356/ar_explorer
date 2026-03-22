@@ -37,6 +37,7 @@ void main() async {
   adService.setSubscriptionService(subscriptionService);
   adService.init();
   progressService.setSubscriptionService(subscriptionService);
+  progressService.setGameProgressService(gameProgressService);
 
   runApp(
     MultiProvider(

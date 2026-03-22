@@ -131,23 +131,54 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: color),
-              onPressed: () {
-                Navigator.pop(ctx);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ModuleDetailScreen(
-                      module: module,
-                      accentColor: color,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: color,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                    ),
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ModuleDetailScreen(
+                            module: module,
+                            accentColor: color,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text('Start Module 1', style: AppTheme.buttonText),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: Text(
+                      'Skip for now',
+                      style: AppTheme.bodySmall.copyWith(
+                        color: AppTheme.textMutedC(isDark),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                );
-              },
-              child: Text('Start Module 1', style: AppTheme.buttonText),
+                ),
+              ],
             ),
           ),
         ],
@@ -226,14 +257,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildXPRow(bool isDark) {
-    return Consumer<ProgressService>(
-      builder: (context, progress, _) {
+    return Consumer2<ProgressService, GameProgressService>(
+      builder: (context, progress, gameProgress, _) {
         final totalTopics = allModules.fold<int>(0, (s, m) => s + m.totalTopics);
         final completedTopics = allModules.fold<int>(0, (s, m) =>
           s + m.topics.where((t) => progress.isTopicCompleted('${m.id}_${t.id}')).length);
         final overallProgress = totalTopics > 0 ? completedTopics / totalTopics : 0.0;
-        final quizAceCount = progress.achievements.where((a) => a.startsWith('quiz_ace_')).length;
-        final xp = AppTheme.getXP(completedTopics, quizAceCount * 50);
+        final xp = gameProgress.unifiedXP;
         final levelTitle = AppTheme.getLevelTitle(overallProgress);
 
         return Row(
