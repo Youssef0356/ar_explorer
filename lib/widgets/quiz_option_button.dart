@@ -26,7 +26,7 @@ class QuizOptionButton extends StatelessWidget {
   Color get _backgroundColor {
     if (!showResult) {
       return isSelected
-          ? AppTheme.accentCyan.withValues(alpha: isDark ? 0.15 : 0.1)
+          ? AppTheme.accentPurple.withValues(alpha: isDark ? 0.15 : 0.1)
           : AppTheme.cardC(isDark);
     }
     if (isCorrect) {
@@ -41,7 +41,7 @@ class QuizOptionButton extends StatelessWidget {
   Color get _borderColor {
     if (!showResult) {
       return isSelected
-          ? AppTheme.accentCyan.withValues(alpha: 0.5)
+          ? AppTheme.accentPurple.withValues(alpha: 0.5)
           : AppTheme.dividerC(isDark);
     }
     if (isCorrect) {
@@ -81,7 +81,7 @@ class QuizOptionButton extends StatelessWidget {
           boxShadow: !isDark && isSelected && !showResult
               ? [
                   BoxShadow(
-                    color: AppTheme.accentCyan.withValues(alpha: 0.15),
+                    color: AppTheme.accentPurple.withValues(alpha: 0.15),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -95,7 +95,7 @@ class QuizOptionButton extends StatelessWidget {
               height: 32,
               decoration: BoxDecoration(
                 color: isSelected && !showResult
-                    ? AppTheme.accentCyan.withValues(alpha: 0.2)
+                    ? AppTheme.accentPurple.withValues(alpha: 0.2)
                     : (isDark
                           ? Colors.white.withValues(alpha: 0.05)
                           : Colors.grey.withValues(alpha: 0.08)),
@@ -106,7 +106,7 @@ class QuizOptionButton extends StatelessWidget {
                 labels[index],
                 style: AppTheme.labelMedium.copyWith(
                   color: isSelected && !showResult
-                      ? AppTheme.accentCyan
+                      ? AppTheme.accentPurple
                       : AppTheme.textMutedC(isDark),
                 ),
               ),

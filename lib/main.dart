@@ -18,7 +18,7 @@ import 'services/game_progress_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  GoogleFonts.config.allowRuntimeFetching = false;
+  GoogleFonts.config.allowRuntimeFetching = true;
   await MobileAds.instance.initialize();
 
   final subscriptionService = SubscriptionService();

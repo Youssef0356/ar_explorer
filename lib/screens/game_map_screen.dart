@@ -8,6 +8,7 @@ import '../core/app_theme.dart';
 import '../data/game_data.dart';
 import '../models/game_models.dart';
 import '../services/game_progress_service.dart';
+import '../services/subscription_service.dart';
 import 'game_pipeline_screen.dart';
 
 // ── Map layout constants ──────────────────────────────────────────────────────
@@ -65,9 +66,10 @@ class _GameMapScreenState extends State<GameMapScreen>
   void _scrollToCurrentLevel() {
     if (!_scrollController.hasClients) return;
     final progress = context.read<GameProgressService>();
+    final isPremium = context.read<SubscriptionService>().isPremium;
     String? targetId;
     for (final id in _levelOrder) {
-      if (!progress.isLevelCompleted(id) && !progress.isLevelLocked(id)) {
+      if (!progress.isLevelCompleted(id) && !progress.isLevelLocked(id, isPremium: isPremium)) {
         targetId = id;
         break;
       }
@@ -96,6 +98,7 @@ class _GameMapScreenState extends State<GameMapScreen>
   @override
   Widget build(BuildContext context) {
     final progress = context.watch<GameProgressService>();
+    final isPremium = context.watch<SubscriptionService>().isPremium;
     final screenWidth = MediaQuery.of(context).size.width;
     final scale = screenWidth / _mapWidth;
     final scaledHeight = _mapHeight * scale;
@@ -150,7 +153,7 @@ class _GameMapScreenState extends State<GameMapScreen>
                   ...arGameZones.expand((zone) => zone.levels.map((level) {
                     final pos = _levelPositions[level.id];
                     if (pos == null) return const SizedBox.shrink();
-                    final isLocked  = progress.isLevelLocked(level.id);
+                    final isLocked  = progress.isLevelLocked(level.id, isPremium: isPremium);
                     final stars     = progress.getStars(level.id);
                     final scaledX   = pos.dx * scale;
                     final scaledY   = pos.dy * scale;
@@ -211,18 +214,15 @@ class _GameMapScreenState extends State<GameMapScreen>
     final league = progress.currentLeague;
     final leagueColor = _getLeagueColor(league);
 
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          padding: EdgeInsets.fromLTRB(
-            12, MediaQuery.of(context).padding.top + 8, 16, 14),
-          decoration: BoxDecoration(
-            color: const Color(0xFF060B14).withValues(alpha: 0.85),
-            border: Border(bottom: BorderSide(
-              color: AppTheme.accentCyan.withValues(alpha: 0.15))),
-          ),
-          child: Row(
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        12, MediaQuery.of(context).padding.top + 8, 16, 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF060B14).withValues(alpha: 0.98),
+        border: Border(bottom: BorderSide(
+          color: AppTheme.accentPurple.withValues(alpha: 0.15))),
+      ),
+      child: Row(
             children: [
               IconButton(
                 icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
@@ -238,7 +238,7 @@ class _GameMapScreenState extends State<GameMapScreen>
                   children: [
                     const Text('PIPELINE CHALLENGE',
                         style: TextStyle(
-                            color: Color(0xFF00E5FF),
+                            color: AppTheme.accentPurple,
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 2.5)),
@@ -318,8 +318,6 @@ class _GameMapScreenState extends State<GameMapScreen>
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 

@@ -65,7 +65,7 @@ class PremiumSpaceScreen extends StatelessWidget {
                           ? 'Full access to all debugging scenarios.'
                           : 'First level free. Premium unlocks all scenarios.',
                       icon: Icons.bug_report_rounded,
-                      color: AppTheme.accentCyan,
+                      color: AppTheme.accentPurple,
                       badge: isPremium ? null : 'Try Free',
                       onTap: () => Navigator.push(
                         context,

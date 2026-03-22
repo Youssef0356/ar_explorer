@@ -134,7 +134,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       height: 8,
                       decoration: BoxDecoration(
                         color: _currentPage == i
-                            ? AppTheme.accentCyan
+                            ? AppTheme.accentPurple
                             : AppTheme.textMuted.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -154,7 +154,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     child: ElevatedButton(
                       onPressed: _next,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.accentCyan,
+                        backgroundColor: AppTheme.accentPurple,
                         foregroundColor: AppTheme.primaryDark,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -220,7 +220,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 borderRadius: BorderRadius.circular(28),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.accentCyan.withOpacity(0.4),
+                    color: AppTheme.accentPurple.withOpacity(0.4),
                     blurRadius: 30,
                     spreadRadius: 4,
                   ),
@@ -232,9 +232,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   'assets/images/app_logo.png',
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => Container(
-                    color: AppTheme.accentCyan.withOpacity(0.2),
+                    color: AppTheme.accentPurple.withOpacity(0.2),
                     child: const Icon(Icons.view_in_ar_rounded,
-                        size: 60, color: AppTheme.accentCyan),
+                        size: 60, color: AppTheme.accentPurple),
                   ),
                 ),
               ),
@@ -295,15 +295,15 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: AppTheme.accentCyan.withOpacity(0.1),
+        color: AppTheme.accentPurple.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.accentCyan.withOpacity(0.25)),
+        border: Border.all(color: AppTheme.accentPurple.withOpacity(0.25)),
       ),
       child: Column(
         children: [
           Text(value,
               style: TextStyle(
-                color: AppTheme.accentCyan,
+                color: AppTheme.accentPurple,
                 fontSize: 22,
                 fontWeight: FontWeight.w900,
               )),
@@ -322,7 +322,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     final features = [
       (
         Icons.school_rounded,
-        AppTheme.accentCyan,
+        AppTheme.accentPurple,
         'Deep AR Curriculum',
         'From basics to SLAM, ARKit, ARCore, Meta Quest & WebXR. Interview-grade content.'
       ),
@@ -516,7 +516,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.04),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppTheme.accentCyan.withOpacity(0.2)),
+              border: Border.all(color: AppTheme.accentPurple.withOpacity(0.2)),
             ),
             child: Column(
               children: [

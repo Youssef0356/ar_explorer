@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/app_theme.dart';
 import '../models/game_models.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -14,7 +15,7 @@ final List<CodeZone> codeGameZones = [
     name: 'Vuforia Engine',
     platform: 'Unity / C#',
     icon: Icons.qr_code_scanner_rounded,
-    accentColor: const Color(0xFF00E5FF),
+    accentColor: AppTheme.accentPurple,
     challenges: [
       // ── Level 1: Image Target Basics ──
       CodeChallenge(
@@ -201,7 +202,7 @@ void OnVuforiaStarted()
     name: 'ARKit',
     platform: 'iOS / Swift',
     icon: Icons.apple_rounded,
-    accentColor: const Color(0xFF2979FF),
+    accentColor: AppTheme.accentBlue,
     challenges: [
       // ── Level 1: AR Session Setup ──
       CodeChallenge(

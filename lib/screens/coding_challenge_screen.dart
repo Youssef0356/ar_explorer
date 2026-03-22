@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
+import '../core/app_theme.dart';
 import '../models/coding_game_models.dart';
 import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
@@ -368,14 +369,14 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
             constraints: const BoxConstraints(minWidth: 40),
             decoration: BoxDecoration(
               color: _checked
-                  ? (isCorrect! ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2))
+                  ? (isCorrect! ? AppTheme.accentBlue.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2))
                   : (chipId != null 
                       ? widget.accentColor.withValues(alpha: 0.15) 
                       : (isHinted ? Colors.amber.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.05))),
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
                 color: _checked
-                    ? (isCorrect! ? Colors.green : Colors.red)
+                    ? (isCorrect! ? AppTheme.accentBlue : Colors.red)
                     : (isHinted 
                         ? Colors.amber 
                         : (chipId != null ? widget.accentColor : Colors.white.withValues(alpha: 0.1))),
@@ -500,20 +501,20 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
               margin: const EdgeInsets.only(bottom: 16),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: allCorrect ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
+                color: allCorrect ? AppTheme.accentBlue.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: allCorrect ? Colors.green.withValues(alpha: 0.3) : Colors.red.withValues(alpha: 0.3)),
+                border: Border.all(color: allCorrect ? AppTheme.accentBlue.withValues(alpha: 0.3) : Colors.red.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(allCorrect ? Icons.check_circle_rounded : Icons.error_rounded, color: allCorrect ? Colors.green : Colors.red, size: 20),
+                      Icon(allCorrect ? Icons.check_circle_rounded : Icons.error_rounded, color: allCorrect ? AppTheme.accentBlue : Colors.red, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         allCorrect ? 'Great Job!' : 'Logic Error',
-                        style: TextStyle(color: allCorrect ? Colors.green : Colors.red, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: allCorrect ? AppTheme.accentBlue : Colors.red, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -536,7 +537,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
                 : (allFilled ? _checkAnswers : null),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _checked 
-                  ? (allCorrect ? Colors.green : Colors.red) 
+                  ? (allCorrect ? AppTheme.accentBlue : Colors.red) 
                   : widget.accentColor,
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

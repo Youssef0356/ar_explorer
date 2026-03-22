@@ -8,10 +8,8 @@ import '../models/topic_model.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
 import '../services/sound_service.dart';
-import '../services/subscription_service.dart';
 import '../widgets/content_renderer.dart';
 import '../data/quiz_data.dart';
-import 'paywall_screen.dart';
 import 'quiz_screen.dart';
 class TopicScreen extends StatefulWidget {
   final Topic topic;
@@ -73,7 +71,6 @@ class _TopicScreenState extends State<TopicScreen> {
     final topicKey = '${widget.moduleId}_${widget.topic.id}';
     final isDark = context.watch<ThemeService>().isDarkMode;
     final soundService = context.read<SoundService>();
-    final isPremium = context.watch<SubscriptionService>().isPremium;
 
     return Scaffold(
       body: Container(
@@ -240,18 +237,7 @@ class _TopicScreenState extends State<TopicScreen> {
                       // ── Notes Section ──
                       GestureDetector(
                         onTap: () {
-                          if (!isPremium) {
-                            soundService.playTap();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const PaywallScreen(
-                                  moduleName: 'Personal Notes & PDF Export',
-                                ),
-                              ),
-                            );
-                            return;
-                          }
+                          soundService.playTap();
                           setState(() => _showNotes = !_showNotes);
                         },
                         child: Container(
@@ -263,41 +249,28 @@ class _TopicScreenState extends State<TopicScreen> {
                                 : Colors.grey.withValues(alpha: 0.06),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                                color: isPremium 
-                                    ? AppTheme.dividerC(isDark)
-                                    : AppTheme.accentAmber.withValues(alpha: 0.3)),
+                                color: AppTheme.dividerC(isDark)),
                           ),
                           child: Row(
                             children: [
                               Icon(
-                                isPremium ? Icons.edit_note_rounded : Icons.lock_outline_rounded,
-                                color: isPremium 
-                                    ? AppTheme.textMutedC(isDark)
-                                    : AppTheme.accentAmber,
+                                Icons.edit_note_rounded,
+                                color: AppTheme.textMutedC(isDark),
                                 size: 20),
                               const SizedBox(width: 8),
                               Text(
-                                isPremium ? 'Personal Notes' : 'Personal Notes (Premium)',
+                                'Personal Notes',
                                 style: AppTheme.labelMedium.copyWith(
-                                    color: isPremium 
-                                        ? AppTheme.textMutedC(isDark)
-                                        : AppTheme.accentAmber),
+                                    color: AppTheme.textMutedC(isDark)),
                               ),
                               const Spacer(),
-                              if (isPremium)
-                                Icon(
-                                  _showNotes
-                                      ? Icons.expand_less
-                                      : Icons.expand_more,
-                                  color: AppTheme.textMutedC(isDark),
-                                  size: 20,
-                                )
-                              else
-                                const Icon(
-                                  Icons.arrow_forward_ios_rounded,
-                                  color: AppTheme.accentAmber,
-                                  size: 14,
-                                ),
+                              Icon(
+                                _showNotes
+                                    ? Icons.expand_less
+                                    : Icons.expand_more,
+                                color: AppTheme.textMutedC(isDark),
+                                size: 20,
+                              ),
                             ],
                           ),
                         ),

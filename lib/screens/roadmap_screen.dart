@@ -48,7 +48,7 @@ class RoadmapScreen extends StatelessWidget {
                     Text(
                       'Your path to AR mastery',
                       style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.accentCyan.withOpacity(0.8),
+                        color: AppTheme.accentPurple.withOpacity(0.8),
                       ),
                     ),
                   ],
@@ -70,21 +70,21 @@ class RoadmapScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: AppTheme.accentCyan.withOpacity(0.08),
+                      color: AppTheme.accentPurple.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                          color: AppTheme.accentCyan.withOpacity(0.2)),
+                          color: AppTheme.accentPurple.withOpacity(0.2)),
                     ),
                     child: Row(
                       children: [
                         const Icon(Icons.info_outline_rounded,
-                            color: AppTheme.accentCyan, size: 16),
+                            color: AppTheme.accentPurple, size: 16),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             'Complete each module and pass its quiz at 70%+ to unlock the next stage.',
                             style: AppTheme.bodySmall.copyWith(
-                                color: AppTheme.accentCyan.withOpacity(0.9)),
+                                color: AppTheme.accentPurple.withOpacity(0.9)),
                           ),
                         ),
                       ],

@@ -105,7 +105,7 @@ class QuizAnalyticsScreen extends StatelessWidget {
                 ),
                 Text(
                   'Track your performance across modules.',
-                  style: AppTheme.bodySmall.copyWith(color: AppTheme.accentCyan),
+                  style: AppTheme.bodySmall.copyWith(color: AppTheme.accentPurple),
                 ),
               ],
             ),
@@ -113,10 +113,10 @@ class QuizAnalyticsScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppTheme.accentCyan.withValues(alpha: 0.15),
+              color: AppTheme.accentPurple.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.insights_rounded, color: AppTheme.accentCyan),
+            child: const Icon(Icons.insights_rounded, color: AppTheme.accentPurple),
           ),
         ],
       ),

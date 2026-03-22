@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
@@ -43,7 +43,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 const Icon(
                   Icons.shield_rounded,
                   size: 64,
-                  color: AppTheme.accentCyan,
+                  color: AppTheme.accentPurple,
                 ).animate().scale(
                   begin: const Offset(0.5, 0.5),
                   end: const Offset(1.0, 1.0),
@@ -157,7 +157,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                     icon: const Icon(Icons.check_circle_outline_rounded),
                     label: const Text('I Accept & Continue'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.accentCyan,
+                      backgroundColor: AppTheme.accentPurple,
                       foregroundColor: AppTheme.primaryDark,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(

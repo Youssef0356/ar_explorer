@@ -45,7 +45,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('No wrong answers to review yet. Take some quizzes first!'),
-          backgroundColor: AppTheme.accentCyan,
+          backgroundColor: AppTheme.accentPurple,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
@@ -156,7 +156,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
           children: [
             Text(
               '$_correctCount / ${_questions.length} correct',
-              style: AppTheme.headingLarge.copyWith(color: AppTheme.accentCyan),
+              style: AppTheme.headingLarge.copyWith(color: AppTheme.accentPurple),
             ),
             const SizedBox(height: 12),
             Text(
@@ -179,7 +179,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
             },
             child: Text('Done',
                 style: AppTheme.bodyMedium
-                    .copyWith(color: AppTheme.accentCyan)),
+                    .copyWith(color: AppTheme.accentPurple)),
           ),
           if (_mode == 'Review Weak Areas')
             TextButton(
@@ -297,13 +297,13 @@ class _PracticeScreenState extends State<PracticeScreen> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppTheme.accentCyan.withOpacity(0.06),
+              color: AppTheme.accentPurple.withOpacity(0.06),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.accentCyan.withOpacity(0.15)),
+              border: Border.all(color: AppTheme.accentPurple.withOpacity(0.15)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.lightbulb_outline_rounded, color: AppTheme.accentCyan, size: 18),
+                const Icon(Icons.lightbulb_outline_rounded, color: AppTheme.accentPurple, size: 18),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -348,7 +348,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
               Text(
                 '${_currentIndex + 1} / ${_questions.length}',
                 style: AppTheme.bodyMedium.copyWith(
-                    color: AppTheme.accentCyan),
+                    color: AppTheme.accentPurple),
               ),
             ],
           ),
@@ -360,7 +360,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
               backgroundColor: isDark
                   ? Colors.white.withOpacity(0.05)
                   : Colors.grey.withOpacity(0.12),
-              valueColor: const AlwaysStoppedAnimation(AppTheme.accentCyan),
+              valueColor: const AlwaysStoppedAnimation(AppTheme.accentPurple),
               minHeight: 4,
             ),
           ),
@@ -414,7 +414,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                             : Icons.info_rounded,
                         color: _selectedOption == q.correctIndex
                             ? AppTheme.successGreen
-                            : AppTheme.accentCyan,
+                            : AppTheme.accentPurple,
                         size: 18,
                       ),
                       const SizedBox(width: 8),
@@ -425,7 +425,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                         style: AppTheme.labelMedium.copyWith(
                           color: _selectedOption == q.correctIndex
                               ? AppTheme.successGreen
-                              : AppTheme.accentCyan,
+                              : AppTheme.accentPurple,
                         ),
                       ),
                     ],

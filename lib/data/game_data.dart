@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/app_theme.dart';
 import '../models/game_models.dart';
 
 // --- Shared Nodes Pool ---
@@ -130,7 +131,7 @@ final List<ARZone> arGameZones = [
   ARZone(
     id: 'zone_1',
     name: 'Zone 1 — See the World',
-    accentColor: const Color(0xFF00E5FF), // accentCyan
+    accentColor: AppTheme.accentPurple,
     levels: [
       // Level 1: Open the camera
       ARLevel(
@@ -179,7 +180,7 @@ final List<ARZone> arGameZones = [
   ARZone(
     id: 'zone_2',
     name: 'Zone 2 — Track Your Position',
-    accentColor: const Color(0xFF2979FF), // accentBlue
+    accentColor: AppTheme.accentBlue,
     levels: [
       // Level 3: Give ARena a 6DOF compass
       ARLevel(

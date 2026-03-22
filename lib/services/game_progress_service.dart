@@ -113,7 +113,7 @@ class GameProgressService extends ChangeNotifier {
 
   int getStars(String levelId) => _levelStars[levelId] ?? 0;
 
-  bool isLevelLocked(String levelId) {
+  bool isLevelLocked(String levelId, {bool isPremium = false}) {
     ARLevel? currentLevel;
     int levelIndex = -1;
     int zoneIndex = -1;
@@ -132,6 +132,10 @@ class GameProgressService extends ChangeNotifier {
     }
 
     if (currentLevel == null) return true;
+
+    // Premium Lock: Zones 3, 4, 5 are locked for free users
+    if (zoneIndex >= 2 && !isPremium) return true;
+
     if (zoneIndex == 0 && levelIndex == 0) return false;
 
     if (levelIndex > 0) {

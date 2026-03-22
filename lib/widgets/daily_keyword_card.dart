@@ -106,7 +106,7 @@ class _DailyKeywordCardState extends State<DailyKeywordCard>
                           title: 'Daily AR Keyword',
                           content: widget.keyword,
                           icon: Icons.calendar_today_rounded,
-                          color: AppTheme.accentCyan,
+                          color: AppTheme.accentPurple,
                         ),
                 );
               },

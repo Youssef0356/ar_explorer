@@ -1,7 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import '../core/app_theme.dart';
 
 import '../data/code_challenges_data.dart';
 import '../models/game_models.dart';
@@ -52,28 +52,25 @@ class CodeMapScreen extends StatelessWidget {
       }
     }
 
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          padding: EdgeInsets.fromLTRB(
-              12, MediaQuery.of(context).padding.top + 8, 16, 14),
-          decoration: BoxDecoration(
-            color: const Color(0xFF060B14).withValues(alpha: 0.85),
-            border: Border(
-                bottom: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.06))),
-          ),
-          child: Row(
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+          12, MediaQuery.of(context).padding.top + 8, 16, 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF060B14).withValues(alpha: 0.98),
+        border: Border(
+            bottom: BorderSide(
+                color: Colors.white.withValues(alpha: 0.06))),
+      ),
+      child: Row(
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('CODE CHALLENGES',
+                    Text('CODE CHALLENGES',
                         style: TextStyle(
-                            color: Color(0xFF00E5FF),
+                            color: AppTheme.accentPurple,
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 2.5)),
@@ -101,8 +98,6 @@ class CodeMapScreen extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 

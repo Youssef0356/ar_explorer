@@ -114,7 +114,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                       )
                       .length;
 
-                  return Padding(
+                  final content = Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child:
                         Container(
@@ -189,11 +189,16 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                               ),
                             ],
                           ),
-                        ).animate().fadeIn(
-                          delay: const Duration(milliseconds: 200),
-                          duration: const Duration(milliseconds: 400),
                         ),
                   );
+
+                  if (context.read<ThemeService>().enableAnimations) {
+                    return content.animate().fadeIn(
+                          delay: const Duration(milliseconds: 200),
+                          duration: const Duration(milliseconds: 400),
+                        );
+                  }
+                  return content;
                 },
               ),
 
@@ -442,8 +447,8 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
           if (isCompleted)
             BoxShadow(
               color: widget.accentColor.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
         ],
       ),
@@ -585,18 +590,15 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
               ],
             ),
           ),
-          // Frosted blur overlay
+          // Semi-transparent overlay (replaces BackdropFilter for performance)
           Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: Container(
-                color: AppTheme.cardC(isDark).withValues(alpha: 0.55),
-                child: Center(
-                  child: Icon(
-                    Icons.lock_outline_rounded,
-                    size: 28,
-                    color: AppTheme.accentCyan.withValues(alpha: 0.6),
-                  ),
+            child: Container(
+              color: AppTheme.cardC(isDark).withValues(alpha: 0.85),
+              child: Center(
+                child: Icon(
+                  Icons.lock_outline_rounded,
+                  size: 28,
+                  color: AppTheme.accentCyan.withValues(alpha: 0.6),
                 ),
               ),
             ),

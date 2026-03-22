@@ -215,7 +215,7 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                                   style: AppTheme.headingLarge.copyWith(
                                     fontSize: 56,
                                     color: _passed
-                                        ? AppTheme.accentCyan
+                                        ? AppTheme.accentPurple
                                         : AppTheme.warningAmber,
                                     fontWeight: FontWeight.w800,
                                   ),
@@ -258,7 +258,7 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                           title: 'New Module Unlocked! 🔓',
                           subtitle: module.title,
                           icon: module.icon,
-                          color: AppTheme.accentCyan,
+                          color: AppTheme.accentPurple,
                           score: '',
                           isDark: isDark,
                         ),
@@ -334,7 +334,7 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                         label: Text(
                           'Retake Quiz',
                           style: AppTheme.buttonText.copyWith(
-                            color: AppTheme.accentCyan,
+                            color: AppTheme.accentPurple,
                           ),
                         ),
                       ),
@@ -348,13 +348,13 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: AppTheme.glassCard(isDark).copyWith(
-                          border: Border.all(color: AppTheme.accentCyan.withValues(alpha: 0.3)),
+                          border: Border.all(color: AppTheme.accentPurple.withValues(alpha: 0.3)),
                         ),
                         child: Column(
                           children: [
                             Text(
                               '🚀 You\'ve Mastered the Basics!',
-                              style: AppTheme.headingSmall.copyWith(color: AppTheme.accentCyan),
+                              style: AppTheme.headingSmall.copyWith(color: AppTheme.accentPurple),
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -373,7 +373,7 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                                   );
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.accentCyan,
+                                  backgroundColor: AppTheme.accentPurple,
                                   foregroundColor: Colors.white,
                                 ),
                                 child: const Text('Unlock Everything'),
@@ -412,10 +412,10 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
       decoration: BoxDecoration(
         color: Colors.black, // Dark focus for cyberpunk style
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.accentCyan.withValues(alpha: 0.5), width: 2),
+        border: Border.all(color: AppTheme.accentPurple.withValues(alpha: 0.5), width: 2),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.accentCyan.withValues(alpha: 0.2),
+            color: AppTheme.accentPurple.withValues(alpha: 0.2),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -427,7 +427,7 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
           const SizedBox(height: 12),
           Text(
             'Try the XR Builder',
-            style: AppTheme.headingSmall.copyWith(color: AppTheme.accentCyan, fontSize: 20),
+            style: AppTheme.headingSmall.copyWith(color: AppTheme.accentPurple, fontSize: 20),
           ),
           const SizedBox(height: 8),
           Text(

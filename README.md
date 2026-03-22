@@ -8,25 +8,38 @@
 
 ### 📖 Interactive Learning
 *   **Concept Modules**: In-depth lessons on AR, VR, MR, XR, and their real-world applications.
-*   **Rich Content Rendering**: Support for complex layouts, code snippets, and visual aids.
-*   **Daily Keywords**: Stay updated with essential AR terminology every day.
+*   **Rich Content Renderer**: Support for complex layouts, code snippets, and visual aids.
+*   **Daily Keywords**: Stay updated with essential AR terminology every day with the persistent home banner.
 
 ### 🎮 Gamification & Challenges
 *   **Interactive Quizzes**: Test your knowledge with module-specific quizzes and track your performance with detailed analytics.
 *   **Coding Challenges**: Solve "Fill-in-the-gap" coding exercises focused on AR development (Unity, C#, ARCore, ARKit).
 *   **AR Systems Engineer Path**: A specialized game-like experience with zones and progression steps.
-*   **Achievments & Badges**: Earn shareable badges as you progress through the roadmap.
+*   **XR Builder Simulator**: An interactive 3D simulator to master spatial alignment and coordinate systems.
+*   **XP Progression & Achievements**: Compact XP tracking and shareable achievement cards for newly unlocked modules and badges.
 
 ### 🛠 Professional Tools
 *   **Roadmap**: A visual guide to mastering AR development.
-*   **Interview Prep**: Specialized section for AR job interview questions and tips.
-*   **PDF Certificates**: Generate and export professional certificates upon course completion.
-*   **Bookmarks**: Save important notes and topics for quick reference.
+*   **Interview Preparation**: Specialized section for AR job interview questions, including attempts-based challenges.
+*   **Professional Certifications**: Comprehensive tier-based certification system (Bronze, Silver, Gold, Platinum).
+*   **Bookmarks & Notes**: Save important topics and personal notes for quick reference.
 
 ### 💎 Premium Experience
 *   **Enhanced Visuals**: Dynamic background effects and premium micro-animations.
+*   **Premium Space**: An exclusive hub for advanced tools, certification tracking, and deep-dive content.
 *   **Ad-Free Experience**: Continuous learning without interruptions.
-*   **Advanced Notes**: Exclusive deep-dive content for premium users.
+
+---
+
+## 🚀 Recent UX Enhancements (v1.1)
+
+We've recently implemented several localized fixes to reduce friction and improve engagement:
+*   **Locked Module Previews**: Sneak peek into upcoming content to drive goal-setting.
+*   **Dynamic Quick Quiz FABs**: Instant access to assessments from any topic screen.
+*   **Starter Mission Overlay**: Guided onboarding for new explorers.
+*   **Credential Progress Pills**: Real-time visual tracking for certificate tiers (e.g., "75% to Bronze").
+*   **Celebratory Unlock Flows**: High-impact visual feedback when unlocking new modules, ready for social sharing.
+*   **Cross-Promotion Nodes**: Intelligent prompts to try the XR Builder simulator after successful quizzes.
 
 ---
 

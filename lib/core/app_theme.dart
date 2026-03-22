@@ -3,10 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // ── Dark Palette ───────────────────────────────────────────────
-  static const Color primaryDark = Color(0xFF0A0E21);
-  static const Color surfaceDark = Color(0xFF111328);
-  static const Color cardDark = Color(0xFF1A1F38);
-  static const Color cardDarkAlt = Color(0xFF1E2346);
+  static const Color primaryDark = Color(0xFF111111);
+  static const Color surfaceDark = Color(0xFF1A1A1E);
+  static const Color cardDark = Color(0xFF1E1E24);
+  static const Color cardDarkAlt = Color(0xFF25252D);
 
   // ── Light Palette ──────────────────────────────────────────────
   static const Color primaryLight = Color(0xFFF5F7FA);
@@ -15,15 +15,15 @@ class AppTheme {
   static const Color cardLightAlt = Color(0xFFF0F2F5);
 
   // ── Accent Colors (shared) ─────────────────────────────────────
-  static const Color accentCyan = Color(0xFF00D4AA);
-  static const Color accentTeal = Color(0xFF00BCD4);
-  static const Color accentBlue = Color(0xFF4FC3F7);
+  static const Color accentPurple = Color(0xFF4FC3F7); // Light Blue (Now Primary)
+  static const Color accentBlue = Color(0xFFBB86FC);   // Purple (Now Secondary)
+  static const Color accentCyan = Color(0xFF00D4AA); 
+  static const Color accentTeal = Color(0xFF00BCD4); 
   static const Color accentAmber = Color(0xFFFFCA28);
-  static const Color accentPurple = Color(0xFFBB86FC);
   static const Color accentPink = Color(0xFFFF6B9D);
   static const Color accentOrange = Color(0xFFFF8A65);
 
-  static const Color successGreen = Color(0xFF4CAF50);
+  static const Color successGreen = Color(0xFFBB86FC); // Replaced with Purple per user's latest request
   static const Color errorRed = Color(0xFFEF5350);
   static const Color warningAmber = Color(0xFFFFB74D);
 
@@ -41,9 +41,9 @@ class AppTheme {
 
   // ── Module Colors ──────────────────────────────────────────────
   static const List<Color> moduleColors = [
-    accentCyan,
-    accentBlue,
     accentPurple,
+    accentBlue,
+    accentCyan,
     accentOrange,
     accentPink,
     accentAmber,
@@ -58,7 +58,7 @@ class AppTheme {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: isDark
-        ? [primaryDark, const Color(0xFF0D1232)]
+        ? [primaryDark, const Color(0xFF1E1E24)]
         : [const Color(0xFFF0F4FF), const Color(0xFFE8ECFF)],
   );
 
@@ -153,21 +153,21 @@ class AppTheme {
       scaffoldBackgroundColor: scaffold,
       colorScheme: isDark
           ? const ColorScheme.dark(
-              primary: accentCyan,
+              primary: accentPurple,
               secondary: accentBlue,
               surface: surfaceDark,
               error: errorRed,
-              onPrimary: primaryDark,
+              onPrimary: Color(0xFF111111),
               onSecondary: textPrimary,
               onSurface: textPrimary,
               onError: textPrimary,
             )
           : const ColorScheme.light(
-              primary: accentCyan,
+              primary: accentPurple,
               secondary: accentBlue,
               surface: surfaceLight,
               error: errorRed,
-              onPrimary: primaryLight,
+              onPrimary: Color(0xFFF5F7FA),
               onSecondary: textPrimaryLight,
               onSurface: textPrimaryLight,
               onError: textPrimary,
@@ -188,9 +188,10 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: accentCyan,
-          foregroundColor: primaryDark,
+          backgroundColor: accentPurple,
+          foregroundColor: Colors.black,
           elevation: 0,
+          shadowColor: accentPurple.withValues(alpha: 0.3),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -200,13 +201,13 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: accentCyan,
-          side: const BorderSide(color: accentCyan, width: 1.5),
+          foregroundColor: accentPurple,
+          side: const BorderSide(color: accentPurple, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: buttonText.copyWith(color: accentCyan),
+          textStyle: buttonText.copyWith(color: accentPurple),
         ),
       ),
       dividerTheme: DividerThemeData(color: divider, thickness: 1),
@@ -221,22 +222,28 @@ class AppTheme {
   // ── Decorations ────────────────────────────────────────────────
   static BoxDecoration glassCard(bool isDark) => BoxDecoration(
     color: isDark
-        ? cardDark.withValues(alpha: 0.7)
+        ? Colors.white.withValues(alpha: 0.03) // Deep Glass
         : Colors.white.withValues(alpha: 0.85),
     borderRadius: BorderRadius.circular(16),
     border: Border.all(
       color: isDark
-          ? Colors.white.withValues(alpha: 0.06)
+          ? Colors.white.withValues(alpha: 0.08)
           : Colors.black.withValues(alpha: 0.06),
       width: 1,
     ),
     boxShadow: isDark
-        ? null
+        ? [
+            BoxShadow(
+              color: accentPurple.withValues(alpha: 0.05),
+              blurRadius: 10,
+              spreadRadius: -2,
+            ),
+          ]
         : [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
   );
@@ -245,16 +252,22 @@ class AppTheme {
     gradient: moduleGradient(accent, isDark),
     borderRadius: BorderRadius.circular(16),
     border: Border.all(
-      color: accent.withValues(alpha: isDark ? 0.2 : 0.15),
-      width: 1,
+      color: accent.withValues(alpha: isDark ? 0.3 : 0.15),
+      width: 1.5,
     ),
     boxShadow: isDark
-        ? null
+        ? [
+            BoxShadow(
+              color: accent.withValues(alpha: 0.1),
+              blurRadius: 10,
+              spreadRadius: -2,
+            ),
+          ]
         : [
             BoxShadow(
-              color: accent.withValues(alpha: 0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              color: accent.withValues(alpha: 0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
   );
@@ -271,7 +284,7 @@ class AppTheme {
       hintText: hint,
       labelStyle: TextStyle(color: txtMuted),
       hintStyle: TextStyle(color: txtMuted.withValues(alpha: 0.5)),
-      floatingLabelStyle: const TextStyle(color: accentCyan),
+      floatingLabelStyle: const TextStyle(color: accentPurple),
       filled: true,
       fillColor: isDark ? cardDark : cardLightAlt,
       border: OutlineInputBorder(
@@ -284,7 +297,7 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: accentCyan, width: 2),
+        borderSide: const BorderSide(color: accentPurple, width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );

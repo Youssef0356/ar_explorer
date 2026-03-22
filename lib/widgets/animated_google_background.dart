@@ -114,42 +114,30 @@ class _AmbientGlowPainter extends CustomPainter {
 
     final color1 = glowColors != null && glowColors!.isNotEmpty ? glowColors![0] : AppTheme.accentPurple;
     final color2 = glowColors != null && glowColors!.length > 1 ? glowColors![1] : AppTheme.accentBlue;
-    final color3 = glowColors != null && glowColors!.length > 2 ? glowColors![2] : AppTheme.accentCyan;
 
     // Glow positions — slow swirling orbits
-    final x1 = cx + math.sin(t) * cx * 0.6;
-    final y1 = cy + math.cos(t) * cy * 0.4;
+    final x1 = cx + math.sin(t) * cx * 0.5;
+    final y1 = cy + math.cos(t * 0.8) * cy * 0.3;
 
-    final x2 = cx + math.cos(t * 1.3 + math.pi / 2) * cx * 0.5;
-    final y2 = cy + math.sin(t * 1.3) * cy * 0.6;
+    final x2 = cx + math.cos(t * 1.2 + math.pi / 2) * cx * 0.4;
+    final y2 = cy + math.sin(t * 0.9) * cy * 0.5;
 
-    final x3 = cx + math.sin(t * 0.7 + math.pi) * cx * 0.45;
-    final y3 = cy + math.cos(t * 0.9 + math.pi) * cy * 0.5;
-
-    final radius = size.longestSide * 0.9;
+    final radius = size.longestSide * 0.8;
 
     // Color 1 glow
     _drawGlow(
       canvas,
       Offset(x1, y1),
       radius,
-      color1.withValues(alpha: isDark ? 0.30 : 0.08),
+      color1.withValues(alpha: isDark ? 0.25 : 0.08),
     );
 
     // Color 2 glow
     _drawGlow(
       canvas,
       Offset(x2, y2),
-      radius * 0.85,
-      color2.withValues(alpha: isDark ? 0.25 : 0.06),
-    );
-
-    // Color 3 glow
-    _drawGlow(
-      canvas,
-      Offset(x3, y3),
-      radius * 0.8,
-      color3.withValues(alpha: isDark ? 0.20 : 0.05),
+      radius * 0.9,
+      color2.withValues(alpha: isDark ? 0.20 : 0.06),
     );
   }
 
@@ -161,8 +149,9 @@ class _AmbientGlowPainter extends CustomPainter {
       ).createShader(
         Rect.fromCircle(center: center, radius: radius),
       );
+    // Use a smaller rect to avoid overdraw if possible
     canvas.drawRect(
-      Rect.fromLTWH(0, 0, center.dx * 2 + radius, center.dy * 2 + radius),
+      Rect.fromCircle(center: center, radius: radius),
       paint,
     );
   }

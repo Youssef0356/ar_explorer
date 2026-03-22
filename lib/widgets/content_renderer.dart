@@ -36,7 +36,7 @@ class ContentRenderer extends StatelessWidget {
               height: 22,
               margin: const EdgeInsets.only(right: 10),
               decoration: BoxDecoration(
-                color: AppTheme.accentCyan,
+                color: AppTheme.accentPurple,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -78,7 +78,7 @@ class ContentRenderer extends StatelessWidget {
                   width: 6,
                   height: 6,
                   decoration: BoxDecoration(
-                    color: AppTheme.accentCyan.withValues(alpha: 0.7),
+                    color: AppTheme.accentPurple.withValues(alpha: 0.7),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -121,7 +121,7 @@ class ContentRenderer extends StatelessWidget {
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: AppTheme.accentCyan.withOpacity(
+                  color: AppTheme.accentPurple.withOpacity(
                     isDark ? 0.15 : 0.1,
                   ),
                   borderRadius: BorderRadius.circular(6),
@@ -130,7 +130,7 @@ class ContentRenderer extends StatelessWidget {
                 child: Text(
                   number,
                   style: AppTheme.bodySmall.copyWith(
-                    color: AppTheme.accentCyan,
+                    color: AppTheme.accentPurple,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -165,7 +165,7 @@ class ContentRenderer extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'monospace',
               fontSize: 13,
-              color: isDark ? AppTheme.accentCyan : const Color(0xFF0366D6),
+              color: isDark ? AppTheme.accentPurple : const Color(0xFF0366D6),
               height: 1.5,
             ),
           ),
@@ -174,10 +174,10 @@ class ContentRenderer extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppTheme.accentCyan.withValues(alpha: isDark ? 0.08 : 0.06),
+            color: AppTheme.accentPurple.withValues(alpha: isDark ? 0.08 : 0.06),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: AppTheme.accentCyan.withValues(alpha: 0.2),
+              color: AppTheme.accentPurple.withValues(alpha: 0.2),
             ),
           ),
           child: Row(
@@ -185,7 +185,7 @@ class ContentRenderer extends StatelessWidget {
             children: [
               const Icon(
                 Icons.lightbulb_outline_rounded,
-                color: AppTheme.accentCyan,
+                color: AppTheme.accentPurple,
                 size: 18,
               ),
               const SizedBox(width: 12),
@@ -193,7 +193,7 @@ class ContentRenderer extends StatelessWidget {
                 child: Text(
                   block.content,
                   style: AppTheme.bodySmall.copyWith(
-                    color: AppTheme.accentCyan,
+                    color: AppTheme.accentPurple,
                     height: 1.5,
                   ),
                 ),

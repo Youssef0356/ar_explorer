@@ -36,11 +36,9 @@ import 'privacy_policy_screen.dart';
 import 'topic_screen.dart';
 import 'premium_space_screen.dart';
 import 'certificate_progression_screen.dart';
+import '../widgets/glass_card.dart';
 
-import 'package:showcaseview/showcaseview.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../utils/tour_keys.dart';
-import '../widgets/glass_showcase.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -54,31 +52,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkFirstTimeTour();
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkStarterMission();
     });
-  }
-
-  Future<void> _checkFirstTimeTour() async {
-    final prefs = await SharedPreferences.getInstance();
-    final tourCompleted = prefs.getBool('tour_completed_v1') ?? false;
-    // Don't run tour if already completed
-    if (tourCompleted) return;
-
-    if (mounted) {
-      ShowCaseWidget.of(context).startShowCase([
-        TourKeys.levelCardKey,
-        TourKeys.practiceKey,
-        TourKeys.interviewKey,
-        TourKeys.premiumSpaceKey,
-        TourKeys.bookmarksKey,
-        TourKeys.firstModuleKey,
-        TourKeys.navBarKey,
-      ]);
-      await prefs.setBool('tour_completed_v1', true);
-    }
   }
 
   Future<void> _checkStarterMission() async {
@@ -264,39 +239,59 @@ class _HomeScreenState extends State<HomeScreen> {
         return Row(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: AppTheme.accentCyan.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
+                color: AppTheme.accentCyan.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.accentCyan.withValues(alpha: 0.2), width: 1),
               ),
               child: Text(
                 levelTitle,
                 style: AppTheme.bodySmall.copyWith(
-                  color: AppTheme.accentCyan,
-                  fontWeight: FontWeight.w700,
+                  color: AppTheme.accentBlue,
+                  fontWeight: FontWeight.w800,
                   fontSize: 10,
+                  letterSpacing: 0.5,
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: overallProgress,
-                  minHeight: 5,
-                  backgroundColor: AppTheme.accentCyan.withValues(alpha: 0.1),
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accentCyan),
-                ),
+              child: Stack(
+                children: [
+                  Container(
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                  FractionallySizedBox(
+                    widthFactor: overallProgress.clamp(0.02, 1.0),
+                    child: Container(
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentBlue,
+                        borderRadius: BorderRadius.circular(3),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.accentBlue.withValues(alpha: 0.3),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Text(
               '$xp XP',
-              style: AppTheme.bodySmall.copyWith(
-                color: AppTheme.accentCyan,
-                fontWeight: FontWeight.w700,
-                fontSize: 11,
+              style: AppTheme.headingSmall.copyWith(
+                color: AppTheme.textPrimaryC(isDark),
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ],
@@ -391,9 +386,10 @@ class _HomeScreenState extends State<HomeScreen> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(24, 20, 16, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                  child: RepaintBoundary(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                       // ── Top Row: Logo + Action Buttons ──
                       () {
                         final content = Row(
@@ -407,7 +403,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppTheme.accentCyan.withValues(alpha: 0.2),
+                                      color: AppTheme.accentPurple.withValues(alpha: 0.2),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -426,7 +422,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     .animate(onPlay: (c) => c.repeat(reverse: true))
                                     .shimmer(
                                       duration: const Duration(seconds: 4),
-                                      color: AppTheme.accentCyan.withValues(alpha: 0.2),
+                                      color: AppTheme.accentPurple.withValues(alpha: 0.2),
                                     );
                               }
                               return logo;
@@ -459,7 +455,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           Text(
                                             'Welcome, ${progress.username}!',
                                             style: AppTheme.bodySmall.copyWith(
-                                              color: AppTheme.accentCyan.withValues(alpha: 0.7),
+                                              color: AppTheme.accentPurple.withValues(alpha: 0.7),
                                               letterSpacing: 1,
                                               fontWeight: FontWeight.w600,
                                             ),
@@ -625,23 +621,24 @@ class _HomeScreenState extends State<HomeScreen> {
                         return content;
                       }(),
 
-                      _buildXPRow(isDark),
                       const SizedBox(height: 16),
-
-                      const SizedBox(height: 24),
-
-                      // ── XP & Level Card ──
-                      _buildLevelCard(context, isDark, themeService.enableAnimations),
-                      const SizedBox(height: 20),
-
-                      _buildDailyKeywordBanner(isDark),
-                      const SizedBox(height: 20),
-
-                      _buildInterviewBanner(isDark),
-                      const SizedBox(height: 20),
-
-                      // ── Quick Actions: Practice & Interview ──
-                      _buildQuickActions(context, isDark, themeService.enableAnimations),
+                      RepaintBoundary(
+                        child: Column(
+                          children: [
+                            _buildXPRow(isDark),
+                            const SizedBox(height: 24),
+                            // ── XP & Level Card ──
+                            _buildLevelCard(context, isDark, themeService.enableAnimations),
+                            const SizedBox(height: 20),
+                            _buildDailyKeywordBanner(isDark),
+                            const SizedBox(height: 20),
+                            _buildInterviewBanner(isDark),
+                            const SizedBox(height: 20),
+                            // ── Quick Actions: Practice & Interview ──
+                            _buildQuickActions(context, isDark, themeService.enableAnimations),
+                          ],
+                        ),
+                      ),
 
                       const SizedBox(height: 20),
 
@@ -664,6 +661,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+            ),
 
               // ── Module Cards ──
               SliverPadding(
@@ -778,12 +776,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (index == 0) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 16),
-                              child: GlassShowcase(
-                                showcaseKey: TourKeys.firstModuleKey,
-                                description: 'Start your journey here. Complete topics to unlock the next modules.',
-                                icon: Icons.map_rounded,
-                                child: card,
-                              ),
+                              child: card,
                             );
                           }
 
@@ -812,13 +805,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   return SliverPadding(
                     padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
                     sliver: SliverToBoxAdapter(
-                      child: Showcase(
-                        key: TourKeys.certificateKey,
-                        description: 'Track your progress. Earn your certificates by completing modules and games!',
-                        tooltipBackgroundColor: AppTheme.accentCyan,
-                        textColor: Colors.black,
-                        child: _buildCertificateCard(context, isDark, tierInfo, certData),
-                      ),
+                      child: _buildCertificateCard(context, isDark, tierInfo, certData),
                     ),
                   );
                 },
@@ -973,95 +960,112 @@ class _HomeScreenState extends State<HomeScreen> {
         final levelTitle = AppTheme.getLevelTitle(overallProgress);
         final motivMsg = AppTheme.getMotivationalMessage(overallProgress);
 
-        final card = GlassShowcase(
-          showcaseKey: TourKeys.levelCardKey,
-          description: 'Track your XP and Level based on your progress across modules.',
-          icon: Icons.star_rounded,
-          child: GestureDetector(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AchievementsScreen(),
-                ),
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: AppTheme.glassCard(isDark),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        final card = GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AchievementsScreen(),
+            ),
+          ),
+          child: GlassCard(
+            padding: const EdgeInsets.all(20),
+            showGlow: true,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top row: level badge
+                Row(
                   children: [
-                    // Top row: level badge
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [
-                                AppTheme.accentCyan,
-                                AppTheme.accentBlue,
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            levelTitle,
-                            style: AppTheme.bodySmall.copyWith(
-                              color: AppTheme.primaryDark,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 11,
-                            ),
-                          ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            AppTheme.accentCyan,
+                            AppTheme.accentBlue,
+                          ],
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Progress bar
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
-                            child: LinearProgressIndicator(
-                              value: overallProgress,
-                              backgroundColor: AppTheme.accentCyan.withOpacity(
-                                isDark ? 0.1 : 0.15,
-                              ),
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                AppTheme.accentCyan,
-                              ),
-                              minHeight: 8,
-                            ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.accentCyan.withValues(alpha: 0.3),
+                            blurRadius: 10,
                           ),
+                        ],
+                      ),
+                      child: Text(
+                        levelTitle,
+                        style: AppTheme.bodySmall.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 11,
+                          letterSpacing: 0.5,
                         ),
-                        const SizedBox(width: 12),
-                        Text(
-                          '$completedTopics / $totalTopics',
-                          style: AppTheme.bodySmall.copyWith(
-                            color: AppTheme.accentCyan,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Motivational message
-                    Text(
-                      motivMsg,
-                      style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.textMutedC(isDark),
-                        fontStyle: FontStyle.italic,
                       ),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 20),
+
+                // Progress bar
+                Row(
+                  children: [
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          FractionallySizedBox(
+                            widthFactor: overallProgress.clamp(0.02, 1.0),
+                            child: Container(
+                              height: 10,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [AppTheme.accentCyan, AppTheme.accentBlue],
+                                ),
+                                borderRadius: BorderRadius.circular(5),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppTheme.accentCyan.withValues(alpha: 0.4),
+                                    blurRadius: 12,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      '${(overallProgress * 100).toInt()}%',
+                      style: AppTheme.headingSmall.copyWith(
+                        color: AppTheme.accentCyan,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  motivMsg,
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.textMutedC(isDark),
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
             ),
+          ),
         );
             
             if (enableAnimations) {
@@ -1122,36 +1126,31 @@ class _HomeScreenState extends State<HomeScreen> {
                   final isLocked = !subscription.isPremium && trialsLeft <= 0;
                   
                   return Expanded(
-                    child: GlassShowcase(
-                      showcaseKey: TourKeys.interviewKey,
-                      description: 'Test your knowledge with an AI mock interview.',
-                      icon: Icons.timer_rounded,
-                      child: _buildQuickActionButton(
-                        context: context,
-                      isDark: isDark,
-                      title: 'Interview',
-                      subtitle: subscription.isPremium 
-                          ? 'Unlimited Practice' 
-                          : (trialsLeft > 0 ? '$trialsLeft of 2 Daily Trials Left' : 'Trial Ended'),
-                      icon: Icons.timer_rounded,
-                      iconColor: AppTheme.accentAmber,
-                      enableAnimations: enableAnimations,
-                      isPremiumLocked: isLocked,
-                      onTap: () {
-                        if (isLocked) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const PaywallScreen()),
-                          );
-                          return;
-                        }
+                  child: _buildQuickActionButton(
+                    context: context,
+                    isDark: isDark,
+                    title: 'Interview',
+                    subtitle: subscription.isPremium 
+                        ? 'Unlimited Practice' 
+                        : (trialsLeft > 0 ? '$trialsLeft of 2 Daily Trials Left' : 'Trial Ended'),
+                    icon: Icons.timer_rounded,
+                    iconColor: AppTheme.accentAmber,
+                    enableAnimations: enableAnimations,
+                    isPremiumLocked: isLocked,
+                    onTap: () {
+                      if (isLocked) {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const InterviewScreen()),
+                          MaterialPageRoute(builder: (_) => const PaywallScreen()),
                         );
-                      },
-                      delay: 500,
-                    ),
+                        return;
+                      }
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const InterviewScreen()),
+                      );
+                    },
+                    delay: 500,
                   ),
                   );
                 },
@@ -1165,51 +1164,41 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: GlassShowcase(
-                  showcaseKey: TourKeys.premiumSpaceKey,
-                  description: 'Access exclusive AR tools and resources here.',
-                  icon: Icons.workspace_premium_rounded,
-                  child: _buildQuickActionButton(
-                    context: context,
-                    isDark: isDark,
-                    title: 'Premium Space',
-                    subtitle: 'Exclusive Tools',
-                    icon: Icons.workspace_premium_rounded,
-                    iconColor: AppTheme.accentPurple,
-                    enableAnimations: enableAnimations,
-                    isPremiumLocked: false,
-                    progressPill: certPill,
-                    pillColor: certPillColor,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const PremiumSpaceScreen()),
-                    ),
-                    delay: 600,
-                  ),
+              child: _buildQuickActionButton(
+                context: context,
+                isDark: isDark,
+                title: 'Premium Space',
+                subtitle: 'Exclusive Tools',
+                icon: Icons.workspace_premium_rounded,
+                iconColor: AppTheme.accentPurple,
+                enableAnimations: enableAnimations,
+                isPremiumLocked: false,
+                progressPill: certPill,
+                pillColor: certPillColor,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PremiumSpaceScreen()),
                 ),
+                delay: 600,
+              ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: GlassShowcase(
-                  showcaseKey: TourKeys.bookmarksKey,
-                  description: 'Review saved topics and personal notes.',
-                  icon: Icons.bookmark_rounded,
-                  child: _buildQuickActionButton(
-                    context: context,
-                    isDark: isDark,
-                    title: 'Bookmarks',
-                    subtitle: 'Saved Notes',
-                    icon: Icons.bookmark_rounded,
-                    iconColor: AppTheme.accentPurple,
-                    enableAnimations: enableAnimations,
-                    isPremiumLocked: false,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const BookmarksScreen()),
-                    ),
-                    delay: 700,
-                  ),
+              child: _buildQuickActionButton(
+                context: context,
+                isDark: isDark,
+                title: 'Bookmarks',
+                subtitle: 'Saved Notes',
+                icon: Icons.bookmark_rounded,
+                iconColor: AppTheme.accentPurple,
+                enableAnimations: enableAnimations,
+                isPremiumLocked: false,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const BookmarksScreen()),
                 ),
+                delay: 700,
+              ),
               ),
             ],
           ),
@@ -1234,98 +1223,66 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     final card = GestureDetector(
       onTap: onTap,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: AppTheme.glassCard(isDark),
-            child: Row(
+      child: GlassCard(
+        showGlow: true,
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
               children: [
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: iconColor.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(icon, color: iconColor, size: 20),
-                    ),
-                    if (isPremiumLocked)
-                      Positioned(
-                        top: -4,
-                        right: -4,
-                        child: Container(
-                          decoration: const BoxDecoration(
-                            color: AppTheme.accentAmber,
-                            shape: BoxShape.circle,
-                          ),
-                          padding: const EdgeInsets.all(2),
-                          child: const Icon(Icons.lock_rounded, size: 10, color: Colors.white),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        title,
-                        style: AppTheme.headingSmall.copyWith(
-                          fontSize: 14,
-                          color: AppTheme.textPrimaryC(isDark),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        subtitle,
-                        style: AppTheme.bodySmall.copyWith(
-                          color: AppTheme.textMutedC(isDark),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
                   ),
+                  child: Icon(icon, color: iconColor, size: 20),
                 ),
+                if (isPremiumLocked)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: AppTheme.accentAmber,
+                        shape: BoxShape.circle,
+                      ),
+                      padding: const EdgeInsets.all(2),
+                      child: const Icon(Icons.lock_rounded, size: 10, color: Colors.white),
+                    ),
+                  ),
               ],
             ),
-          ),
-          if (progressPill != null)
-            Positioned(
-              top: -6,
-              right: 8,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: (pillColor ?? AppTheme.accentCyan).withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: (pillColor ?? AppTheme.accentCyan).withValues(alpha: 0.3),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: AppTheme.headingSmall.copyWith(
+                      fontSize: 14,
+                      color: AppTheme.textPrimaryC(isDark),
                     ),
-                  ],
-                ),
-                child: Text(
-                  progressPill,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w800,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
+                  Text(
+                    subtitle,
+                    style: AppTheme.bodySmall.copyWith(
+                      color: AppTheme.textMutedC(isDark),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
 
@@ -1429,7 +1386,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () => Navigator.pop(ctx),
               child: Text(
                 'Close',
-                style: AppTheme.bodyMedium.copyWith(color: AppTheme.accentCyan),
+                style: AppTheme.bodyMedium.copyWith(color: AppTheme.accentPurple),
               ),
             ),
           ],

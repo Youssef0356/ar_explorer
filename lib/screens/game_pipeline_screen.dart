@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
+import '../core/app_theme.dart';
 import '../data/game_data.dart';
 import '../data/modules_data.dart';
 import '../models/game_models.dart';
@@ -699,7 +700,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
     final borderColor = isWrong
         ? Colors.red
         : isPulsed
-            ? Colors.green
+            ? AppTheme.accentBlue
             : node != null
                 ? accentColor.withValues(alpha: 0.7)
                 : Colors.white.withValues(alpha: 0.12);
@@ -715,7 +716,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
               ? (isWrong
                   ? Colors.red.withValues(alpha: 0.1)
                   : isPulsed
-                      ? Colors.green.withValues(alpha: 0.1)
+                      ? AppTheme.accentBlue.withValues(alpha: 0.1)
                       : Colors.white.withValues(alpha: 0.06))
               : Colors.white.withValues(alpha: 0.02),
           borderRadius: BorderRadius.circular(14),
@@ -739,7 +740,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
             const SizedBox(height: 4),
             if (node != null) ...[
               Icon(node.icon,
-                color: isWrong ? Colors.red : isPulsed ? Colors.green : accentColor,
+                color: isWrong ? Colors.red : isPulsed ? AppTheme.accentBlue : accentColor,
                 size: 24)
                   .animate(target: isPulsed ? 1 : 0)
                   .scale(

@@ -261,12 +261,12 @@ class _QuizScreenState extends State<QuizScreen> {
                               width: double.infinity,
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: AppTheme.accentCyan.withOpacity(
+                                color: AppTheme.accentPurple.withOpacity(
                                   isDark ? 0.08 : 0.06,
                                 ),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: AppTheme.accentCyan.withOpacity(
+                                  color: AppTheme.accentPurple.withOpacity(
                                     0.2,
                                   ),
                                 ),
@@ -276,7 +276,7 @@ class _QuizScreenState extends State<QuizScreen> {
                                 children: [
                                   const Icon(
                                     Icons.lightbulb_outline_rounded,
-                                    color: AppTheme.accentCyan,
+                                    color: AppTheme.accentPurple,
                                     size: 20,
                                   ),
                                   const SizedBox(width: 12),
@@ -288,7 +288,7 @@ class _QuizScreenState extends State<QuizScreen> {
                                         Text(
                                           '💡 Explanation',
                                           style: AppTheme.labelMedium.copyWith(
-                                            color: AppTheme.accentCyan,
+                                            color: AppTheme.accentPurple,
                                           ),
                                         ),
                                         const SizedBox(height: 6),
@@ -326,13 +326,13 @@ class _QuizScreenState extends State<QuizScreen> {
                                             label: Text(
                                               'Deep Dive',
                                               style: AppTheme.bodySmall.copyWith(
-                                                color: AppTheme.accentCyan,
+                                                color: AppTheme.accentPurple,
                                                 fontWeight: FontWeight.w600,
                                               ),
                                             ),
                                             style: OutlinedButton.styleFrom(
-                                              foregroundColor: AppTheme.accentCyan,
-                                              side: BorderSide(color: AppTheme.accentCyan.withValues(alpha: 0.5)),
+                                              foregroundColor: AppTheme.accentPurple,
+                                              side: BorderSide(color: AppTheme.accentPurple.withValues(alpha: 0.5)),
                                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                               minimumSize: Size.zero,
                                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -368,7 +368,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _showResult
                           ? AppTheme.accentPink
-                          : AppTheme.accentCyan,
+                          : AppTheme.accentPurple,
                       disabledBackgroundColor: AppTheme.cardC(isDark),
                       disabledForegroundColor: AppTheme.textMutedC(isDark),
                     ),
@@ -423,7 +423,7 @@ class _QuizScreenState extends State<QuizScreen> {
             },
             child: Text(
               'Stay 💪',
-              style: AppTheme.bodyMedium.copyWith(color: AppTheme.accentCyan),
+              style: AppTheme.bodyMedium.copyWith(color: AppTheme.accentPurple),
             ),
           ),
           TextButton(
