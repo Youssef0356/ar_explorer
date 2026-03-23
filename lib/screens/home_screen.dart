@@ -21,6 +21,7 @@ import '../services/progress_service.dart';
 import '../services/game_progress_service.dart';
 import '../services/review_service.dart';
 import '../services/subscription_service.dart'; 
+import '../services/notification_service.dart';
 import '../widgets/animated_google_background.dart';
 import '../widgets/daily_keyword_card.dart';
 import '../widgets/module_card.dart';
@@ -33,7 +34,7 @@ import 'paywall_screen.dart';
 import 'practice_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'topic_screen.dart';
-import 'premium_space_screen.dart';
+import 'quiz_analytics_screen.dart';
 import 'certificate_progression_screen.dart';
 import '../widgets/glass_card.dart';
 
@@ -1186,24 +1187,35 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-              child: _buildQuickActionButton(
-                context: context,
-                isDark: isDark,
-                title: 'Premium Space',
-                subtitle: 'Exclusive Tools',
-                icon: Icons.workspace_premium_rounded,
-                iconColor: AppTheme.accentPurple,
-                enableAnimations: enableAnimations,
-                isPremiumLocked: false,
-                progressPill: certPill,
-                pillColor: certPillColor,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PremiumSpaceScreen()),
+              Consumer<SubscriptionService>(
+                builder: (context, subscription, _) => Expanded(
+                  child: _buildQuickActionButton(
+                    context: context,
+                    isDark: isDark,
+                    title: 'Quiz Analytics',
+                    subtitle: 'Advanced Insights',
+                    icon: Icons.insights_rounded,
+                    iconColor: AppTheme.accentAmber,
+                    enableAnimations: enableAnimations,
+                    isPremiumLocked: !subscription.isPremium,
+                    progressPill: certPill,
+                    pillColor: certPillColor,
+                    onTap: () {
+                      if (!subscription.isPremium) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const PaywallScreen()),
+                        );
+                        return;
+                      }
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const QuizAnalyticsScreen()),
+                      );
+                    },
+                    delay: 600,
+                  ),
                 ),
-                delay: 600,
-              ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1618,6 +1630,25 @@ class _HomeScreenState extends State<HomeScreen> {
                         onChanged: (val) {
                           sound.toggleVibration();
                           sound.playTap();
+                        },
+                      ),
+                    ),
+                    Consumer<NotificationService>(
+                      builder: (context, notifications, _) => SwitchListTile(
+                        secondary: const Icon(Icons.notifications_active_rounded, color: AppTheme.accentAmber),
+                        title: Text(
+                          'Notifications',
+                          style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                        ),
+                        subtitle: Text(
+                          'Streak reminders & tips',
+                          style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                        ),
+                        value: notifications.notificationsEnabled,
+                        activeThumbColor: AppTheme.accentAmber,
+                        onChanged: (val) {
+                          notifications.toggleNotifications();
+                          context.read<SoundService>().playTap();
                         },
                       ),
                     ),

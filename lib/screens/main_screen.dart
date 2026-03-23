@@ -11,6 +11,7 @@ import 'roadmap_screen.dart';
 
 import 'achievements_screen.dart';
 import 'play_screen.dart'; // Unified Play Tab
+import '../services/navigation_service.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
@@ -21,12 +22,13 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  late int _currentIndex;
-
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.initialIndex;
+    // Initialize NavigationService with initial index
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NavigationService>().setTab(widget.initialIndex);
+    });
   }
 
   final List<Widget> _screens = [
@@ -48,6 +50,9 @@ class _MainScreenState extends State<MainScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<GameProgressService>().isPremium = isPremium;
     });
+
+    final navigationService = context.watch<NavigationService>();
+    final _currentIndex = navigationService.currentIndex;
 
     return Scaffold(
       body: IndexedStack(
@@ -78,7 +83,7 @@ class _MainScreenState extends State<MainScreen> {
               currentIndex: _currentIndex,
               onTap: (index) {
                 soundService.playTap();
-                setState(() => _currentIndex = index);
+                navigationService.setTab(index);
               },
               backgroundColor: Colors.transparent,
               elevation: 0,

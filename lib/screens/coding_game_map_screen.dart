@@ -49,6 +49,16 @@ class CodingGameMapScreen extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Row(
         children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+            onPressed: () {
+              sound.playTap();
+              Navigator.pop(context);
+            },
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+          ),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
