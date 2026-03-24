@@ -35,7 +35,7 @@ class NotificationService extends ChangeNotifier {
     _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
 
     tz_data.initializeTimeZones();
-    final String timeZoneName = await FlutterTimezone.getLocalTimezone();
+    final String timeZoneName = (await FlutterTimezone.getLocalTimezone()).identifier;
     tz.setLocalLocation(tz.getLocation(timeZoneName));
 
     const AndroidInitializationSettings initializationSettingsAndroid =
@@ -54,34 +54,36 @@ class NotificationService extends ChangeNotifier {
     );
 
     await _notificationsPlugin.initialize(
-      initializationSettings,
-      onDidReceiveNotificationResponse: (NotificationResponse details) {
-        // Handle notification tap if needed
+      settings: initializationSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        debugPrint('Notification tapped: ${response.payload}');
       },
     );
 
-    // Create Notification Channels for Android
-    await _notificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(AndroidNotificationChannel(
-          _streakChannelId,
-          _streakChannelName,
-          importance: Importance.max,
-          description: 'Reminders to keep your win streak alive.',
-        ));
+    // Request permissions for Android 13+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      await _notificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
+    }
 
-    await _notificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(AndroidNotificationChannel(
-          _funnyChannelId,
-          _funnyChannelName,
-          importance: Importance.high,
-          description: 'Fun and engaging messages to continue your journey.',
-        ));
+    final androidPlugin = _notificationsPlugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    await androidPlugin?.createNotificationChannel(const AndroidNotificationChannel(
+      _streakChannelId,
+      _streakChannelName,
+      importance: Importance.max,
+      description: 'Reminders to keep your win streak alive.',
+    ));
+
+    await androidPlugin?.createNotificationChannel(const AndroidNotificationChannel(
+      _funnyChannelId,
+      _funnyChannelName,
+      importance: Importance.high,
+      description: 'Fun and engaging messages to continue your journey.',
+    ));
     
-    // Schedule initial engagement notifications
     if (_notificationsEnabled) {
       scheduleEngagementNotifications();
     }
@@ -100,69 +102,59 @@ class NotificationService extends ChangeNotifier {
   }
 
   Future<void> scheduleStreakReminder(int currentStreak) async {
-    if (!_notificationsEnabled) return;
+    if (!_notificationsEnabled || currentStreak <= 0) return;
     
-    // Cancel existing streak reminders to avoid duplicates
-    await _notificationsPlugin.cancel(1001);
-
-    if (currentStreak <= 0) return;
+    await _notificationsPlugin.cancel(id: 1001);
 
     final String message = currentStreak == 1
         ? "Don't lose your 1 day streak! Jump in for a quick lesson. 🔥"
         : "Your $currentStreak day streak is in danger! Keep it alive today. 🏆";
 
     await _notificationsPlugin.zonedSchedule(
-      1001,
-      "Streak Alert! 🔥",
-      message,
-      tz.TZDateTime.now(tz.local).add(const Duration(hours: 23)), // 23 hours later
-      NotificationDetails(
+      id: 1001,
+      title: "Streak Alert! 🔥",
+      body: message,
+      scheduledDate: tz.TZDateTime.now(tz.local).add(const Duration(hours: 23)),
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           _streakChannelId,
           _streakChannelName,
           importance: Importance.max,
           priority: Priority.high,
         ),
-        iOS: const DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+      // REMOVED: uiLocalNotificationDateInterpretation (Obsolete in v21)
     );
   }
 
   Future<void> scheduleEngagementNotifications() async {
     if (!_notificationsEnabled) return;
     
-    // Schedule 3 notifications at random intervals (e.g. 2, 4, and 7 days)
     final random = Random();
-    
-    // Clear previous engagement notifications
-    for (int i = 0; i < 3; i++) {
-      await _notificationsPlugin.cancel(2000 + i);
-    }
-
     final List<int> days = [2, 4, 7];
+    
     for (int i = 0; i < days.length; i++) {
+      await _notificationsPlugin.cancel(id: 2000 + i);
       final String message = _funnyMessages[random.nextInt(_funnyMessages.length)];
       
       await _notificationsPlugin.zonedSchedule(
-        2000 + i,
-        "Continue Your Journey 🚀",
-        message,
-        tz.TZDateTime.now(tz.local).add(Duration(days: days[i])),
-        NotificationDetails(
+        id: 2000 + i,
+        title: "Continue Your Journey 🚀",
+        body: message,
+        scheduledDate: tz.TZDateTime.now(tz.local).add(Duration(days: days[i])),
+        notificationDetails: const NotificationDetails(
           android: AndroidNotificationDetails(
             _funnyChannelId,
             _funnyChannelName,
             importance: Importance.high,
             priority: Priority.high,
           ),
-          iOS: const DarwinNotificationDetails(),
+          iOS: DarwinNotificationDetails(),
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
+        // REMOVED: uiLocalNotificationDateInterpretation (Obsolete in v21)
       );
     }
   }
