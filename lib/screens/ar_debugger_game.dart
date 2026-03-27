@@ -356,7 +356,7 @@ class ARDebuggerMapScreen extends StatelessWidget {
               child: ListView.separated(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
                 itemCount: debugLevels.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
                 itemBuilder: (ctx, i) {
                   final level = debugLevels[i];
                   final isLocked = i > 0 &&

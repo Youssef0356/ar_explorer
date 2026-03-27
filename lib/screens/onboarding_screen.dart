@@ -231,7 +231,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 child: Image.asset(
                   'assets/images/app_logo.png',
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorBuilder: (_, _, _) => Container(
                     color: AppTheme.accentPurple.withOpacity(0.2),
                     child: const Icon(Icons.view_in_ar_rounded,
                         size: 60, color: AppTheme.accentPurple),

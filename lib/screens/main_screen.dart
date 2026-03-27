@@ -52,11 +52,11 @@ class _MainScreenState extends State<MainScreen> {
     });
 
     final navigationService = context.watch<NavigationService>();
-    final _currentIndex = navigationService.currentIndex;
+    final currentIndex = navigationService.currentIndex;
 
     return Scaffold(
       body: IndexedStack(
-        index: _currentIndex,
+        index: currentIndex,
         children: _screens,
       ),
       bottomNavigationBar: Container(
@@ -80,7 +80,7 @@ class _MainScreenState extends State<MainScreen> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: BottomNavigationBar(
-              currentIndex: _currentIndex,
+              currentIndex: currentIndex,
               onTap: (index) {
                 soundService.playTap();
                 navigationService.setTab(index);

@@ -732,7 +732,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     final prog = context.read<ProgressService>();
                                     final snd = context.read<SoundService>();
 
-                                    final Future<void> Function()? onUnlockAd = () async {
+                                    Future<void> onUnlockAd() async {
                                       snd.playTap();
                                       messenger.showSnackBar(
                                         const SnackBar(content: Text('Loading Reward Ad...'), duration: Duration(seconds: 2)),
@@ -750,7 +750,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           const SnackBar(content: Text('Failed to load ad. Please try again later.')),
                                         );
                                       }
-                                    };
+                                    }
 
                                     Navigator.push(
                                       context,
