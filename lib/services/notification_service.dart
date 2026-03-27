@@ -124,7 +124,7 @@ class NotificationService extends ChangeNotifier {
         ),
         iOS: DarwinNotificationDetails(),
       ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       // REMOVED: uiLocalNotificationDateInterpretation (Obsolete in v21)
     );
   }
@@ -153,10 +153,28 @@ class NotificationService extends ChangeNotifier {
           ),
           iOS: DarwinNotificationDetails(),
         ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         // REMOVED: uiLocalNotificationDateInterpretation (Obsolete in v21)
       );
     }
+  }
+
+  // --- Debug / Testing Purposes ---
+  Future<void> triggerDebugNotification() async {
+    await _notificationsPlugin.show(
+      id: 9999,
+      title: "Debug Testing 🛠️",
+      body: "Notification pipeline is working correctly!",
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'debug_channel',
+          'Debug Channel',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+    );
   }
 
   Future<void> cancelAll() async {

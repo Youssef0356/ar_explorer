@@ -490,6 +490,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
   Widget _buildBottomBar() {
     final allFilled = !_slotAnswers.containsValue(null);
     final allCorrect = _checked && _results.values.every((v) => v);
+    final isPremium = context.watch<SubscriptionService>().isPremium;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -557,7 +558,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
                 icon: _isHintAdLoading
                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.orange, strokeWidth: 2))
                     : const Icon(Icons.lightbulb_outline_rounded, color: Colors.orange),
-                label: Text(_isHintAdLoading ? 'WAIT...' : 'GET HINT (WATCH AD)', style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                label: Text(_isHintAdLoading ? 'WAIT...' : (isPremium ? 'GET HINT' : 'GET HINT (WATCH AD)'), style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.orange),
                   padding: const EdgeInsets.symmetric(vertical: 18),
@@ -574,7 +575,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
                  icon: _isHintAdLoading
                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
                      : const Icon(Icons.play_circle_filled_rounded, color: Colors.black),
-                 label: Text(_isHintAdLoading ? 'WAIT...' : 'WATCH AD FOR HINT', style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Colors.black)),
+                 label: Text(_isHintAdLoading ? 'WAIT...' : (isPremium ? 'GET HINT' : 'WATCH AD FOR HINT'), style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Colors.black)),
                  style: ElevatedButton.styleFrom(
                    backgroundColor: Colors.amber,
                    padding: const EdgeInsets.symmetric(vertical: 18),
@@ -592,12 +593,15 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
     if (_isHintAdLoading) return;
     setState(() => _isHintAdLoading = true);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Loading Rewarded Ad...'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+    final isPremium = context.read<SubscriptionService>().isPremium;
+    if (!isPremium) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Loading Rewarded Ad...'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
 
     final adService = context.read<AdService>();
     bool success = await adService.showRewardedAd();

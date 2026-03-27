@@ -93,19 +93,6 @@ class _PracticeScreenState extends State<PracticeScreen> {
     });
   }
 
-  void _startQuickQuiz() {
-    final all = _getAllQuestions()..shuffle(Random());
-    setState(() {
-      _mode = 'Quick Quiz';
-      _questions = all.take(10).toList();
-      _currentIndex = 0;
-      _selectedOption = null;
-      _showResult = false;
-      _correctCount = 0;
-      _showingMenu = false;
-    });
-  }
-
   void _selectOption(int index) {
     if (_showResult) return;
     final progress = context.read<ProgressService>();
@@ -232,7 +219,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Practice Mode',
+                'Strengthen Your Knowledge',
                 style: AppTheme.headingMedium.copyWith(
                     color: AppTheme.textPrimaryC(isDark)),
               ),
@@ -279,21 +266,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
 
           const SizedBox(height: 14),
 
-          // ── Quick Quiz ──
-          _PracticeModeCard(
-            icon: Icons.quiz_rounded,
-            title: 'Quick Quiz',
-            subtitle: '10 mixed questions from all modules',
-            color: AppTheme.accentBlue,
-            isDark: isDark,
-            enabled: true,
-            onTap: _startQuickQuiz,
-          ).animate().fadeIn(
-                delay: const Duration(milliseconds: 200),
-                duration: const Duration(milliseconds: 400),
-              ),
-
-          const SizedBox(height: 28),
+          const SizedBox(height: 14),
 
           // ── Info box ──
           Container(
@@ -309,7 +282,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Wrong answers from quizzes are automatically saved here. '
+                    'Complete the daily challenge or review your wrong answers. '
                     'In Weak Areas mode you\'ll see explanations for each answer.',
                     style: AppTheme.bodySmall.copyWith(
                         color: AppTheme.textSecondaryC(isDark)),

@@ -8,7 +8,7 @@ import '../data/quiz_data.dart';
 import 'subscription_service.dart';
 import 'game_progress_service.dart';
 
-class ProgressService extends ChangeNotifier {
+class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
   SubscriptionService? _subscriptionService;
   GameProgressService? _gameProgressService;
 
@@ -70,7 +70,21 @@ class ProgressService extends ChangeNotifier {
   // ── Initialization ─────────────────────────────────────────────
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
+    WidgetsBinding.instance.addObserver(this);
     _loadProgress();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _resetWeeklyIfNeeded();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   void _loadProgress() {
@@ -136,9 +150,8 @@ class ProgressService extends ChangeNotifier {
 
   void _resetWeeklyIfNeeded() {
     final now = DateTime.now();
-    // Find this week's Monday at midnight
-    final monday = now.subtract(Duration(days: now.weekday - 1));
-    final weekStart = DateTime(monday.year, monday.month, monday.day);
+    // Find this week's Monday at midnight (DateTime accurately handles underflow and DSTs)
+    final weekStart = DateTime(now.year, now.month, now.day - (now.weekday - 1));
     if (_weeklyStartDate == null || _weeklyStartDate!.isBefore(weekStart)) {
       _weeklyStartDate = weekStart;
       _weeklyTopicsCount = 0;
@@ -146,6 +159,7 @@ class ProgressService extends ChangeNotifier {
       _prefs?.setInt(_weeklyTopicsKey, 0);
       _prefs?.setBool(_weeklyCompletedKey, false);
       _prefs?.setString(_weeklyStartKey, weekStart.toIso8601String());
+      notifyListeners();
     }
   }
 
@@ -178,9 +192,10 @@ class ProgressService extends ChangeNotifier {
   bool isTopicCompleted(String topicId) => _completedTopics.contains(topicId);
 
   Future<void> completeTopic(String topicId) async {
+    _resetWeeklyIfNeeded();
     if (_completedTopics.contains(topicId)) return;
     _completedTopics.add(topicId);
-    _gameProgressService?.addUnifiedXP(15);
+    _gameProgressService?.addUnifiedXP(10);
     _weeklyTopicsCount++;
     if (_weeklyTopicsCount >= weeklyTopicsGoal && !_weeklyChallengeDone) {
       _weeklyChallengeDone = true;
@@ -247,10 +262,7 @@ class ProgressService extends ChangeNotifier {
     }
 
     if (quiz != null && !alreadyPassed && scorePercent >= quiz.passingScore) {
-      _gameProgressService?.addUnifiedXP(60);
-      if (scorePercent >= 80) {
-        _gameProgressService?.addUnifiedXP(40);
-      }
+      _gameProgressService?.addUnifiedXP(50);
     }
 
     await _saveProgress();
@@ -474,12 +486,7 @@ class ProgressService extends ChangeNotifier {
       _interviewBestScore = scorePercent;
     }
     
-    _gameProgressService?.addUnifiedXP(30);
-    if (scorePercent >= 90) {
-      _gameProgressService?.addUnifiedXP(80);
-    } else if (scorePercent >= 70) {
-      _gameProgressService?.addUnifiedXP(50);
-    }
+    _gameProgressService?.addUnifiedXP(100);
 
     _interviewHistory.add(scorePercent);
     // Keep last 15 scores for chart

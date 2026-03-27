@@ -8,6 +8,7 @@ import '../models/topic_model.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
 import '../services/sound_service.dart';
+import '../services/ad_service.dart';
 import '../widgets/content_renderer.dart';
 import '../data/quiz_data.dart';
 import 'quiz_screen.dart';
@@ -334,6 +335,11 @@ class _TopicScreenState extends State<TopicScreen> {
                 onPressed: () async {
                   soundService.playTap();
                   await progress.completeTopic(topicKey);
+
+                  if (context.mounted) {
+                    context.read<AdService>().showInterstitialAdWithProbability(0.25);
+                  }
+
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(

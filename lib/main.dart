@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -99,8 +100,34 @@ void main() async {
   );
 }
 
-class ARExplorerApp extends StatelessWidget {
+class ARExplorerApp extends StatefulWidget {
   const ARExplorerApp({super.key});
+
+  @override
+  State<ARExplorerApp> createState() => _ARExplorerAppState();
+}
+
+class _ARExplorerAppState extends State<ARExplorerApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (mounted) {
+        context.read<NotificationService>().scheduleEngagementNotifications();
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

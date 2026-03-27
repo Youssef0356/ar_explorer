@@ -1796,6 +1796,22 @@ class _HomeScreenState extends State<HomeScreen> {
                             const SizedBox(height: 8),
                             _settingsSectionHeader('Testing', Icons.bug_report_rounded, AppTheme.accentAmber, isDark),
                             const SizedBox(height: 8),
+                            ListTile(
+                              leading: const Icon(Icons.notifications_active_rounded, color: AppTheme.accentAmber),
+                              title: Text(
+                                'Trigger Debug Notification',
+                                style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                              ),
+                              subtitle: Text(
+                                'Test notification pipeline immediately',
+                                style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                              ),
+                              trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                              onTap: () {
+                                context.read<SoundService>().playTap();
+                                context.read<NotificationService>().triggerDebugNotification();
+                              },
+                            ),
                             SwitchListTile(
                               secondary: const Icon(Icons.bug_report_rounded, color: AppTheme.accentAmber),
                               title: Text(

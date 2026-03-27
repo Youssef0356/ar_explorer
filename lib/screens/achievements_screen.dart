@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/app_theme.dart';
 import '../data/modules_data.dart';
@@ -8,6 +9,7 @@ import '../services/game_progress_service.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
 import '../services/subscription_service.dart';
+import '../services/ad_service.dart';
 import '../widgets/achievement_badge.dart';
 import '../widgets/shareable_achievement_card.dart';
 import '../widgets/animated_google_background.dart';
@@ -20,6 +22,55 @@ class AchievementsScreen extends StatefulWidget {
 }
 
 class _AchievementsScreenState extends State<AchievementsScreen> {
+  int _adsWatchedToday = 0;
+  bool _isLoadingAdCount = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAdsWatched();
+  }
+
+  Future<void> _loadAdsWatched() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final storedDate = prefs.getString('ad_reward_date');
+    if (storedDate != today) {
+      await prefs.setString('ad_reward_date', today);
+      await prefs.setInt('ad_reward_count', 0);
+      _adsWatchedToday = 0;
+    } else {
+      _adsWatchedToday = prefs.getInt('ad_reward_count') ?? 0;
+    }
+    setState(() {
+      _isLoadingAdCount = false;
+    });
+  }
+
+  Future<void> _watchAd() async {
+    if (_adsWatchedToday >= 3) return;
+    
+    final adService = context.read<AdService>();
+    final gameProgress = context.read<GameProgressService>();
+    
+    final success = await adService.showRewardedAd();
+    if (success && mounted) {
+      final prefs = await SharedPreferences.getInstance();
+      _adsWatchedToday++;
+      await prefs.setInt('ad_reward_count', _adsWatchedToday);
+      gameProgress.addUnifiedXP(30);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('🎉 +30 XP Earned!'),
+          backgroundColor: AppTheme.successGreen,
+          behavior: SnackBarBehavior.floating,
+        )
+      );
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = context.watch<ThemeService>().isDarkMode;
@@ -109,6 +160,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 
                       // ── Premium Aesthetics ──
                       _buildPremiumAesthetics(context, isDark),
+
+                      // ── Watch Ad for XP ──
+                      _buildAdRewardSection(context, isDark),
 
                       const SizedBox(height: 32),
 
@@ -618,6 +672,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 
     return Container(
       padding: const EdgeInsets.all(20),
+      // ... content
       decoration: BoxDecoration(
         color: isNeon ? const Color(0xFF0D0D12) : AppTheme.cardC(isDark),
         borderRadius: BorderRadius.circular(20),
@@ -634,12 +689,12 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.auto_awesome_rounded, color: AppTheme.accentAmber, size: 20),
-              const SizedBox(width: 10),
-              Text(
+               const Icon(Icons.auto_awesome_rounded, color: AppTheme.accentAmber, size: 20),
+               const SizedBox(width: 10),
+               Text(
                 'PREMIUM AESTHETICS',
                 style: AppTheme.labelMedium.copyWith(color: AppTheme.accentAmber, letterSpacing: 1.5),
-              ),
+               ),
             ],
           ),
           const SizedBox(height: 16),
@@ -671,6 +726,89 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
         ],
       ),
     ).animate().fadeIn(delay: 200.ms).scale(begin: const Offset(0.95, 0.95));
+  }
+
+  Widget _buildAdRewardSection(BuildContext context, bool isDark) {
+    final isPremium = context.watch<SubscriptionService>().isPremium;
+    if (isPremium) return const SizedBox.shrink();
+
+    final reachedCap = _adsWatchedToday >= 3;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(top: 24),
+      decoration: BoxDecoration(
+        color: AppTheme.cardC(isDark),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.accentPink.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: AppTheme.accentPink.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.play_circle_filled_rounded,
+              color: AppTheme.accentPink,
+              size: 26,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Watch Ad for XP',
+                  style: AppTheme.headingSmall.copyWith(
+                    fontSize: 14,
+                    color: AppTheme.textPrimaryC(isDark),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  reachedCap 
+                      ? 'Daily limit reached. Come back tomorrow!'
+                      : 'Earn +30 XP instantly. (${3 - _adsWatchedToday} left today)',
+                  style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                ),
+              ],
+            ),
+          ),
+          if (!reachedCap)
+            GestureDetector(
+              onTap: _isLoadingAdCount ? null : _watchAd,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentPink.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: _isLoadingAdCount
+                    ? const SizedBox(
+                        width: 14, height: 14, 
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accentPink))
+                    : Text(
+                        'WATCH',
+                        style: AppTheme.labelMedium.copyWith(
+                          color: AppTheme.accentPink,
+                          fontSize: 12,
+                        ),
+                      ),
+              ),
+            )
+          else
+            const Icon(Icons.check_circle_rounded, color: AppTheme.successGreen, size: 24),
+        ],
+      ),
+    ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.05, end: 0);
   }
 }
 

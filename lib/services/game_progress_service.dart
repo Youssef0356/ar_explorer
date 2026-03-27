@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/game_models.dart';
 import '../data/game_data.dart';
 import 'notification_service.dart';
+import 'package:home_widget/home_widget.dart';
 
 class GameProgressService extends ChangeNotifier {
   // ── Pref keys ──────────────────────────────────────────────────────────────
@@ -162,6 +163,19 @@ class GameProgressService extends ChangeNotifier {
     // Save Unified XP & Inspector Zones
     await _prefs?.setInt(_unifiedXPKey, _unifiedXP);
     await _prefs?.setStringList(_unlockedInspectorKey, _unlockedInspectorZones.toList());
+
+    await _updateHomeWidget();
+  }
+
+  Future<void> _updateHomeWidget() async {
+    final maxStreak = _codingStreak > _dailyStreak ? _codingStreak : _dailyStreak;
+    try {
+      await HomeWidget.saveWidgetData<String>('streak_count', maxStreak.toString());
+      await HomeWidget.saveWidgetData<String>('total_xp', _unifiedXP.toString());
+      await HomeWidget.updateWidget(name: 'AppWidgetProvider', iOSName: 'AppWidgetProvider');
+    } catch (e) {
+      debugPrint('Error updating home widget: $e');
+    }
   }
 
   // ── Existing getters (unchanged) ──────────────────────────────────────────

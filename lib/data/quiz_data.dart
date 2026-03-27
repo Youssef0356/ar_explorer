@@ -1060,6 +1060,83 @@ final Map<String, Quiz> allQuizzes = {
       ),
     ],
   ),
+  // ───────────────────────────────────────────────────────────────
+  //  NEW ADDITIONAL INTERVIEW QUIZZES
+  // ───────────────────────────────────────────────────────────────
+  'quiz_interview_ux': Quiz(
+    id: 'quiz_interview_ux',
+    moduleId: 'mod_spatial_ux',
+    title: 'Mastery Interview: Spatial UX',
+    questions: [
+      const QuizQuestion(
+        id: 'q_int_ux_1',
+        question: 'Which is a defining characteristic of "Progressive Disclosure" in Spatial UX?',
+        options: [
+          'Forcing the user to read all instructions before starting the AR experience',
+          'Showing minimal contextual information first, revealing more only when the user focuses or interacts',
+          'Sequentially unlocking rendering quality over time to save device battery',
+          'Displaying a constantly visible HUD (Head-Up Display) with all possible analytics',
+        ],
+        correctIndex: 1,
+        explanation: 'Progressive Disclosure avoids cognitive overload by showing only necessary info, letting the user "dig in" for more detail when needed.',
+      ),
+      const QuizQuestion(
+        id: 'q_int_ux_2',
+        question: 'Why should UI panels in AR generally avoid sitting flush against physical walls?',
+        options: [
+          'Because SLAM systems cannot detect vertical planes reliably in low light',
+          'Because depth perception conflicts (Z-fighting) with the real wall cause visual discomfort',
+          'Because the camera loses focus when pointing directly at flat surfaces',
+          'Because users cannot physically reach out and touch a real wall comfortably',
+        ],
+        correctIndex: 1,
+        explanation: 'Virtual objects flush with real surfaces often clip into the tracking noise of the mesh, causing Z-fighting and breaking depth cues.',
+      ),
+    ],
+  ),
 
+  'quiz_interview_advanced': Quiz(
+    id: 'quiz_interview_advanced',
+    moduleId: 'mod_advanced',
+    title: 'Mastery Interview: AR Cloud & Vision',
+    questions: [
+      const QuizQuestion(
+        id: 'q_int_adv_1',
+        question: 'What fundamentally differentiates a "Digital Twin" from a standard 3D CAD model?',
+        options: [
+          'A Digital Twin is always rendered using physically-based materials (PBR)',
+          'A Digital Twin is a live replica that receives real-time data updates from its physical counterpart',
+          'A Digital Twin must be hosted on a decentralized blockchain network',
+          'A standard 3D CAD model cannot be viewed using an AR headset',
+        ],
+        correctIndex: 1,
+        explanation: 'The defining trait of a Digital Twin is the live, bidirectional data link between the physical object (via IoT sensors) and the virtual model.',
+      ),
+      const QuizQuestion(
+        id: 'q_int_adv_2',
+        question: 'In computer vision, what is a "Homography"?',
+        options: [
+          'A texture compression format that reduces VR/AR asset sizes symmetrically',
+          'An algorithm that detects human faces and estimates their emotional state',
+          'A transformation matrix that maps points from one plane to another plane',
+          'The process of synchronizing the frame rate of two separate display lenses',
+        ],
+        correctIndex: 2,
+        explanation: 'Homography is a 3x3 matrix relating two images of the same planar surface in space. It is foundational for planar marker tracking in AR.',
+      ),
+      const QuizQuestion(
+        id: 'q_int_adv_3',
+        question: 'Why do VST (Video See-Through) headsets often cause motion sickness more than OST (Optical)?',
+        options: [
+          'OST headsets have a much narrower field of view, keeping the brain grounded',
+          'VST introduces a latency (photon-to-photon delay) between head movement and the camera feed updating the screen',
+          'OST displays operate at 120Hz while VST displays are capped at 30Hz',
+          'VST headsets are significantly heavier, causing physical neck fatigue',
+        ],
+        correctIndex: 1,
+        explanation: 'In VST, the real world is delayed by the time it takes the camera to capture and the screen to render. This mismatch between vestibular feeling and vision causes nausea.',
+      ),
+    ],
+  ),
 
 };

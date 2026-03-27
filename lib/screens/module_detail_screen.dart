@@ -9,6 +9,7 @@ import '../data/modules_data.dart';
 import '../models/module_model.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
+import '../services/ad_service.dart';
 import 'bookmarks_screen.dart';
 import 'flashcard_screen.dart';
 import 'quiz_screen.dart';
@@ -30,10 +31,12 @@ class ModuleDetailScreen extends StatefulWidget {
 
 class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
   bool _isExpanded = false;
+  late final DateTime _initStateTime;
 
   @override
   void initState() {
     super.initState();
+    _initStateTime = DateTime.now();
     // Auto-expand if not read yet
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final progress = context.read<ProgressService>();
@@ -49,10 +52,20 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     final isDark = context.watch<ThemeService>().isDarkMode;
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: AppTheme.backgroundGradient(isDark),
-        ),
+      body: PopScope(
+        canPop: true,
+        onPopInvoked: (didPop) {
+          if (didPop) {
+            final timeSpent = DateTime.now().difference(_initStateTime);
+            if (timeSpent.inSeconds > 10 && mounted) {
+              // We don't have context easily here, but we can trust the tap handler above
+            }
+          }
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: AppTheme.backgroundGradient(isDark),
+          ),
         child: SafeArea(
           child: Column(
             children: [
@@ -64,7 +77,13 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                     IconButton(
                       icon: const Icon(Icons.arrow_back_ios_rounded),
                       color: AppTheme.textPrimaryC(isDark),
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        final timeSpent = DateTime.now().difference(_initStateTime);
+                        if (timeSpent.inSeconds > 10 && context.mounted) {
+                          context.read<AdService>().showInterstitialAdWithProbability(0.2);
+                        }
+                        Navigator.pop(context);
+                      },
                     ),
                     const SizedBox(width: 4),
                     Expanded(
@@ -335,6 +354,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
