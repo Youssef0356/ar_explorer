@@ -166,15 +166,16 @@ class _GameMapScreenState extends State<GameMapScreen>
                               level: level,
                               zone: zone,
                               isLocked: isLocked,
+                              isCompleted: progress.isLevelCompleted(level.id),
                               stars: stars,
                               nodeSize: nodeSize,
                               pulseAnimation: _pulseController,
                               onTap: isLocked 
                                 ? (isReadyToUnlock 
-                                    ? () => _showUnlockLevelDialog(context, level, progress)
-                                    : () => ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Complete previous levels to unlock this one!'))))
-                                : () => _showLevelSheet(level, zone),
+                                    ? () { _showUnlockLevelDialog(context, level, progress); }
+                                    : () { ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Complete previous levels to unlock this one!'))); })
+                                : () { _showLevelSheet(level, zone); },
                             )
                               .animate(delay: delay)
                               .fadeIn(duration: 400.ms)
@@ -632,6 +633,7 @@ class _LevelNode extends StatelessWidget {
   final ARLevel level;
   final ARZone zone;
   final bool isLocked;
+  final bool isCompleted;
   final int stars;
   final double nodeSize;
   final Animation<double> pulseAnimation;
@@ -641,6 +643,7 @@ class _LevelNode extends StatelessWidget {
     required this.level,
     required this.zone,
     required this.isLocked,
+    required this.isCompleted,
     required this.stars,
     required this.nodeSize,
     required this.pulseAnimation,
@@ -652,7 +655,6 @@ class _LevelNode extends StatelessWidget {
     final color = isLocked
         ? Colors.white.withValues(alpha: 0.12)
         : (level.isBoss ? Colors.red : zone.accentColor);
-    final isCompleted = stars > 0;
     // Only active (unlocked & not yet completed) nodes get the pulse
     final shouldPulse = !isLocked && !isCompleted;
 
