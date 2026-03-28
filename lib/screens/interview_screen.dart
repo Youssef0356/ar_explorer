@@ -94,12 +94,26 @@ class _InterviewScreenState extends State<InterviewScreen>
 
   void _startInterview() async {
     final progress = context.read<ProgressService>();
-    if (progress.interviewAttemptsLeft <= 0 && !progress.isPremium) {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
-      return;
+    
+    if (!progress.isPremium) {
+      if (progress.interviewAttemptsLeft <= 0) {
+        if (progress.xp >= 50) {
+          final confirm = await _showXpUnlockDialog(progress);
+          if (confirm != true) return;
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Not enough XP (50 required) and no free attempts left. Earn more XP or Upgrade to PRO!'),
+              backgroundColor: AppTheme.errorRed,
+            ),
+          );
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
+          return;
+        }
+      } else {
+        await progress.useInterviewAttempt();
+      }
     }
-    if (!progress.isPremium) await progress.useInterviewAttempt();
 
     List<QuizQuestion> pool = [];
 
@@ -271,6 +285,39 @@ class _InterviewScreenState extends State<InterviewScreen>
     );
   }
 
+  Future<bool?> _showXpUnlockDialog(ProgressService progress) {
+    final isDark = context.read<ThemeService>().isDarkMode;
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.cardC(isDark),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.lock_open_rounded, color: AppTheme.accentCyan),
+            const SizedBox(width: 8),
+            Text('Unlock Attempt', style: AppTheme.headingSmall.copyWith(color: AppTheme.textPrimaryC(isDark))),
+          ],
+        ),
+        content: Text('You are out of free attempts. Unlock a new mock interview attempt for 50 XP?', style: AppTheme.bodyMedium.copyWith(color: AppTheme.textSecondaryC(isDark))),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Cancel', style: AppTheme.bodyMedium.copyWith(color: AppTheme.textMutedC(isDark))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accentCyan),
+            onPressed: () async {
+              final ok = await progress.spendXP(50);
+              Navigator.pop(ctx, ok);
+            },
+            child: Text('-50 XP', style: AppTheme.bodyMedium.copyWith(color: Colors.black, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   String get _readinessTier {
     final pct = ((_correctCount / _questions.length) * 100).round();
     if (pct >= 91) return '🏆 AR Expert / Lead';
@@ -398,14 +445,27 @@ class _InterviewScreenState extends State<InterviewScreen>
                       );
                     }
                     final left = progress.interviewAttemptsLeft;
-                    return Text(
-                      'Daily attempts: $left / 2',
-                      style: AppTheme.bodySmall.copyWith(
-                        color: left > 0
-                            ? AppTheme.accentCyan
-                            : AppTheme.errorRed,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    final hasFree = left > 0;
+                    return Column(
+                      children: [
+                        Text(
+                          'Free Attempts: $left / 2',
+                          style: AppTheme.bodySmall.copyWith(
+                            color: hasFree ? AppTheme.accentCyan : AppTheme.textMutedC(isDark),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (!hasFree) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Costs 50 XP per attempt',
+                            style: AppTheme.bodySmall.copyWith(
+                              color: progress.xp >= 50 ? AppTheme.accentCyan : AppTheme.errorRed,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ]
+                      ],
                     );
                   },
                 ),

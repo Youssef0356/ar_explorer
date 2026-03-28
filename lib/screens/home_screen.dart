@@ -1,6 +1,6 @@
 import 'dart:io' show Platform, exit;
 
-import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -570,76 +570,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 _showSettingsModal(context, isDark, themeService);
                               },
                             ),
-
-                            // DEBUG: Premium Override Toggle Button
-                            if (kDebugMode)
-                              Consumer<SubscriptionService>(
-                                builder: (context, subscription, _) {
-                                  return Tooltip(
-                                    message: subscription.debugPremiumOverride 
-                                        ? 'DEBUG: Premium ON (Tap to OFF)' 
-                                        : 'DEBUG: Premium OFF (Tap to ON)',
-                                    child: GestureDetector(
-                                      onTap: () async {
-                                        soundService.playTap();
-                                        await subscription.toggleDebugPremiumOverride();
-                                        if (context.mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                subscription.debugPremiumOverride 
-                                                  ? 'DEBUG: Premium ENABLED for testing' 
-                                                  : 'DEBUG: Premium DISABLED',
-                                              ),
-                                              backgroundColor: subscription.debugPremiumOverride 
-                                                ? Colors.green 
-                                                : Colors.orange,
-                                              duration: const Duration(seconds: 2),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      child: Container(
-                                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: subscription.debugPremiumOverride 
-                                            ? Colors.green.withValues(alpha: 0.3)
-                                            : Colors.red.withValues(alpha: 0.3),
-                                          borderRadius: BorderRadius.circular(10),
-                                          border: Border.all(
-                                            color: subscription.debugPremiumOverride 
-                                              ? Colors.green 
-                                              : Colors.red,
-                                            width: 2,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.bug_report_rounded,
-                                              color: subscription.debugPremiumOverride 
-                                                ? Colors.green 
-                                                : Colors.red,
-                                              size: 18,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            const Text(
-                                              'TEST',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
                           ],
                         );
                         if (themeService.enableAnimations) {
@@ -677,11 +607,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           const Text('🗺️', style: TextStyle(fontSize: 18)),
                           const SizedBox(width: 8),
-                          Text(
-                            'YOUR LEARNING PATH',
-                            style: AppTheme.labelMedium.copyWith(
-                              letterSpacing: 1.5,
-                              color: AppTheme.textMutedC(isDark),
+                          Flexible(
+                            child: Text(
+                              'YOUR LEARNING PATH',
+                              style: AppTheme.labelMedium.copyWith(
+                                letterSpacing: 1.5,
+                                color: AppTheme.textMutedC(isDark),
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -725,43 +658,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               onTap: () {
                                 soundService.playTap();
                                 if (data.isLocked) {
-                                  if (module.unlockCost > 0) {
-                                    final messenger = ScaffoldMessenger.of(context);
-                                    final nav = Navigator.of(context);
-                                    final ads = context.read<AdService>();
-                                    final prog = context.read<ProgressService>();
-                                    final snd = context.read<SoundService>();
-
-                                    Future<void> onUnlockAd() async {
-                                      snd.playTap();
-                                      messenger.showSnackBar(
-                                        const SnackBar(content: Text('Loading Reward Ad...'), duration: Duration(seconds: 2)),
-                                      );
-                                      final success = await ads.showRewardedAd();
-                                      
-                                      if (success) {
-                                        await prog.unlockModuleWithAd(module.id);
-                                        messenger.showSnackBar(
-                                          const SnackBar(content: Text('Module Unlocked! 🔓')),
-                                        );
-                                        nav.pop(); // Close paywall
-                                      } else {
-                                        messenger.showSnackBar(
-                                          const SnackBar(content: Text('Failed to load ad. Please try again later.')),
-                                        );
-                                      }
-                                    }
-
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (_) => PaywallScreen(
-                                        onUnlockAd: onUnlockAd,
-                                        moduleName: module.title,
-                                      )),
-                                    );
-                                  } else {
-                                    _showLockedDialog(context, isDark, module);
-                                  }
+                                  _showXPUnlockDialog(context, module, color);
                                   return;
                                 }
                                 Navigator.push(
@@ -1331,11 +1228,119 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ── Locked Module Dialog ─────────────────────────────────────
-  void _showLockedDialog(
-    BuildContext context,
-    bool isDark,
-    LearningModule module,
-  ) {
+  void _showXPUnlockDialog(BuildContext context, LearningModule module, Color accentColor) {
+    final isDark = context.read<ThemeService>().isDarkMode;
+    final progress = context.read<ProgressService>();
+    final sub = context.read<SubscriptionService>();
+    final cost = 50; // Every module costs 50 XP to unlock
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.cardC(isDark),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: accentColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(module.icon, color: accentColor, size: 32),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Unlock Module',
+              style: AppTheme.headingMedium.copyWith(color: AppTheme.textPrimaryC(isDark)),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Spend 50 XP to unlock "${module.title}" and continue your journey.',
+              style: AppTheme.bodyMedium.copyWith(color: AppTheme.textSecondaryC(isDark)),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppTheme.accentAmber.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.bolt_rounded, color: AppTheme.accentAmber, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Your Balance: ${progress.xp} XP',
+                    style: AppTheme.bodySmall.copyWith(
+                      color: AppTheme.accentAmber,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Column(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accentColor,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: progress.xp >= cost
+                      ? () async {
+                          final success = await progress.unlockModuleWithXP(module.id, cost);
+                          if (ctx.mounted) {
+                            Navigator.pop(ctx);
+                            if (success) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('"${module.title}" Unlocked! 🔓')),
+                              );
+                            }
+                          }
+                        }
+                      : null,
+                  child: Text('Unlock for $cost XP'),
+                ),
+              ),
+              const SizedBox(height: 8),
+              if (!sub.isPremium)
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
+                    },
+                    child: Text(
+                      'Get Premium to remove restrictions',
+                      style: AppTheme.bodySmall.copyWith(color: AppTheme.accentAmber),
+                    ),
+                  ),
+                ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text('Maybe Later', style: TextStyle(color: AppTheme.textMutedC(isDark))),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLockedDialog(BuildContext context, bool isDark, LearningModule module) {
     final quizId = module.requiredQuizId;
     final quizTitle = quizId != null
         ? (allQuizzes[quizId]?.title ?? 'the previous quiz')
@@ -1652,6 +1657,49 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       ),
                     ),
+                    Consumer<ProgressService>(
+                      builder: (context, progress, _) => Column(
+                        children: [
+                          SwitchListTile(
+                            secondary: const Icon(Icons.bug_report_rounded, color: AppTheme.accentAmber),
+                            title: Text(
+                              'Show Testing Tools',
+                              style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                            ),
+                            subtitle: Text(
+                              'Enable debug buttons for developers',
+                              style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                            ),
+                            value: progress.showDebugTools,
+                            activeThumbColor: AppTheme.accentAmber,
+                            onChanged: (val) {
+                              progress.toggleShowDebugTools();
+                              context.read<SoundService>().playTap();
+                            },
+                          ),
+                          if (progress.showDebugTools)
+                            Consumer<SubscriptionService>(
+                              builder: (context, subscription, _) => SwitchListTile(
+                                secondary: const Icon(Icons.workspace_premium_rounded, color: AppTheme.accentAmber),
+                                title: Text(
+                                  'Debug: Premium Status',
+                                  style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                                ),
+                                subtitle: Text(
+                                  'Override premium for testing purposes',
+                                  style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                                ),
+                                value: subscription.debugPremiumOverride,
+                                activeThumbColor: AppTheme.accentAmber,
+                                onChanged: (val) {
+                                  subscription.toggleDebugPremiumOverride();
+                                  context.read<SoundService>().playTap();
+                                },
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
 
                     const SizedBox(height: 16),
                     Divider(color: AppTheme.dividerC(isDark)),
@@ -1786,7 +1834,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                     // ── Testing Section ──
-                    if (kDebugMode)
+                    if (context.watch<ProgressService>().showDebugTools)
                       Consumer<ProgressService>(
                         builder: (context, progress, _) => Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1810,6 +1858,42 @@ class _HomeScreenState extends State<HomeScreen> {
                               onTap: () {
                                 context.read<SoundService>().playTap();
                                 context.read<NotificationService>().triggerDebugNotification();
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.emoji_emotions_rounded, color: AppTheme.accentAmber),
+                              title: Text(
+                                'Trigger Funny Notification',
+                                style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                              ),
+                              subtitle: Text(
+                                'Test random funny engagement messages',
+                                style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                              ),
+                              trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                              onTap: () {
+                                context.read<SoundService>().playTap();
+                                context.read<NotificationService>().triggerFunnyNotification();
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.workspace_premium_rounded, color: AppTheme.successGreen),
+                              title: Text(
+                                'Unlock All Certificates',
+                                style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                              ),
+                              subtitle: Text(
+                                'Instantly earn Bronze to Platinum',
+                                style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                              ),
+                              trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                              onTap: () async {
+                                final messenger = ScaffoldMessenger.of(context);
+                                context.read<SoundService>().playTap();
+                                await progress.unlockAllCertificates();
+                                messenger.showSnackBar(
+                                  const SnackBar(content: Text('All certificates unlocked! 🎓')),
+                                );
                               },
                             ),
                             SwitchListTile(

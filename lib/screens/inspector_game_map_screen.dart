@@ -8,7 +8,7 @@ import '../models/inspector_game_models.dart';
 import '../services/game_progress_service.dart';
 import '../services/theme_service.dart';
 import '../services/sound_service.dart';
-import '../services/subscription_service.dart';
+import '../widgets/animated_google_background.dart';
 import 'inspector_game_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -25,53 +25,59 @@ class InspectorGameMapScreen extends StatelessWidget {
     final isDark    = context.watch<ThemeService>().isDarkMode;
     final progress  = context.watch<GameProgressService>();
 
-    return Theme(data: ThemeData.dark(), child: Scaffold(
-      backgroundColor: AppTheme.scaffoldC(isDark),
-      body: CustomScrollView(
-        slivers: [
-          // ── App bar ──
-          SliverAppBar(
-            backgroundColor: AppTheme.scaffoldC(isDark),
-            expandedHeight: 110,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-              title: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('XR BUILDER',
-                    style: AppTheme.headingSmall.copyWith(
-                      color: AppTheme.accentCyan,
-                      fontSize: 16, letterSpacing: 1.5)),
-                  Text('Build real XR apps in the Inspector',
-                    style: AppTheme.bodySmall.copyWith(
-                      color: AppTheme.textMutedC(isDark), fontSize: 10)),
-                ],
+    return Theme(
+      data: ThemeData.dark(),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: AnimatedGoogleBackground(
+          isDark: isDark,
+          child: CustomScrollView(
+            slivers: [
+              // ── App bar ──
+              SliverAppBar(
+                backgroundColor: Colors.transparent,
+                expandedHeight: 110,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  titlePadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                  title: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('XR BUILDER',
+                        style: AppTheme.headingSmall.copyWith(
+                          color: AppTheme.accentCyan,
+                          fontSize: 16, letterSpacing: 1.5)),
+                      Text('Build real XR apps in the Inspector',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.textMutedC(isDark), fontSize: 10)),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
 
-          // ── Stats strip ──
-          SliverToBoxAdapter(
-            child: _StatsStrip(progress: progress, isDark: isDark),
-          ),
-
-          // ── Zone cards ──
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, i) => _ZoneCard(
-                zone: inspectorGameZones[i],
-                progress: progress,
-                isDark: isDark,
+              // ── Stats strip ──
+              SliverToBoxAdapter(
+                child: _StatsStrip(progress: progress, isDark: isDark),
               ),
-              childCount: inspectorGameZones.length,
-            ),
+
+              // ── Zone cards ──
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, i) => _ZoneCard(
+                    zone: inspectorGameZones[i],
+                    progress: progress,
+                    isDark: isDark,
+                  ),
+                  childCount: inspectorGameZones.length,
+                ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
+            ],
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 32)),
-        ],
+        ),
       ),
-    ));
+    );
   }
 }
 
@@ -159,15 +165,8 @@ class _ZoneCardState extends State<_ZoneCard> {
   Widget build(BuildContext context) {
     final zone      = widget.zone;
     final levels    = zone.levels;
-    final isPremium = context.watch<SubscriptionService>().isPremium;
     
-    // PREMIUM GATING: Last two zones (Zones 4 & 5) are Premium only
-    final zoneIndex = inspectorGameZones.indexOf(zone);
-    final isPremiumZone = zoneIndex >= 3; 
-    
-    final isUnlocked = isPremiumZone 
-        ? isPremium 
-        : widget.progress.isInspectorZoneUnlocked(zone.id);
+    final isUnlocked = widget.progress.isInspectorZoneUnlocked(zone.id);
         
     final cost      = kInspectorZoneUnlockCost[zone.id] ?? 0;
     
@@ -192,12 +191,7 @@ class _ZoneCardState extends State<_ZoneCard> {
           GestureDetector(
             onTap: () {
               if (!isUnlocked) {
-                if (isPremiumZone && !isPremium) {
-                  // Show Paywall for premium zones
-                  Navigator.pushNamed(context, '/paywall');
-                } else {
-                  _showUnlockDialog(context, cost);
-                }
+                _showUnlockDialog(context, cost);
               } else {
                 setState(() => _expanded = !_expanded);
               }
@@ -240,12 +234,12 @@ class _ZoneCardState extends State<_ZoneCard> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            isPremiumZone ? Icons.star_rounded : Icons.lock_rounded, 
+                          const Icon(
+                            Icons.lock_rounded, 
                             color: AppTheme.accentAmber, size: 10
                           ),
                           const SizedBox(width: 4),
-                          Text(isPremiumZone ? 'PREMIUM' : '$cost XP',
+                          Text('$cost XP',
                             style: const TextStyle(
                               color: AppTheme.accentAmber,
                               fontSize: 10, fontWeight: FontWeight.w700)),

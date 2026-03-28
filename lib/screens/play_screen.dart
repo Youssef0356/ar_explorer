@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../core/app_theme.dart';
 import '../services/sound_service.dart';
 import '../services/theme_service.dart';
-import '../services/subscription_service.dart';
 import '../widgets/animated_google_background.dart';
 
 // Game screens
@@ -79,14 +78,9 @@ class PlayScreen extends StatelessWidget {
                         icon: Icons.account_tree_rounded,
                         color: AppTheme.accentPurple,
                         onTap: () {
-                          if (context.read<SubscriptionService>().isPremium) {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const GameMapScreen()));
-                          } else {
-                            Navigator.pushNamed(context, '/paywall');
-                          }
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const GameMapScreen()));
                         },
                         delay: 300,
-                        isPremiumPromo: true,
                       ),
                       const SizedBox(height: 16),
                       
@@ -99,14 +93,9 @@ class PlayScreen extends StatelessWidget {
                         icon: Icons.bug_report_rounded,
                         color: AppTheme.errorRed,
                         onTap: () {
-                          if (context.read<SubscriptionService>().isPremium) {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const ARDebuggerMapScreen()));
-                          } else {
-                            Navigator.pushNamed(context, '/paywall');
-                          }
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const ARDebuggerMapScreen()));
                         },
                         delay: 400,
-                        isPremiumPromo: true, 
                       ),
                       const SizedBox(height: 48),
                     ],

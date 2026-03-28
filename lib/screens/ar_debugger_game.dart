@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
 import '../services/subscription_service.dart';
+import '../core/app_theme.dart';
+import '../widgets/animated_google_background.dart';
 import 'paywall_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════════
@@ -346,51 +348,110 @@ class ARDebuggerMapScreen extends StatelessWidget {
     final progress = context.watch<GameProgressService>();
     final isPremium = context.watch<SubscriptionService>().isPremium;
 
-    return Theme(data: ThemeData.dark(), child: Scaffold(
-      backgroundColor: const Color(0xFF060B14),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(context, progress, isPremium),
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
-                itemCount: debugLevels.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 12),
-                itemBuilder: (ctx, i) {
-                  final level = debugLevels[i];
-                  final isLocked = i > 0 &&
-                      !progress.isLevelCompleted(debugLevels[i - 1].id);
-                  final isCompleted = progress.isLevelCompleted(level.id);
-                  final stars = progress.getStars(level.id);
+    return Theme(
+      data: ThemeData.dark(),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: AnimatedGoogleBackground(
+          isDark: true,
+          child: Column(
+            children: [
+              _buildHeader(context, progress, isPremium),
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+                  itemCount: debugLevels.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
+                  itemBuilder: (ctx, i) {
+                    final level = debugLevels[i];
+                    final isLocked = progress.isLevelLocked(level.id);
+                    final isCompleted = progress.isLevelCompleted(level.id);
+                    final stars = progress.getStars(level.id);
 
-                  final isPremiumLocked = !level.isFree && !isPremium;
-                  return _LevelCard(
-                    level: level,
-                    index: i,
-                    isLocked: isLocked || isPremiumLocked,
-                    isPremiumLocked: isPremiumLocked,
-                    isCompleted: isCompleted,
-                    stars: stars,
-                    onTap: isPremiumLocked
-                        ? () => Navigator.push(ctx, MaterialPageRoute(builder: (_) => const PaywallScreen()))
-                        : isLocked
-                            ? null
-                            : () => Navigator.push(
-                              ctx,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    ARDebuggerGameScreen(level: level),
+                    return _LevelCard(
+                      level: level,
+                      index: i,
+                      isLocked: isLocked,
+                      isCompleted: isCompleted,
+                      stars: stars,
+                      onTap: isLocked
+                          ? () => _showUnlockLevelDialog(ctx, level, progress)
+                          : () => Navigator.push(
+                                ctx,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      ARDebuggerGameScreen(level: level),
+                                ),
                               ),
-                            ),
-                  );
-                },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showUnlockLevelDialog(BuildContext context, DebugLevel level, GameProgressService progress) {
+    const int cost = 20;
+    final canAfford = progress.unifiedXP >= cost;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF131927),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Row(
+          children: [
+            Icon(Icons.lock_open_rounded, color: AppTheme.accentPurple),
+            SizedBox(width: 12),
+            Text('Unlock Debug Level', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Unlock "${level.title}" for $cost XP?', style: const TextStyle(color: Colors.white70)),
+            const SizedBox(height: 12),
+            Text(
+              'Your Balance: ${progress.unifiedXP} XP',
+              style: TextStyle(
+                color: canAfford ? AppTheme.successGreen : AppTheme.errorRed,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            onPressed: canAfford
+                ? () async {
+                    final success = await progress.unlockLevel(level.id, cost);
+                    if (success && context.mounted) {
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(' unlocked ${level.title} module!')),
+                      );
+                    }
+                  }
+                : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.accentPurple,
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Unlock'),
+          ),
+        ],
       ),
-    ));
+    );
   }
 
   Widget _buildHeader(BuildContext context, GameProgressService progress, bool isPremium) {
@@ -456,33 +517,6 @@ class ARDebuggerMapScreen extends StatelessWidget {
               ),
             ],
           ),
-          if (!isPremium)
-            GestureDetector(
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const PaywallScreen())),
-              child: Container(
-                margin: const EdgeInsets.only(top: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.amber.withOpacity(0.25)),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.workspace_premium_rounded,
-                        color: Colors.amber, size: 11),
-                    SizedBox(width: 5),
-                    Text('Unlock all 5 levels with Premium',
-                        style: TextStyle(
-                            color: Colors.amber,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -493,7 +527,6 @@ class _LevelCard extends StatelessWidget {
   final DebugLevel level;
   final int index;
   final bool isLocked;
-  final bool isPremiumLocked;
   final bool isCompleted;
   final int stars;
   final VoidCallback? onTap;
@@ -502,7 +535,6 @@ class _LevelCard extends StatelessWidget {
     required this.level,
     required this.index,
     required this.isLocked,
-    this.isPremiumLocked = false,
     required this.isCompleted,
     required this.stars,
     this.onTap,
@@ -547,14 +579,10 @@ class _LevelCard extends StatelessWidget {
                         : level.accentColor.withOpacity(0.3)),
               ),
               child: Center(
-                child: isPremiumLocked
-                    ? const Icon(Icons.workspace_premium_rounded,
-                        color: Colors.amber, size: 26)
-                    : Text(
-                        isLocked ? '🔒' : level.screenshotEmoji,
-                        style: TextStyle(
-                            fontSize: isLocked ? 22 : 26),
-                      ),
+                child: Text(
+                  isLocked ? '🔒' : level.screenshotEmoji,
+                  style: TextStyle(fontSize: isLocked ? 22 : 26),
+                ),
               ),
             ),
             const SizedBox(width: 14),
@@ -593,32 +621,6 @@ class _LevelCard extends StatelessWidget {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            if (isPremiumLocked)
-                              Container(
-                                margin: const EdgeInsets.only(top: 4),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 7, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Colors.amber.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                      color: Colors.amber.withOpacity(0.3)),
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.workspace_premium_rounded,
-                                        color: Colors.amber, size: 10),
-                                    SizedBox(width: 4),
-                                    Text('PREMIUM',
-                                        style: TextStyle(
-                                            color: Colors.amber,
-                                            fontSize: 8,
-                                            fontWeight: FontWeight.w900,
-                                            letterSpacing: 1)),
-                                  ],
-                                ),
-                              ),
                           ],
                         ),
                       ),

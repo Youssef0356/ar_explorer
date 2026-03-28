@@ -14,6 +14,10 @@ class AdService extends ChangeNotifier {
   bool _isRewardedAdLoading = false;
   Completer<bool>? _rewardedLoadCompleter;
 
+  // Ad Cooldown Logic
+  DateTime? _lastAdShownTimestamp;
+  static const Duration _adCooldown = Duration(seconds: 60);
+
   // Ad Unit IDs (Test IDs vs Real IDs based on debug/release)
   String get _interstitialAdUnitId {
     if (kDebugMode) {
@@ -115,6 +119,11 @@ class AdService extends ChangeNotifier {
     if (_subscriptionService?.isPremium ?? false) return;
     final random = Random().nextDouble();
     if (random <= probability) {
+      if (_lastAdShownTimestamp != null && 
+          DateTime.now().difference(_lastAdShownTimestamp!) < _adCooldown) {
+        debugPrint('Ad skipped due to 60s cooldown.');
+        return;
+      }
       await showInterstitialAd();
     }
   }
@@ -129,9 +138,16 @@ class AdService extends ChangeNotifier {
     
     debugPrint('Attempting to show InterstitialAd...');
 
+    if (_lastAdShownTimestamp != null && 
+        DateTime.now().difference(_lastAdShownTimestamp!) < _adCooldown) {
+      debugPrint('InterstitialAd skipped due to 60s cooldown.');
+      return;
+    }
+
     _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
       onAdShowedFullScreenContent: (ad) {
         debugPrint('InterstitialAd showed successfully.');
+        _lastAdShownTimestamp = DateTime.now();
       },
       onAdDismissedFullScreenContent: (ad) {
         debugPrint('InterstitialAd dismissed.');
@@ -155,6 +171,15 @@ class AdService extends ChangeNotifier {
     if (_subscriptionService?.isPremium ?? false) {
       debugPrint('Premium user, returning success for RewardedAd.');
       return true; // Auto-success for premium
+    }
+
+    if (_lastAdShownTimestamp != null && 
+        DateTime.now().difference(_lastAdShownTimestamp!) < _adCooldown) {
+      debugPrint('RewardedAd skipped due to 60s cooldown.');
+      // Return true so we don't break the user's flow, just skip the ad.
+      // Or return false? User said "so users wont get pissed off from getting many ads".
+      // Let's grant the reward but skip the ad.
+      return true; 
     }
     if (_rewardedAd == null) {
       debugPrint('Warning: attempt to show rewarded ad before loaded. Waiting to load...');
@@ -190,6 +215,7 @@ class AdService extends ChangeNotifier {
     _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
       onAdShowedFullScreenContent: (ad) {
         debugPrint('RewardedAd showed successfully.');
+        _lastAdShownTimestamp = DateTime.now();
       },
       onAdDismissedFullScreenContent: (ad) {
         debugPrint('RewardedAd dismissed.');

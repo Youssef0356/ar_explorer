@@ -87,11 +87,36 @@ class AppTheme {
   static Color textMutedC(bool isDark) => isDark ? textMuted : textMutedLight;
   static Color dividerC(bool isDark) =>
       isDark ? dividerColor : dividerColorLight;
-  static Color cardC(bool isDark, {bool isNeon = false}) => isNeon ? const Color(0xFF0D0D12) : (isDark ? cardDark : cardLight);
-  static Color surfaceC(bool isDark, {bool isNeon = false}) => isNeon ? const Color(0xFF08080A) : (isDark ? surfaceDark : surfaceLight);
-  static Color scaffoldC(bool isDark, {bool isNeon = false}) => isNeon ? neonDark : (isDark ? primaryDark : primaryLight);
+  static Color cardC(bool isDark, {bool isNeon = false}) => isNeon ? const Color(0xFF0D0D15) : (isDark ? cardDark : cardLight);
+  static Color surfaceC(bool isDark, {bool isNeon = false}) => isNeon ? const Color(0xFF08080C) : (isDark ? surfaceDark : surfaceLight);
+  static Color scaffoldC(bool isDark, {bool isNeon = false}) => isNeon ? const Color(0xFF020204) : (isDark ? primaryDark : primaryLight);
   static Color accentP(bool isNeon) => isNeon ? neonPurple : accentPurple;
   static Color accentC(bool isNeon) => isNeon ? neonCyan : accentCyan;
+
+  // ── Neon Helpers ───────────────────────────────────────────────
+  static BoxDecoration neonGlassDecoration({required Color color, double opacity = 0.1}) {
+    return BoxDecoration(
+      color: Colors.black.withValues(alpha: 0.6),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
+      boxShadow: [
+        BoxShadow(
+          color: color.withValues(alpha: opacity),
+          blurRadius: 12,
+          spreadRadius: 2,
+        ),
+      ],
+    );
+  }
+
+  static List<BoxShadow> neonShadow(Color color) => [
+    BoxShadow(
+      color: color.withValues(alpha: 0.3),
+      blurRadius: 8,
+      spreadRadius: 1,
+    ),
+  ];
+
 
   // ── Text Styles (cached — GoogleFonts is expensive per-call) ──
   static final TextStyle headingLarge = GoogleFonts.outfit(
@@ -112,6 +137,18 @@ class AppTheme {
     fontWeight: FontWeight.w600,
     color: textPrimary,
   );
+
+  static TextStyle applyNeon(TextStyle style, {Color glowColor = neonCyan}) {
+    return style.copyWith(
+      color: Colors.white,
+      shadows: [
+        Shadow(color: glowColor.withValues(alpha: 0.8), blurRadius: 10),
+        Shadow(color: glowColor.withValues(alpha: 0.5), blurRadius: 20),
+      ],
+    );
+  }
+
+
 
   static final TextStyle bodyLarge = GoogleFonts.inter(
     fontSize: 16,
@@ -355,9 +392,5 @@ class AppTheme {
   static String getMotivationalMessage(double progress) {
     final idx = (progress * (motivationalMessages.length - 1)).floor();
     return motivationalMessages[idx.clamp(0, motivationalMessages.length - 1)];
-  }
-
-  static int getXP(int completedTopics, int totalQuizScore) {
-    return (completedTopics * 50) + (totalQuizScore * 2);
   }
 }

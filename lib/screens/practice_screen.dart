@@ -66,7 +66,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
     });
   }
 
-  void _startDailyChallenge() {
+  void _startDailyChallenge() async {
     final progress = context.read<ProgressService>();
     if (progress.hasDoneDailyChallenge) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -78,6 +78,21 @@ class _PracticeScreenState extends State<PracticeScreen> {
         ),
       );
       return;
+    }
+
+    if (!progress.isPremium) {
+      if (progress.xp < 20) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Not enough XP. Daily Challenge requires 20 XP!'),
+            backgroundColor: AppTheme.errorRed,
+          ),
+        );
+        return;
+      }
+
+      final confirm = await _showDailyChallengeCostDialog(progress);
+      if (confirm != true) return;
     }
 
     final all = _getAllQuestions()..shuffle(Random());
@@ -184,6 +199,39 @@ class _PracticeScreenState extends State<PracticeScreen> {
     );
   }
 
+  Future<bool?> _showDailyChallengeCostDialog(ProgressService progress) {
+    final isDark = context.read<ThemeService>().isDarkMode;
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.cardC(isDark),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.bolt_rounded, color: AppTheme.accentAmber),
+            const SizedBox(width: 8),
+            Text('Daily Challenge', style: AppTheme.headingSmall.copyWith(color: AppTheme.textPrimaryC(isDark))),
+          ],
+        ),
+        content: Text('Unlock today\'s Daily Challenge for 20 XP?', style: AppTheme.bodyMedium.copyWith(color: AppTheme.textSecondaryC(isDark))),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Cancel', style: AppTheme.bodyMedium.copyWith(color: AppTheme.textMutedC(isDark))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accentAmber),
+            onPressed: () async {
+              final ok = await progress.spendXP(20);
+              Navigator.pop(ctx, ok);
+            },
+            child: Text('-20 XP', style: AppTheme.bodyMedium.copyWith(color: Colors.black, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = context.watch<ThemeService>().isDarkMode;
@@ -239,7 +287,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
             title: 'Daily Challenge',
             subtitle: doneDailyToday
                 ? '✅ Completed! Come back tomorrow'
-                : '5 random questions — test yourself!',
+                : 'Costs 20 XP • Test yourself!',
             color: AppTheme.accentAmber,
             isDark: isDark,
             enabled: !doneDailyToday,

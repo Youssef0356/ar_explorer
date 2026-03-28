@@ -19,6 +19,8 @@ class NotificationService extends ChangeNotifier {
   static const String _streakChannelName = 'Streak Reminders';
   static const String _funnyChannelId = 'engagement_messages';
   static const String _funnyChannelName = 'Funny Reminders';
+  static const String _dailyChannelId = 'daily_xp_reminders';
+  static const String _dailyChannelName = 'Daily XP Reminders';
 
   final List<String> _funnyMessages = [
     "We are waiting for your interview, don't keep the hologram hanging! 🤖",
@@ -83,9 +85,17 @@ class NotificationService extends ChangeNotifier {
       importance: Importance.high,
       description: 'Fun and engaging messages to continue your journey.',
     ));
+
+    await androidPlugin?.createNotificationChannel(const AndroidNotificationChannel(
+      _dailyChannelId,
+      _dailyChannelName,
+      importance: Importance.high,
+      description: 'Reminders to claim your daily XP bonus.',
+    ));
     
     if (_notificationsEnabled) {
       scheduleEngagementNotifications();
+      scheduleDailyXPReminder();
     }
   }
 
@@ -97,6 +107,7 @@ class NotificationService extends ChangeNotifier {
       await cancelAll();
     } else {
       scheduleEngagementNotifications();
+      scheduleDailyXPReminder();
     }
     notifyListeners();
   }
@@ -157,6 +168,57 @@ class NotificationService extends ChangeNotifier {
         // REMOVED: uiLocalNotificationDateInterpretation (Obsolete in v21)
       );
     }
+  }
+
+  Future<void> scheduleDailyXPReminder() async {
+    if (!_notificationsEnabled) return;
+
+    await _notificationsPlugin.cancel(id: 3000);
+
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, 10, 0);
+
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+
+    await _notificationsPlugin.zonedSchedule(
+      id: 3000,
+      title: "Daily XP Ready! 🚀",
+      body: "Come get your 5 XP to start your journey and unlock new AR modules!",
+      scheduledDate: scheduledDate,
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          _dailyChannelId,
+          _dailyChannelName,
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+  }
+
+  Future<void> triggerFunnyNotification() async {
+    final random = Random();
+    final String message = _funnyMessages[random.nextInt(_funnyMessages.length)];
+    
+    await _notificationsPlugin.show(
+      id: 8888,
+      title: "Quick AR Reminder! 🚀",
+      body: message,
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          _funnyChannelId,
+          _funnyChannelName,
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+    );
   }
 
   // --- Debug / Testing Purposes ---

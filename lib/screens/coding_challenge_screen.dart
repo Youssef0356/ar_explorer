@@ -9,6 +9,8 @@ import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
 import '../services/ad_service.dart';
 import '../services/subscription_service.dart';
+import '../services/progress_service.dart';
+import '../data/coding_game_data.dart';
 import '../widgets/shareable_achievement_card.dart';
 import 'paywall_screen.dart';
 
@@ -29,6 +31,7 @@ class CodingChallengeScreen extends StatefulWidget {
 class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
   late Map<String, String?> _slotAnswers; // slotId -> wordChipId
   late List<WordChip> _wordBank;
+  final ScrollController _wordBankController = ScrollController();
   bool _checked = false;
   Map<String, bool> _results = {}; // slotId -> correct?
   int _timeRemaining = 0;
@@ -95,6 +98,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _wordBankController.dispose();
     super.dispose();
   }
 
@@ -440,31 +444,38 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
 
   Widget _buildWordBank() {
     return Container(
-      height: 100,
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      height: 140, // Increased height to make scrolling easier
+      padding: const EdgeInsets.symmetric(vertical: 24),
       decoration: BoxDecoration(
         color: const Color(0xFF0F1420),
         border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
       ),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: _wordBank.length,
-        itemBuilder: (context, index) {
-          final chip = _wordBank[index];
-          return Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Draggable<WordChip>(
-              data: chip,
-              feedback: Material(
-                color: Colors.transparent,
-                child: _buildChipUI(chip, isDragging: true),
+      child: Scrollbar(
+        controller: _wordBankController,
+        thumbVisibility: true,
+        thickness: 8,
+        radius: const Radius.circular(4),
+        child: ListView.builder(
+          controller: _wordBankController,
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
+          itemCount: _wordBank.length,
+          itemBuilder: (context, index) {
+            final chip = _wordBank[index];
+            return Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Draggable<WordChip>(
+                data: chip,
+                feedback: Material(
+                  color: Colors.transparent,
+                  child: _buildChipUI(chip, isDragging: true),
+                ),
+                childWhenDragging: Opacity(opacity: 0.3, child: _buildChipUI(chip)),
+                child: _buildChipUI(chip),
               ),
-              childWhenDragging: Opacity(opacity: 0.3, child: _buildChipUI(chip)),
-              child: _buildChipUI(chip),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -656,6 +667,26 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
   }
 
   void _showVictoryDialog(int xp, int stars) {
+    // Check if this was the last level to award certificate
+    final progress = context.read<ProgressService>();
+    final gameProgress = context.read<GameProgressService>();
+    
+    // Check if all coding levels are completed
+    bool allCodingDone = true;
+    for (var zone in codingGameZones) {
+       for (var level in zone.levels) {
+          if (level.id != widget.level.id && !gameProgress.isCodingLevelCompleted(level.id)) {
+             allCodingDone = false;
+             break;
+          }
+       }
+       if (!allCodingDone) break;
+    }
+
+    if (allCodingDone) {
+       progress.unlockCertificate(ProgressService.certPlatformDeveloper);
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,

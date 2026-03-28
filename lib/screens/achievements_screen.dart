@@ -91,10 +91,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
         ? completedTopics / totalTopics
         : 0.0;
     final levelTitle = AppTheme.getLevelTitle(overallProgress);
-    final totalQuizScore =
-        coreProgress.achievements.where((a) => a.startsWith('quiz_ace_')).length *
-        50;
-    final xp = AppTheme.getXP(completedTopics, totalQuizScore);
+    final xp = gameProgress.unifiedXP;
 
     return Scaffold(
       body: AnimatedGoogleBackground(
@@ -154,7 +151,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                       const SizedBox(height: 24),
 
                       // ── Sharable Certificates ──
-                      _buildCertificates(context, isDark),
+                      _buildCertificates(context, isDark, coreProgress),
 
                       const SizedBox(height: 24),
 
@@ -566,7 +563,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildCertificates(BuildContext context, bool isDark) {
+  Widget _buildCertificates(BuildContext context, bool isDark, ProgressService coreProgress) {
     final isPremium = context.watch<SubscriptionService>().isPremium;
     
     if (!isPremium) {
@@ -602,9 +599,25 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              _buildCertificateCard('AR Pipeline Engineer', 'Pipeline Challenge', isDark),
-              const SizedBox(width: 16),
-              _buildCertificateCard('XR Platform Developer', 'Coding Games', isDark),
+              if (coreProgress.hasAchievement(ProgressService.certPipelineEngineer))
+                _buildCertificateCard('AR Pipeline Engineer', 'Pipeline Challenge', isDark),
+              
+              if (coreProgress.hasAchievement(ProgressService.certPipelineEngineer) &&
+                  coreProgress.hasAchievement(ProgressService.certPlatformDeveloper))
+                const SizedBox(width: 16),
+                
+              if (coreProgress.hasAchievement(ProgressService.certPlatformDeveloper))
+                _buildCertificateCard('XR Platform Developer', 'Coding Games', isDark),
+
+              if (!coreProgress.hasAchievement(ProgressService.certPipelineEngineer) &&
+                  !coreProgress.hasAchievement(ProgressService.certPlatformDeveloper))
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Complete all game levels to earn certificates!',
+                    style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                  ),
+                ),
             ],
           ),
         ),

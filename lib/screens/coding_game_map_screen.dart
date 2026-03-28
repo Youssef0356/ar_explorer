@@ -5,37 +5,271 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../core/app_theme.dart';
 import '../data/coding_game_data.dart';
 import '../services/game_progress_service.dart';
-import '../services/sound_service.dart';
-import '../services/subscription_service.dart';
+import '../models/coding_game_models.dart';
+import '../widgets/animated_google_background.dart';
 import 'coding_challenge_screen.dart';
 
-class CodingGameMapScreen extends StatelessWidget {
+// ── Map layout constants ──────────────────────────────────────────────────────
+const double _mapWidth  = 420.0;
+const double _mapHeight = 1380.0;
+
+final Map<String, Offset> _levelPositions = {
+  'z1_l1':   const Offset(210, 1300),
+  'z1_l2':   const Offset(110, 1210),
+  'z1_boss': const Offset(310, 1180),
+  'z2_l1':   const Offset(90,  1060),
+  'z2_l2':   const Offset(280, 1010),
+  'z2_boss': const Offset(180,  950),
+  'z3_l1':   const Offset(320,  830),
+  'z3_l2':   const Offset(110,  790),
+  'z3_boss': const Offset(220,  720),
+  'z4_l1':   const Offset(100,  600),
+  'z4_l2':   const Offset(310,  560),
+  'z4_boss': const Offset(200,  490),
+  'z5_l1':   const Offset(300,  370),
+  'z5_l2':   const Offset(120,  300),
+  'z5_boss': const Offset(210,  200),
+};
+
+final List<String> _levelOrder = [
+  'z1_l1', 'z1_l2', 'z1_boss',
+  'z2_l1', 'z2_l2', 'z2_boss',
+  'z3_l1', 'z3_l2', 'z3_boss',
+  'z4_l1', 'z4_l2', 'z4_boss',
+  'z5_l1', 'z5_l2', 'z5_boss',
+];
+
+class CodingGameMapScreen extends StatefulWidget {
   const CodingGameMapScreen({super.key});
+  @override
+  State<CodingGameMapScreen> createState() => _CodingGameMapScreenState();
+}
+
+class _CodingGameMapScreenState extends State<CodingGameMapScreen>
+    with SingleTickerProviderStateMixin {
+  final ScrollController _scrollController = ScrollController();
+  late AnimationController _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat(reverse: true);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToCurrentLevel());
+  }
+
+  void _scrollToCurrentLevel() {
+    if (!_scrollController.hasClients) return;
+    final progress = context.read<GameProgressService>();
+    String? targetId;
+    for (final id in _levelOrder) {
+      if (!progress.isLevelCompleted(id) && !progress.isLevelLocked(id)) {
+        targetId = id;
+        break;
+      }
+    }
+    if (targetId == null) return;
+    final pos = _levelPositions[targetId];
+    if (pos == null) return;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final scale = MediaQuery.of(context).size.width / _mapWidth;
+    final scrollTarget = ((pos.dy * scale) - screenHeight / 2 + 50)
+        .clamp(0.0, _mapHeight * scale);
+    _scrollController.animateTo(
+      scrollTarget,
+      duration: const Duration(milliseconds: 900),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _pulseController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isPremium = context.watch<SubscriptionService>().isPremium;
     final progress = context.watch<GameProgressService>();
-    final sound = context.read<SoundService>();
+    final screenWidth = MediaQuery.of(context).size.width;
+    final scale = screenWidth / _mapWidth;
+    final scaledHeight = _mapHeight * scale;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF060B14),
-      body: SafeArea(
+    return Theme(
+      data: ThemeData.dark(),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: AnimatedGoogleBackground(
+          isDark: true,
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                controller: _scrollController,
+                physics: const BouncingScrollPhysics(),
+                child: SizedBox(
+                  width: screenWidth,
+                  height: scaledHeight,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      RepaintBoundary(
+                        child: SizedBox(
+                          width: screenWidth,
+                          height: scaledHeight,
+                          child: CustomPaint(
+                            painter: _StaticMapPainter(
+                              zones: codingGameZones,
+                              progress: progress,
+                              levelOrder: _levelOrder,
+                              levelPositions: _levelPositions,
+                              scale: scale,
+                            ),
+                          ),
+                        ),
+                      ),
+                      ...codingGameZones.map((zone) {
+                        final labelY = _getZoneLabelY(zone.id) * scale;
+                        return Positioned(
+                          left: 0, right: 0, top: labelY,
+                          child: _ZoneLabel(zone: zone, scale: scale),
+                        );
+                      }),
+                      ...codingGameZones.expand((zone) => zone.levels.map((level) {
+                        final pos = _levelPositions[level.id];
+                        if (pos == null) return const SizedBox.shrink();
+                        final isLocked = progress.isLevelLocked(level.id);
+                        final stars = progress.getStars(level.id);
+                        return Positioned(
+                          left: pos.dx * scale - 30 * scale,
+                          top:  pos.dy * scale - 30 * scale,
+                          child: _LevelNode(
+                            level: level,
+                            zone: zone,
+                            isLocked: isLocked,
+                            stars: stars,
+                            nodeSize: (level.isBoss ? 72.0 : 58.0) * scale,
+                            pulseAnimation: _pulseController,
+                            onTap: isLocked 
+                              ? () => _showUnlockLevelDialog(context, level, progress)
+                              : () => _showLevelSheet(level, zone),
+                          ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.5, 0.5)),
+                        );
+                      })),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 0, left: 0, right: 0,
+                child: _buildHeader(progress),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showUnlockLevelDialog(BuildContext context, CodingLevel level, GameProgressService progress) {
+    const int cost = 20;
+    final canAfford = progress.unifiedXP >= cost;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF0D0D12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Unlock Level', style: TextStyle(color: Colors.white)),
+        content: Text('Unlock "${level.title}" for $cost XP?\nYour Balance: ${progress.unifiedXP} XP', style: const TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: canAfford ? () async {
+              await progress.unlockLevel(level.id, cost);
+              if (context.mounted) Navigator.pop(ctx);
+            } : null,
+            child: const Text('Unlock'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  double _getZoneLabelY(String zoneId) => const {
+    'zone_1': 1365.0,
+    'zone_2': 1130.0,
+    'zone_3': 890.0,
+    'zone_4': 650.0,
+    'zone_5': 410.0,
+  }[zoneId] ?? 0.0;
+
+  Widget _buildHeader(GameProgressService progress) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(12, MediaQuery.of(context).padding.top + 8, 16, 14),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.3),
+        border: const Border(bottom: BorderSide(color: Colors.white10)),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('SYSTEMS ENGINEER', style: TextStyle(color: AppTheme.accentPurple, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 2.5)),
+                Text('Logic Map', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
+              ],
+            ),
+          ),
+          Text('${progress.unifiedXP} XP', style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  void _showLevelSheet(CodingLevel level, CodingZone zone) {
+    final progress = context.read<GameProgressService>();
+    final stars = progress.getStars(level.id);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Color(0xFF0F172A),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            _buildHeader(context, sound, progress),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-                itemCount: codingGameZones.length,
-                itemBuilder: (context, index) {
-                  final zone = codingGameZones[index];
-                  // Levels 3, 4, 5 (all zones after the first simple one) could be premium?
-                  // Using user's spec: "Zone 1 free, rest premium" typically.
-                  final isLocked = !isPremium && index > 0;
-
-                  return _buildZoneCard(context, zone, isLocked, sound, progress);
+            Text(level.title, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            Text(level.goal, style: const TextStyle(color: Colors.white70), textAlign: TextAlign.center),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => CodingChallengeScreen(level: level, accentColor: zone.accentColor)));
                 },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: zone.accentColor,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
+                ),
+                child: Text(stars > 0 ? 'REPLAY' : 'START'),
               ),
             ),
           ],
@@ -43,165 +277,76 @@ class CodingGameMapScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildHeader(BuildContext context, SoundService sound, GameProgressService progress) {
+class _ZoneLabel extends StatelessWidget {
+  final CodingZone zone;
+  final double scale;
+  const _ZoneLabel({required this.zone, required this.scale});
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Row(
+      padding: EdgeInsets.symmetric(horizontal: 16 * scale),
+      child: Text(zone.name.toUpperCase(), style: TextStyle(color: zone.accentColor, fontSize: 10 * scale, fontWeight: FontWeight.bold)),
+    );
+  }
+}
+
+class _LevelNode extends StatelessWidget {
+  final CodingLevel level;
+  final CodingZone zone;
+  final bool isLocked;
+  final int stars;
+  final double nodeSize;
+  final Animation<double> pulseAnimation;
+  final VoidCallback onTap;
+
+  const _LevelNode({required this.level, required this.zone, required this.isLocked, required this.stars, required this.nodeSize, required this.pulseAnimation, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isLocked ? Colors.grey : zone.accentColor;
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-            onPressed: () {
-              sound.playTap();
-              Navigator.pop(context);
-            },
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('AR PLATFORMS', style: TextStyle(color: AppTheme.accentCyan, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 2)),
-                Text('Select a Zone', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
-              ],
+          Container(
+            width: nodeSize, height: nodeSize,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isLocked ? Colors.white10 : color.withValues(alpha: 0.2),
+              border: Border.all(color: color, width: 2),
             ),
+            child: Icon(isLocked ? Icons.lock : Icons.play_arrow, color: color),
           ),
-          if (progress.codingStreak > 0)
-            Container(
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Text('🔥', style: TextStyle(fontSize: 14)),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${progress.codingStreak} DAY STREAK',
-                    style: const TextStyle(color: Colors.orange, fontSize: 10, fontWeight: FontWeight.w800),
-                  ),
-                ],
-              ),
-            ),
+          const SizedBox(height: 4),
+          Text(level.title, style: TextStyle(color: Colors.white70, fontSize: 10 * (nodeSize/60))),
         ],
       ),
     );
   }
+}
 
-  Widget _buildZoneCard(BuildContext context, dynamic zone, bool isLocked, SoundService sound, GameProgressService progress) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      child: Stack(
-        children: [
-          GestureDetector(
-            onTap: () {
-              sound.playTap();
-              if (isLocked) {
-                // Show paywall or simple message
-                _showLockedMessage(context);
-              } else {
-                // Navigate to first level of zone (expanding to a level list or auto-start)
-                // For this MVP, we start the first level of the zone
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => CodingChallengeScreen(
-                      level: zone.levels.first,
-                      accentColor: zone.accentColor,
-                    ),
-                  ),
-                );
-              }
-            },
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: const Color(0xFF131927),
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: zone.accentColor.withValues(alpha: isLocked ? 0.05 : 0.2), width: 1),
-                boxShadow: [
-                  BoxShadow(color: zone.accentColor.withValues(alpha: isLocked ? 0.0 : 0.05), blurRadius: 30, offset: const Offset(0, 10)),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: zone.accentColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Icon(zone.icon, color: zone.accentColor, size: 30),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          zone.name,
-                          style: TextStyle(
-                            color: isLocked ? Colors.white38 : Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          zone.platform,
-                          style: TextStyle(
-                            color: zone.accentColor.withValues(alpha: 0.6),
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildProgressDots(
-                          zone.levels.length, 
-                          zone.levels.where((l) => progress.isCodingLevelCompleted(l.id)).length
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (isLocked)
-                    const Icon(Icons.lock_rounded, color: Colors.amber, size: 24)
-                  else
-                    Icon(Icons.chevron_right_rounded, color: Colors.white.withValues(alpha: 0.2)),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.1, duration: 400.ms);
+class _StaticMapPainter extends CustomPainter {
+  final List<CodingZone> zones;
+  final GameProgressService progress;
+  final List<String> levelOrder;
+  final Map<String, Offset> levelPositions;
+  final double scale;
+
+  _StaticMapPainter({required this.zones, required this.progress, required this.levelOrder, required this.levelPositions, required this.scale});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = Colors.white12..strokeWidth = 2..style = PaintingStyle.stroke;
+    for (int i = 0; i < levelOrder.length - 1; i++) {
+      final p1 = levelPositions[levelOrder[i]]! * scale;
+      final p2 = levelPositions[levelOrder[i+1]]! * scale;
+      canvas.drawLine(p1, p2, paint);
+    }
   }
 
-  Widget _buildProgressDots(int total, int completed) {
-    return Row(
-      children: List.generate(total, (i) {
-        final isLast = i == total - 1;
-        return Container(
-          width: isLast ? 24 : 12,
-          height: 8,
-          margin: const EdgeInsets.only(right: 6),
-          decoration: BoxDecoration(
-            color: i < completed ? AppTheme.accentCyan : Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(4),
-            border: isLast ? Border.all(color: AppTheme.accentAmber.withValues(alpha: 0.5)) : null,
-          ),
-          child: isLast ? const Center(child: Icon(Icons.bolt, color: AppTheme.accentAmber, size: 6)) : null,
-        );
-      }),
-    );
-  }
-
-  void _showLockedMessage(BuildContext context) {
-    Navigator.pushNamed(context, '/paywall');
-  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

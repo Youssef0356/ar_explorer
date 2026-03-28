@@ -1,13 +1,13 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../core/app_theme.dart';
 import '../data/game_data.dart';
-import '../models/game_models.dart';
 import '../services/game_progress_service.dart';
-import '../services/subscription_service.dart';
+import '../models/game_models.dart';
+import '../widgets/animated_google_background.dart';
 import 'game_pipeline_screen.dart';
 
 // ── Map layout constants ──────────────────────────────────────────────────────
@@ -65,10 +65,9 @@ class _GameMapScreenState extends State<GameMapScreen>
   void _scrollToCurrentLevel() {
     if (!_scrollController.hasClients) return;
     final progress = context.read<GameProgressService>();
-    final isPremium = context.read<SubscriptionService>().isPremium;
     String? targetId;
     for (final id in _levelOrder) {
-      if (!progress.isLevelCompleted(id) && !progress.isLevelLocked(id, isPremium: isPremium)) {
+      if (!progress.isLevelCompleted(id) && !progress.isLevelLocked(id)) {
         targetId = id;
         break;
       }
@@ -97,112 +96,173 @@ class _GameMapScreenState extends State<GameMapScreen>
   @override
   Widget build(BuildContext context) {
     final progress = context.watch<GameProgressService>();
-    final isPremium = context.watch<SubscriptionService>().isPremium;
     final screenWidth = MediaQuery.of(context).size.width;
     final scale = screenWidth / _mapWidth;
     final scaledHeight = _mapHeight * scale;
 
-    return Theme(data: ThemeData.dark(), child: Scaffold(
-      backgroundColor: const Color(0xFF060B14),
-      body: Stack(
-        children: [
-          // ── Scrollable map ──
-          SingleChildScrollView(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 20, top: 20),
-            child: SizedBox(
-              width: screenWidth,
-              height: scaledHeight,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  // ── LAYER 1: Static background + paths (never repaints unless progress changes) ──
-                  RepaintBoundary(
-                    child: SizedBox(
-                      width: screenWidth,
-                      height: scaledHeight,
-                      child: CustomPaint(
-                        painter: _StaticMapPainter(
-                          zones: arGameZones,
-                          progress: progress,
-                          levelOrder: _levelOrder,
-                          levelPositions: _levelPositions,
-                          scale: scale,
+    return Theme(
+      data: ThemeData.dark(),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: AnimatedGoogleBackground(
+          isDark: true,
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                controller: _scrollController,
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 20, top: 20),
+                child: SizedBox(
+                  width: screenWidth,
+                  height: scaledHeight,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      RepaintBoundary(
+                        child: SizedBox(
+                          width: screenWidth,
+                          height: scaledHeight,
+                          child: CustomPaint(
+                            painter: _StaticMapPainter(
+                              zones: arGameZones,
+                              progress: progress,
+                              levelOrder: _levelOrder,
+                              levelPositions: _levelPositions,
+                              scale: scale,
+                            ),
+                            isComplex: true,
+                            willChange: false,
+                          ),
                         ),
-                        isComplex: true,
-                        willChange: false,
                       ),
-                    ),
+                      ...arGameZones.map((zone) {
+                        final labelY = _getZoneLabelY(zone.id) * scale;
+                        return Positioned(
+                          left: 0,
+                          right: 0,
+                          top: labelY,
+                          child: RepaintBoundary(
+                            child: _ZoneLabel(zone: zone, scale: scale),
+                          ),
+                        );
+                      }),
+                      ...arGameZones.expand((zone) => zone.levels.map((level) {
+                        final pos = _levelPositions[level.id];
+                        if (pos == null) return const SizedBox.shrink();
+                        
+                        final isLocked = progress.isLevelLocked(level.id, isFree: level.isFree);
+                        final isReadyToUnlock = progress.isLevelReadyToUnlock(level.id, _levelOrder);
+                        final stars     = progress.getStars(level.id);
+                        final scaledX   = pos.dx * scale;
+                        final scaledY   = pos.dy * scale;
+                        final nodeSize  = (level.isBoss ? 72.0 : 58.0) * scale;
+                        final delay     = Duration(milliseconds: _levelOrder.indexOf(level.id) * 30);
+
+                        return Positioned(
+                          left: scaledX - nodeSize / 2,
+                          top:  scaledY - nodeSize / 2,
+                          child: RepaintBoundary(
+                            child: _LevelNode(
+                              level: level,
+                              zone: zone,
+                              isLocked: isLocked,
+                              stars: stars,
+                              nodeSize: nodeSize,
+                              pulseAnimation: _pulseController,
+                              onTap: isLocked 
+                                ? (isReadyToUnlock 
+                                    ? () => _showUnlockLevelDialog(context, level, progress)
+                                    : () => ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Complete previous levels to unlock this one!'))))
+                                : () => _showLevelSheet(level, zone),
+                            )
+                              .animate(delay: delay)
+                              .fadeIn(duration: 400.ms)
+                              .scale(begin: const Offset(0.5, 0.5), curve: Curves.easeOutBack),
+                          ),
+                        );
+                      })),
+                    ],
                   ),
+                ),
+              ),
+              Positioned(
+                top: 0, left: 0, right: 0,
+                child: RepaintBoundary(child: _buildHeader(progress)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-                  // ── LAYER 2: Zone labels ──
-                  ...arGameZones.map((zone) {
-                    final labelY = _getZoneLabelY(zone.id) * scale;
-                    return Positioned(
-                      left: 0,
-                      right: 0,
-                      top: labelY,
-                      child: RepaintBoundary(
-                        child: _ZoneLabel(zone: zone, scale: scale),
-                      ),
-                    );
-                  }),
+  void _showUnlockLevelDialog(BuildContext context, ARLevel level, GameProgressService progress) {
+    const int cost = 20;
+    final canAfford = progress.unifiedXP >= cost;
 
-                  // ── LAYER 3: Level nodes (pulse animation isolated per node) ──
-                  ...arGameZones.expand((zone) => zone.levels.map((level) {
-                    final pos = _levelPositions[level.id];
-                    if (pos == null) return const SizedBox.shrink();
-                    final isLocked  = progress.isLevelLocked(level.id, isPremium: isPremium);
-                    final stars     = progress.getStars(level.id);
-                    final scaledX   = pos.dx * scale;
-                    final scaledY   = pos.dy * scale;
-                    final nodeSize  = (level.isBoss ? 72.0 : 58.0) * scale;
-                    final delay     = Duration(milliseconds: _levelOrder.indexOf(level.id) * 60);
-
-                    return Positioned(
-                      left: scaledX - nodeSize / 2,
-                      top:  scaledY - nodeSize / 2,
-                      // Give a generous hit area and unconstrained height so label never clips
-                      child: RepaintBoundary(
-                        child: _LevelNode(
-                          level: level,
-                          zone: zone,
-                          isLocked: isLocked,
-                          stars: stars,
-                          nodeSize: nodeSize,
-                          pulseAnimation: _pulseController,
-                          onTap: isLocked 
-                            ? () => Navigator.pushNamed(context, '/paywall') 
-                            : () => _showLevelSheet(level, zone),
-                        )
-                          .animate(delay: delay)
-                          .fadeIn(duration: 400.ms)
-                          .scale(begin: const Offset(0.5, 0.5), curve: Curves.easeOutBack),
-                      ),
-                    );
-                  })),
-                ],
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF0D0D12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.lock_open_rounded, color: AppTheme.accentPurple),
+            SizedBox(width: 12),
+            Text('Unlock Level', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Unlock "${level.title}" for $cost XP?', style: const TextStyle(color: Colors.white70)),
+            const SizedBox(height: 12),
+            Text(
+              'Your Balance: ${progress.unifiedXP} XP',
+              style: TextStyle(
+                color: canAfford ? AppTheme.successGreen : AppTheme.errorRed,
+                fontWeight: FontWeight.bold,
               ),
             ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
           ),
-
-          // ── Header overlay ──
-          Positioned(
-            top: 0, left: 0, right: 0,
-            child: RepaintBoundary(child: _buildHeader(progress)),
+          ElevatedButton(
+            onPressed: canAfford
+                ? () async {
+                    final success = await progress.unlockLevel(level.id, cost);
+                    if (success && context.mounted) {
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Unlocked ${level.title}!')),
+                      );
+                    }
+                  }
+                : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.accentPurple,
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Unlock'),
           ),
         ],
       ),
-    ));
+    );
   }
 
   double _getZoneLabelY(String zoneId) => const {
-    'zone_1': 1365.0, // Shifted down
-    'zone_2': 1130.0, // Shifted up away from z1_boss (1180)
-    'zone_3': 890.0,  // Shifted up
-    'zone_4': 650.0,  // Shifted up
-    'zone_5': 410.0,  // Shifted up
+    'zone_1': 1365.0,
+    'zone_2': 1130.0,
+    'zone_3': 890.0,
+    'zone_4': 650.0,
+    'zone_5': 410.0,
   }[zoneId] ?? 0.0;
 
   Widget _buildHeader(GameProgressService progress) {
@@ -220,106 +280,103 @@ class _GameMapScreenState extends State<GameMapScreen>
       padding: EdgeInsets.fromLTRB(
         12, MediaQuery.of(context).padding.top + 8, 16, 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF060B14).withValues(alpha: 0.98),
+        color: Colors.transparent,
         border: Border(bottom: BorderSide(
           color: AppTheme.accentPurple.withValues(alpha: 0.15))),
       ),
       child: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
-                onPressed: () => Navigator.pop(context),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('PIPELINE CHALLENGE',
-                        style: TextStyle(
-                            color: AppTheme.accentPurple,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 2.5)),
-                    const Text('Build Mini-Game',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700)),
-                  ],
-                ),
-              ),
-              // League badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                margin: const EdgeInsets.only(right: 8),
-                decoration: BoxDecoration(
-                  color: leagueColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: leagueColor.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(_getLeagueIcon(league), color: leagueColor, size: 14),
-                    const SizedBox(width: 4),
-                    Text(league,
-                      style: TextStyle(
-                        color: leagueColor, fontSize: 10,
-                        fontWeight: FontWeight.w800)),
-                  ],
-                ),
-              ),
-              // XP counter
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                margin: const EdgeInsets.only(right: 8),
-                decoration: BoxDecoration(
-                  color: Colors.amber.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.amber.withValues(alpha: 0.25)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.bolt_rounded, color: Colors.amber, size: 12),
-                    const SizedBox(width: 3),
-                    Text('${progress.unifiedXP}',
-                      style: const TextStyle(
-                        color: Colors.amber, fontSize: 10,
-                        fontWeight: FontWeight.w800)),
-                  ],
-                ),
-              ),
-              // Star progress ring
-              SizedBox(
-                width: 42, height: 42,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CircularProgressIndicator(
-                      value: maxStars > 0 ? totalStars / maxStars : 0,
-                      strokeWidth: 3,
-                      backgroundColor: Colors.white.withValues(alpha: 0.08),
-                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('$totalStars',
-                          style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.w800)),
-                        Text('/ $maxStars',
-                          style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 7)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
+            onPressed: () => Navigator.pop(context),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('PIPELINE CHALLENGE',
+                    style: TextStyle(
+                        color: AppTheme.accentPurple,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 2.5)),
+                const Text('Build Mini-Game',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700)),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: leagueColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: leagueColor.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(_getLeagueIcon(league), color: leagueColor, size: 14),
+                const SizedBox(width: 4),
+                Text(league,
+                  style: TextStyle(
+                    color: leagueColor, fontSize: 10,
+                    fontWeight: FontWeight.w800)),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: Colors.amber.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.amber.withValues(alpha: 0.25)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.bolt_rounded, color: Colors.amber, size: 12),
+                const SizedBox(width: 3),
+                Text('${progress.unifiedXP}',
+                  style: const TextStyle(
+                    color: Colors.amber, fontSize: 10,
+                    fontWeight: FontWeight.w800)),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 42, height: 42,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CircularProgressIndicator(
+                  value: maxStars > 0 ? totalStars / maxStars : 0,
+                  strokeWidth: 3,
+                  backgroundColor: Colors.white.withValues(alpha: 0.08),
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('$totalStars',
+                      style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.w800)),
+                    Text('/ $maxStars',
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 7)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -411,7 +468,6 @@ class _GameMapScreenState extends State<GameMapScreen>
               ],
             ),
             const SizedBox(height: 16),
-            // Project Task - main scenario description
             if (level.projectTask.isNotEmpty)
               Container(
                 width: double.infinity,
@@ -434,7 +490,6 @@ class _GameMapScreenState extends State<GameMapScreen>
                   ],
                 ),
               ),
-            // Build Context - expandable section
             if (level.buildContext.isNotEmpty) ...[
               const SizedBox(height: 8),
               ExpansionTile(
@@ -472,7 +527,6 @@ class _GameMapScreenState extends State<GameMapScreen>
                 ],
               ),
             ],
-            // Goal - short directive (fallback if projectTask empty)
             if (level.goal.isNotEmpty && level.projectTask.isEmpty)
               Container(
                 width: double.infinity,
@@ -760,11 +814,11 @@ class _StaticMapPainter extends CustomPainter {
 
   void _drawZoneBands(Canvas canvas, Size size) {
     final bands = [
-      (color: const Color(0xFFFF4081), top: 0.0,    bot: 440.0),
-      (color: const Color(0xFFFFC107), top: 440.0,  bot: 680.0),
-      (color: const Color(0xFFD1C4E9), top: 680.0,  bot: 920.0),
-      (color: const Color(0xFF2979FF), top: 920.0,  bot: 1160.0),
-      (color: const Color(0xFF00E5FF), top: 1160.0, bot: 1380.0),
+      (color: const Color(0xFFFF4081), top: 0.0,    bot: 440.0), // Zone 5
+      (color: const Color(0xFFFFC107), top: 440.0,  bot: 680.0), // Zone 4
+      (color: const Color(0xFFD1C4E9), top: 680.0,  bot: 920.0), // Zone 3
+      (color: const Color(0xFF2979FF), top: 920.0,  bot: 1160.0), // Zone 2
+      (color: const Color(0xFFD1C4E9), top: 1160.0, bot: 1380.0), // Zone 1 (Purple)
     ];
 
     for (final b in bands) {
@@ -788,7 +842,7 @@ class _StaticMapPainter extends CustomPainter {
           Paint()..color = b.color.withValues(alpha: 0.1)..strokeWidth = 0.5);
       }
 
-      // Static blob (no pulse — that's gone from the canvas)
+      // Static blob
       final blobX = (b.color == const Color(0xFF2979FF) || b.color == const Color(0xFFD1C4E9))
           ? size.width * 0.15
           : size.width * 0.80;
@@ -812,7 +866,7 @@ class _StaticMapPainter extends CustomPainter {
       if (from == null || to == null) continue;
 
       final fromDone  = progress.isLevelCompleted(fromId);
-      final toLocked  = progress.isLevelLocked(toId);
+      final toLocked  = progress.isLevelLocked(toId, isFree: _isLevelFreeInZones(toId));
       final active    = fromDone && !toLocked;
       final pathColor = active
           ? _zoneColor(fromId).withValues(alpha: 0.55)
@@ -899,6 +953,15 @@ class _StaticMapPainter extends CustomPainter {
       }
     }
     return Colors.white;
+  }
+
+  bool _isLevelFreeInZones(String levelId) {
+    for (final z in zones) {
+      for (final l in z.levels) {
+        if (l.id == levelId) return l.isFree;
+      }
+    }
+    return false;
   }
 
   @override

@@ -903,22 +903,25 @@ class _CertificateCard extends StatelessWidget {
               ),
               // Tier name at top
               Positioned(
-                top: h * 0.06,
-                left: 0,
-                right: 0,
+                top: h * 0.07,
+                left: w * 0.08,
+                right: w * 0.08,
                 child: Column(
                   children: [
-                    Text(
-                      'CERTIFICATE OF ACHIEVEMENT',
-                      style: GoogleFonts.outfit(
-                        fontSize: h * 0.06,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        letterSpacing: 4,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'CERTIFICATE OF ACHIEVEMENT',
+                        style: GoogleFonts.outfit(
+                          fontSize: h * 0.055,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: 2.5,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

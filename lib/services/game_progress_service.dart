@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/game_models.dart';
-import '../data/game_data.dart';
 import 'notification_service.dart';
 import 'package:home_widget/home_widget.dart';
 
@@ -23,11 +21,13 @@ class GameProgressService extends ChangeNotifier {
   // Unified XP Wallet & Inspector Zones
   static const _unifiedXPKey          = 'unified_xp_wallet';
   static const _unlockedInspectorKey  = 'inspector_unlocked_zones';
+  static const _unlockedLevelsKey     = 'unlocked_game_levels'; // NEW
 
   SharedPreferences? _prefs;
   Set<String> _completedLevelIds = {};
   Set<String> _completedCodingLevelIds = {}; // New
   Set<String> _unlockedInspectorZones = {'zone_inspector_1'}; // Zone 1 is always free
+  Set<String> _unlockedLevelIds = {'z1_l1', 'v1_init', 'dbg_1'}; // First levels are free
   final Map<String, int> _levelStars = {};
 
   // ── Unified XP Wallet ──────────────────────────────────────────────────────
@@ -142,6 +142,24 @@ class GameProgressService extends ChangeNotifier {
     } else {
       _unlockedInspectorZones = {'zone_inspector_1'};
     }
+
+    final unlockedLevelsJson = _prefs?.getStringList(_unlockedLevelsKey);
+    if (unlockedLevelsJson != null && unlockedLevelsJson.isNotEmpty) {
+      _unlockedLevelIds = unlockedLevelsJson.toSet();
+      
+      // MIGRATION: Force-lock Zone 4/5 levels to ensure they follow the new XP progression
+      // unless the user has already completed them.
+      for (final id in ['z4_l1', 'z4_l2', 'z4_boss', 'z5_l1', 'z5_l2', 'z5_boss']) {
+        if (!isLevelCompleted(id)) {
+          _unlockedLevelIds.remove(id);
+        }
+      }
+
+      // Ensure first levels are always included
+      _unlockedLevelIds.addAll(['z1_l1', 'v1_init', 'dbg_1']);
+    } else {
+      _unlockedLevelIds = {'z1_l1', 'v1_init', 'dbg_1'};
+    }
   }
 
   Future<void> _saveProgress() async {
@@ -163,6 +181,7 @@ class GameProgressService extends ChangeNotifier {
     // Save Unified XP & Inspector Zones
     await _prefs?.setInt(_unifiedXPKey, _unifiedXP);
     await _prefs?.setStringList(_unlockedInspectorKey, _unlockedInspectorZones.toList());
+    await _prefs?.setStringList(_unlockedLevelsKey, _unlockedLevelIds.toList());
 
     await _updateHomeWidget();
   }
@@ -184,41 +203,44 @@ class GameProgressService extends ChangeNotifier {
 
   int getStars(String levelId) => _levelStars[levelId] ?? 0;
 
-  bool isLevelLocked(String levelId, {bool isPremium = false}) {
-    ARLevel? currentLevel;
-    int levelIndex = -1;
-    int zoneIndex = -1;
+  bool isLevelUnlocked(String levelId) => _unlockedLevelIds.contains(levelId);
 
-    for (int i = 0; i < arGameZones.length; i++) {
-      final zone = arGameZones[i];
-      for (int j = 0; j < zone.levels.length; j++) {
-        if (zone.levels[j].id == levelId) {
-          currentLevel = zone.levels[j];
-          zoneIndex = i;
-          levelIndex = j;
-          break;
-        }
-      }
-      if (currentLevel != null) break;
+  Future<bool> unlockLevel(String levelId, int cost) async {
+    final success = await spendUnifiedXP(cost);
+    if (success) {
+      _unlockedLevelIds.add(levelId);
+      await _saveProgress();
+      notifyListeners();
     }
+    return success;
+  }
 
-    if (currentLevel == null) return true;
-    
-    // PREMIUM LOCK: Pipeline Challenge (arGameZones) is now 100% Premium
-    if (!isPremium) return true;
+  bool isLevelLocked(String levelId, {bool isFree = false}) {
+    // 1. If it's explicitly free in the data, it's never locked
+    if (isFree) return false;
 
-    if (zoneIndex == 0 && levelIndex == 0) return false;
+    // 2. Check if explicitly unlocked via XP
+    if (isLevelUnlocked(levelId)) return false;
 
-    if (levelIndex > 0) {
-      final prevLevel = arGameZones[zoneIndex].levels[levelIndex - 1];
-      return !isLevelCompleted(prevLevel.id);
-    } else if (zoneIndex > 0) {
-      final prevZone = arGameZones[zoneIndex - 1];
-      final lastLevelPrevZone = prevZone.levels.last;
-      return !isLevelCompleted(lastLevelPrevZone.id);
-    }
-
+    // 3. Otherwise it's locked.
     return true;
+  }
+
+  /// Checks if a level can be unlocked using XP.
+  /// A level is ready to unlock if it is the first level of the game
+  /// OR if the previous level in the sequence has been completed.
+  bool isLevelReadyToUnlock(String levelId, List<String> levelOrder) {
+    if (levelOrder.isEmpty) return false;
+    
+    final index = levelOrder.indexOf(levelId);
+    if (index == -1) return false;
+    
+    // First level is always ready (though it's usually free)
+    if (index == 0) return true;
+    
+    // Otherwise, check if previous level is completed
+    final prevLevelId = levelOrder[index - 1];
+    return isLevelCompleted(prevLevelId) || isCodingLevelCompleted(prevLevelId);
   }
 
   // ── Level completion (unchanged interface, now also triggers streak + unified XP) ──────
@@ -365,9 +387,11 @@ class GameProgressService extends ChangeNotifier {
     // Unified XP & Inspector Zones
     _unifiedXP = 0;
     _unlockedInspectorZones = {'zone_inspector_1'};
+    _unlockedLevelIds = {'z1_l1', 'v1_init', 'dbg_1'}; // Reset to first levels
     _isPremium = false;
     await _prefs?.remove(_unifiedXPKey);
     await _prefs?.remove(_unlockedInspectorKey);
+    await _prefs?.remove(_unlockedLevelsKey);
 
     await _saveProgress();
     notifyListeners();

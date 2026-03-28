@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../core/app_theme.dart';
 import '../services/theme_service.dart';
 import '../services/sound_service.dart';
+import '../services/progress_service.dart';
 
 
 class GameScreen extends StatefulWidget {
@@ -129,6 +130,8 @@ class _GameScreenState extends State<GameScreen> {
     } else {
       // Game Beaten
       context.read<SoundService>().playSuccess();
+      context.read<ProgressService>().unlockCertificate(ProgressService.certPipelineEngineer);
+      
       showDialog(
         context: context,
         barrierDismissible: false,
