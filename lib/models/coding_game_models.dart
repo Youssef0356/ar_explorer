@@ -28,6 +28,8 @@ class CodingLevel {
   final String feedbackExplanation;
   final bool isBoss;
   final int timeLimit; // seconds, 0 for unlimited
+  /// True for levels that are always accessible without XP unlock.
+  final bool isFree;
 
   const CodingLevel({
     required this.id,
@@ -39,6 +41,7 @@ class CodingLevel {
     required this.feedbackExplanation,
     this.isBoss = false,
     this.timeLimit = 0,
+    this.isFree = false,
   });
 }
 

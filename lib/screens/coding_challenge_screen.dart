@@ -45,7 +45,8 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
   void initState() {
     super.initState();
     final isPremium = context.read<SubscriptionService>().isPremium;
-    if (!isPremium && !widget.level.id.startsWith('v1_')) {
+    // Bug 6 fix: use isFree flag instead of brittle ID-prefix check
+    if (!isPremium && !widget.level.isFree) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pop(context); // Pop off challenge screen
         Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
@@ -64,9 +65,16 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
       if (line.slots != null) {
         for (var slot in line.slots!) {
           if (isCompleted) {
-             final correctChip = widget.level.wordBank.firstWhere((w) => w.correctSlotId == slot.id);
-             _slotAnswers[slot.id] = correctChip.id;
-             _results[slot.id] = true;
+             // Bug 6 fix: null-safe lookup — avoids hard crash when chip data is missing
+             final correctChip = widget.level.wordBank
+                 .cast<WordChip?>()
+                 .firstWhere((w) => w?.correctSlotId == slot.id, orElse: () => null);
+             if (correctChip != null) {
+               _slotAnswers[slot.id] = correctChip.id;
+               _results[slot.id] = true;
+             } else {
+               _slotAnswers[slot.id] = null;
+             }
           } else {
              _slotAnswers[slot.id] = null;
           }
@@ -423,15 +431,14 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
                child: const Text('_____', style: TextStyle(color: Colors.white24, fontSize: 12, fontFamily: 'monospace')),
              ),
              onDragCompleted: () {
-                setState(() {
-                   _slotAnswers[slot.id] = null;
-                });
+                // Null the source slot after a successful drop on a different target.
+                // The target's onAcceptWithDetails updates ITS answer; we clear ours.
+                setState(() => _slotAnswers[slot.id] = null);
              },
              onDraggableCanceled: (velocity, offset) {
-                setState(() {
-                   _wordBank.add(activeChip);
-                   _slotAnswers[slot.id] = null;
-                });
+                // Bug 3 fix: drag cancelled means the chip never left the slot —
+                // just leave _slotAnswers as-is (chip stays in slot).
+                // Do NOT add it to the bank; that would duplicate it.
              },
              child: slotContent,
            );
@@ -443,39 +450,51 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
   }
 
   Widget _buildWordBank() {
+    // Bug 5 fix: compute 22% of screen height clamped to [100, 160] px.
+    // A Column in a Scaffold gives infinite height to non-Expanded children,
+    // so LayoutBuilder would always return infinity. Using MediaQuery we get
+    // the real screen size and can make the bank genuinely adaptive.
+    final screenH = MediaQuery.of(context).size.height;
+    final bankHeight = (screenH * 0.22).clamp(100.0, 160.0);
+
     return Container(
-      height: 140, // Increased height to make scrolling easier
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      height: bankHeight,
       decoration: BoxDecoration(
         color: const Color(0xFF0F1420),
         border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
       ),
-      child: Scrollbar(
-        controller: _wordBankController,
-        thumbVisibility: true,
-        thickness: 8,
-        radius: const Radius.circular(4),
-        child: ListView.builder(
-          controller: _wordBankController,
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
-          itemCount: _wordBank.length,
-          itemBuilder: (context, index) {
-            final chip = _wordBank[index];
-            return Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: Draggable<WordChip>(
-                data: chip,
-                feedback: Material(
-                  color: Colors.transparent,
-                  child: _buildChipUI(chip, isDragging: true),
-                ),
-                childWhenDragging: Opacity(opacity: 0.3, child: _buildChipUI(chip)),
-                child: _buildChipUI(chip),
-              ),
-            );
-          },
-        ),
+      // Stack ensures the scrollbar thumb renders OVER the list content and
+      // is never pushed below the visible area by the bottom bar.
+      child: Stack(
+        children: [
+          Scrollbar(
+            controller: _wordBankController,
+            thumbVisibility: true,
+            thickness: 6,
+            radius: const Radius.circular(3),
+            child: ListView.builder(
+              controller: _wordBankController,
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              itemCount: _wordBank.length,
+              itemBuilder: (context, index) {
+                final chip = _wordBank[index];
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Draggable<WordChip>(
+                    data: chip,
+                    feedback: Material(
+                      color: Colors.transparent,
+                      child: _buildChipUI(chip, isDragging: true),
+                    ),
+                    childWhenDragging: Opacity(opacity: 0.3, child: _buildChipUI(chip)),
+                    child: _buildChipUI(chip),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

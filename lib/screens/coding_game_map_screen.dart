@@ -140,7 +140,8 @@ class _CodingGameMapScreenState extends State<CodingGameMapScreen>
                       ...codingGameZones.expand((zone) => zone.levels.map((level) {
                         final pos = _levelPositions[level.id];
                         if (pos == null) return const SizedBox.shrink();
-                        final isLocked = progress.isLevelLocked(level.id);
+                        // Bug 1 fix: forward level.isFree so free levels are never locked
+                        final isLocked = progress.isLevelLocked(level.id, isFree: level.isFree);
                         final stars = progress.getStars(level.id);
                         return Positioned(
                           left: pos.dx * scale - 30 * scale,

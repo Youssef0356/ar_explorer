@@ -14,6 +14,7 @@ final List<CodingZone> codingGameZones = [
         id: 'v1_init',
         title: 'Observer Initialization',
         goal: 'Detect an Image Target by creating an Observer.',
+        isFree: true, // Zone 1 is free for all users
         lines: [
           CodeLine(text: 'using Vuforia;', indent: 0),
           CodeLine(text: 'public class ARController : MonoBehaviour {', indent: 0),
@@ -49,6 +50,7 @@ final List<CodingZone> codingGameZones = [
         id: 'v1_target',
         title: 'Image Target Config',
         goal: 'Configure the Image Target behavior.',
+        isFree: true, // Zone 1 is free for all users
         lines: [
           CodeLine(text: 'void SetupTarget() {', indent: 1),
           CodeLine(slots: [
@@ -68,6 +70,7 @@ final List<CodingZone> codingGameZones = [
         title: 'VUFORIA BOSS: 3D Tracking',
         goal: 'Scale and track a 3D model on the target.',
         isBoss: true,
+        isFree: true, // Zone 1 is free for all users
         timeLimit: 60,
         lines: [
           CodeLine(text: 'public void OnTargetFound() {', indent: 1),
