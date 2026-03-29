@@ -14,29 +14,29 @@ const double _mapWidth  = 420.0;
 const double _mapHeight = 1380.0;
 
 final Map<String, Offset> _levelPositions = {
-  'z1_l1':   const Offset(210, 1300),
-  'z1_l2':   const Offset(110, 1210),
-  'z1_boss': const Offset(310, 1180),
-  'z2_l1':   const Offset(90,  1060),
-  'z2_l2':   const Offset(280, 1010),
-  'z2_boss': const Offset(180,  950),
-  'z3_l1':   const Offset(320,  830),
-  'z3_l2':   const Offset(110,  790),
-  'z3_boss': const Offset(220,  720),
-  'z4_l1':   const Offset(100,  600),
-  'z4_l2':   const Offset(310,  560),
-  'z4_boss': const Offset(200,  490),
-  'z5_l1':   const Offset(300,  370),
-  'z5_l2':   const Offset(120,  300),
-  'z5_boss': const Offset(210,  200),
+  'v1_init':         const Offset(210, 1300),
+  'v1_target':       const Offset(110, 1210),
+  'v1_boss':         const Offset(310, 1180),
+  'ak1_session':     const Offset(90,  1060),
+  'ak1_anchor':      const Offset(280, 1010),
+  'ak1_boss':        const Offset(180,  950),
+  'ac1_hit':         const Offset(320,  830),
+  'ac1_depth':       const Offset(110,  790),
+  'ac1_boss':        const Offset(220,  720),
+  'mq1_passthrough': const Offset(100,  600),
+  'mq1_hand':        const Offset(310,  560),
+  'mq1_boss':        const Offset(200,  490),
+  'wx1_scene':       const Offset(300,  370),
+  'wx1_model':       const Offset(120,  300),
+  'wx1_boss':        const Offset(210,  200),
 };
 
 final List<String> _levelOrder = [
-  'z1_l1', 'z1_l2', 'z1_boss',
-  'z2_l1', 'z2_l2', 'z2_boss',
-  'z3_l1', 'z3_l2', 'z3_boss',
-  'z4_l1', 'z4_l2', 'z4_boss',
-  'z5_l1', 'z5_l2', 'z5_boss',
+  'v1_init', 'v1_target', 'v1_boss',
+  'ak1_session', 'ak1_anchor', 'ak1_boss',
+  'ac1_hit', 'ac1_depth', 'ac1_boss',
+  'mq1_passthrough', 'mq1_hand', 'mq1_boss',
+  'wx1_scene', 'wx1_model', 'wx1_boss',
 ];
 
 class CodingGameMapScreen extends StatefulWidget {

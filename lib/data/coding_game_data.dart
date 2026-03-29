@@ -45,7 +45,44 @@ final List<CodingZone> codingGameZones = [
         mascotHint: 'Think about the type of behavior Vuforia uses for tracking.',
         feedbackExplanation: 'Vuforia uses ObserverBehaviours to track targets. The ObserverFactory creates these observers at runtime.',
       ),
-      // ... 4 more Vuforia levels + boss
+      CodingLevel(
+        id: 'v1_target',
+        title: 'Image Target Config',
+        goal: 'Configure the Image Target behavior.',
+        lines: [
+          CodeLine(text: 'void SetupTarget() {', indent: 1),
+          CodeLine(slots: [
+            CodeSlot(id: 's1', label: 'mObserver.TargetWidth = 0.5f;'),
+          ], indent: 2),
+          CodeLine(text: '}', indent: 1),
+        ],
+        wordBank: [
+          WordChip(id: 'w1', label: 'TargetWidth', correctSlotId: 's1'),
+          WordChip(id: 'd1', label: 'SetSize', correctSlotId: 'none'),
+        ],
+        mascotHint: 'Vuforia uses TargetWidth for physical size.',
+        feedbackExplanation: 'Correct! Setting the physical target size is essential for accurate scale tracking.',
+      ),
+      CodingLevel(
+        id: 'v1_boss',
+        title: 'VUFORIA BOSS: 3D Tracking',
+        goal: 'Scale and track a 3D model on the target.',
+        isBoss: true,
+        timeLimit: 60,
+        lines: [
+          CodeLine(text: 'public void OnTargetFound() {', indent: 1),
+          CodeLine(slots: [
+            CodeSlot(id: 's1', label: 'virtualObject.SetActive(true);'),
+          ], indent: 2),
+          CodeLine(text: '}', indent: 1),
+        ],
+        wordBank: [
+          WordChip(id: 'w1', label: 'SetActive', correctSlotId: 's1'),
+          WordChip(id: 'd1', label: 'Show', correctSlotId: 'none'),
+        ],
+        mascotHint: 'Unity uses SetActive to show/hide game objects.',
+        feedbackExplanation: 'Perfect! You\'ve mastered the Vuforia C# lifecycle.',
+      ),
     ],
   ),
 
@@ -86,6 +123,43 @@ final List<CodingZone> codingGameZones = [
         mascotHint: 'Swift uses ARWorldTrackingConfiguration for the most capable AR sessions.',
         feedbackExplanation: 'ARWorldTrackingConfiguration enables 6DOF tracking and is required for plane detection features.',
       ),
+      CodingLevel(
+        id: 'ak1_anchor',
+        title: 'Anchor Management',
+        goal: 'Add an anchor to the AR session.',
+        lines: [
+          CodeLine(text: 'let anchor = ARAnchor(transform: matrix)', indent: 0),
+          CodeLine(slots: [
+            CodeSlot(id: 's1', label: 'session.add(anchor: anchor)'),
+          ], indent: 0),
+        ],
+        wordBank: [
+          WordChip(id: 'w1', label: 'session.add', correctSlotId: 's1'),
+          WordChip(id: 'd1', label: 'session.post', correctSlotId: 'none'),
+        ],
+        mascotHint: 'In ARKit, anchors are added directly to the session.',
+        feedbackExplanation: 'Correct! ARAnchors pin virtual content to physical locations.',
+      ),
+      CodingLevel(
+        id: 'ak1_boss',
+        title: 'ARKIT BOSS: Light Estimation',
+        goal: 'Enable and apply light estimation.',
+        isBoss: true,
+        timeLimit: 75,
+        lines: [
+          CodeLine(text: 'func updateLight() {', indent: 1),
+          CodeLine(slots: [
+            CodeSlot(id: 's1', label: 'let intensity = frame.lightEstimate?.ambientIntensity'),
+          ], indent: 2),
+          CodeLine(text: '}', indent: 1),
+        ],
+        wordBank: [
+          WordChip(id: 'w1', label: 'lightEstimate', correctSlotId: 's1'),
+          WordChip(id: 'd1', label: 'getLight', correctSlotId: 'none'),
+        ],
+        mascotHint: 'The frame object contains the light estimate data.',
+        feedbackExplanation: 'Brilliant! You can now match virtual lighting to reality.',
+      ),
     ],
   ),
 
@@ -123,6 +197,43 @@ final List<CodingZone> codingGameZones = [
         ],
         mascotHint: 'Anchors are the foundation of stable ARCore placement.',
         feedbackExplanation: 'createAnchor() attaches a virtual coordinate system to a real-world point detected by ARCore.',
+      ),
+      CodingLevel(
+        id: 'ac1_depth',
+        title: 'Depth API',
+        goal: 'Access depth data for occlusion.',
+        lines: [
+          CodeLine(text: 'val depthImage = frame.acquireDepthImage16Bit()', indent: 0),
+          CodeLine(slots: [
+            CodeSlot(id: 's1', label: 'depthImage.close()'),
+          ], indent: 0),
+        ],
+        wordBank: [
+          WordChip(id: 'w1', label: 'close()', correctSlotId: 's1'),
+          WordChip(id: 'd1', label: 'dispose()', correctSlotId: 'none'),
+        ],
+        mascotHint: 'Always close images in Kotlin to prevent memory leaks.',
+        feedbackExplanation: 'Correct. Managing depth buffers is crucial for performance.',
+      ),
+      CodingLevel(
+        id: 'ac1_boss',
+        title: 'ARCORE BOSS: Cloud Anchors',
+        goal: 'Host a cloud anchor.',
+        isBoss: true,
+        timeLimit: 90,
+        lines: [
+          CodeLine(text: 'session.hostCloudAnchorAsync(localAnchor) { anchor, status ->', indent: 0),
+          CodeLine(slots: [
+            CodeSlot(id: 's1', label: 'if (status == Anchor.CloudAnchorState.SUCCESS)'),
+          ], indent: 1),
+          CodeLine(text: '}', indent: 0),
+        ],
+        wordBank: [
+          WordChip(id: 'w1', label: 'SUCCESS', correctSlotId: 's1'),
+          WordChip(id: 'd1', label: 'DONE', correctSlotId: 'none'),
+        ],
+        mascotHint: 'Check the CloudAnchorState enum.',
+        feedbackExplanation: 'Masterful! Cloud Anchors are the key to shared AR.',
       ),
     ],
   ),
@@ -166,6 +277,43 @@ final List<CodingZone> codingGameZones = [
         mascotHint: 'OVR handles all Quest-specific hardware features like Passthrough.',
         feedbackExplanation: 'OVRPassthroughLayer is the primary component for controlling the MR view on Meta hardware.',
       ),
+      CodingLevel(
+        id: 'mq1_hand',
+        title: 'Hand Tracking',
+        goal: 'Detect hand gestures.',
+        lines: [
+          CodeLine(text: 'void Update() {', indent: 1),
+          CodeLine(slots: [
+            CodeSlot(id: 's1', label: 'if (hand.GetFingerIsPinching(HandFinger.Index))'),
+          ], indent: 2),
+          CodeLine(text: '}', indent: 1),
+        ],
+        wordBank: [
+          WordChip(id: 'w1', label: 'GetFingerIsPinching', correctSlotId: 's1'),
+          WordChip(id: 'd1', label: 'IsTouching', correctSlotId: 'none'),
+        ],
+        mascotHint: 'Meta uses pinching as the primary interactive gesture.',
+        feedbackExplanation: 'Correct! Hand tracking is essential for modern standalone XR.',
+      ),
+      CodingLevel(
+        id: 'mq1_boss',
+        title: 'QUEST BOSS: Spatial Mesh',
+        goal: 'Access the scene reconstruction mesh.',
+        isBoss: true,
+        timeLimit: 120,
+        lines: [
+          CodeLine(text: 'OVRSceneManager sceneManager;', indent: 1),
+          CodeLine(slots: [
+            CodeSlot(id: 's1', label: 'sceneManager.LoadSceneModel();'),
+          ], indent: 1),
+        ],
+        wordBank: [
+          WordChip(id: 'w1', label: 'LoadSceneModel', correctSlotId: 's1'),
+          WordChip(id: 'd1', label: 'StartScan', correctSlotId: 'none'),
+        ],
+        mascotHint: 'LoadSceneModel pulls the room data into the app.',
+        feedbackExplanation: 'Excellent! You now know how to build room-aware XR apps.',
+      ),
     ],
   ),
 
@@ -204,6 +352,44 @@ final List<CodingZone> codingGameZones = [
         ],
         mascotHint: 'A-Frame uses the "hiro" preset as the industry standard for marker-based WebAR.',
         feedbackExplanation: 'A-Frame simplifies WebXR by using custom HTML elements to define 3D and AR content.',
+      ),
+      CodingLevel(
+        id: 'wx1_model',
+        title: 'GLTF Loading',
+        goal: 'Load a 3D model into the scene.',
+        lines: [
+          CodeLine(text: '<a-entity', indent: 1),
+          CodeLine(slots: [
+            CodeSlot(id: 's1', label: 'gltf-model="#myModel"'),
+          ], indent: 2),
+          CodeLine(text: '></a-entity>', indent: 1),
+        ],
+        wordBank: [
+          WordChip(id: 'w1', label: 'gltf-model', correctSlotId: 's1'),
+          WordChip(id: 'd1', label: 'src', correctSlotId: 'none'),
+        ],
+        mascotHint: 'A-Frame uses the gltf-model component for 3D assets.',
+        feedbackExplanation: 'Correct! GLTF is the JPEG of 3D on the web.',
+      ),
+      CodingLevel(
+        id: 'wx1_boss',
+        title: 'WEBXR BOSS: Hit Testing',
+        goal: 'Implement AR hit testing in JS.',
+        isBoss: true,
+        timeLimit: 100,
+        lines: [
+          CodeLine(text: 'this.el.addEventListener("ar-hit-test", (e) => {', indent: 1),
+          CodeLine(slots: [
+            CodeSlot(id: 's1', label: 'const pose = e.detail.pose;'),
+          ], indent: 2),
+          CodeLine(text: '});', indent: 1),
+        ],
+        wordBank: [
+          WordChip(id: 'w1', label: 'pose', correctSlotId: 's1'),
+          WordChip(id: 'd1', label: 'position', correctSlotId: 'none'),
+        ],
+        mascotHint: 'The event detail contains the XR hit test pose.',
+        feedbackExplanation: 'Superior work! You are now a WebXR Engineering Master.',
       ),
     ],
   ),

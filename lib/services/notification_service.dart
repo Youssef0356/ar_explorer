@@ -176,11 +176,10 @@ class NotificationService extends ChangeNotifier {
     await _notificationsPlugin.cancel(id: 3000);
 
     final now = tz.TZDateTime.now(tz.local);
+    // Since the app just started, they already got today's XP if they were eligible.
+    // We should always schedule the *next* notification for tomorrow at 10:00 AM.
     var scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, 10, 0);
-
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
+    scheduledDate = scheduledDate.add(const Duration(days: 1));
 
     await _notificationsPlugin.zonedSchedule(
       id: 3000,

@@ -94,7 +94,7 @@ class RoadmapScreen extends StatelessWidget {
                 ),
               ),
               SliverPadding(
-                padding: EdgeInsets.fromLTRB(24, 16, 24, 204 + MediaQuery.paddingOf(context).bottom),
+                padding: EdgeInsets.fromLTRB(24, 16, 24, 40 + MediaQuery.paddingOf(context).bottom),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
