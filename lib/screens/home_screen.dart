@@ -1861,6 +1861,26 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                             ),
                             ListTile(
+                              leading: const Icon(Icons.timer_outlined, color: AppTheme.accentAmber),
+                              title: Text(
+                                'Schedule Test Alarm (60s)',
+                                style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                              ),
+                              subtitle: Text(
+                                'Verify background scheduling works',
+                                style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                              ),
+                              trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                              onTap: () async {
+                                final messenger = ScaffoldMessenger.of(context);
+                                context.read<SoundService>().playTap();
+                                await context.read<NotificationService>().scheduleTestAlarm60s();
+                                messenger.showSnackBar(
+                                  const SnackBar(content: Text('Alarm scheduled for 60 seconds from now! 🕒')),
+                                );
+                              },
+                            ),
+                            ListTile(
                               leading: const Icon(Icons.emoji_emotions_rounded, color: AppTheme.accentAmber),
                               title: Text(
                                 'Trigger Funny Notification',

@@ -9,7 +9,7 @@ class ThemeService extends ChangeNotifier {
 
   SharedPreferences? _prefs;
   bool _isDarkMode = true;
-  bool _enableAnimations = false; // Default to false for better performance
+  bool _enableAnimations = true; // Default to true for better visuals
   bool _isNeonMode = false;
 
   bool get isDarkMode => _isDarkMode;
@@ -21,6 +21,7 @@ class ThemeService extends ChangeNotifier {
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
     _isDarkMode = _prefs?.getBool(_themeKey) ?? true;
+    _enableAnimations = _prefs?.getBool(_animationsKey) ?? true;
     _isNeonMode = _prefs?.getBool(_neonKey) ?? false;
   }
 

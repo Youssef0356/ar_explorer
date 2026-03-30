@@ -64,9 +64,10 @@ class NotificationService extends ChangeNotifier {
 
     // Request permissions for Android 13+
     if (defaultTargetPlatform == TargetPlatform.android) {
-      await _notificationsPlugin
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-          ?.requestNotificationsPermission();
+      final androidPlugin = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      bool? granted = await androidPlugin?.requestNotificationsPermission();
+      debugPrint('Notification permissions granted: $granted');
     }
 
     final androidPlugin = _notificationsPlugin.resolvePlatformSpecificImplementation<
@@ -136,7 +137,6 @@ class NotificationService extends ChangeNotifier {
         iOS: DarwinNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      // REMOVED: uiLocalNotificationDateInterpretation (Obsolete in v21)
     );
   }
 
@@ -165,7 +165,6 @@ class NotificationService extends ChangeNotifier {
           iOS: DarwinNotificationDetails(),
         ),
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        // REMOVED: uiLocalNotificationDateInterpretation (Obsolete in v21)
       );
     }
   }
@@ -179,7 +178,12 @@ class NotificationService extends ChangeNotifier {
     // Since the app just started, they already got today's XP if they were eligible.
     // We should always schedule the *next* notification for tomorrow at 10:00 AM.
     var scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, 10, 0);
-    scheduledDate = scheduledDate.add(const Duration(days: 1));
+    
+    // Only add a day if 10:00 AM has already passed today.
+    // If it's 9:00 AM, scheduledDate will be today at 10:00 AM.
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
 
     await _notificationsPlugin.zonedSchedule(
       id: 3000,
@@ -221,6 +225,30 @@ class NotificationService extends ChangeNotifier {
   }
 
   // --- Debug / Testing Purposes ---
+  Future<void> scheduleTestAlarm60s() async {
+    final now = tz.TZDateTime.now(tz.local);
+    final scheduledDate = now.add(const Duration(seconds: 60));
+    
+    debugPrint('Scheduling test alarm for $scheduledDate');
+
+    await _notificationsPlugin.zonedSchedule(
+      id: 9991,
+      title: "Test Alarm (60s) 🕒",
+      body: "If you are seeing this, your timed alarms are working perfectly!",
+      scheduledDate: scheduledDate,
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'debug_channel',
+          'Debug Channel',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+  }
+
   Future<void> triggerDebugNotification() async {
     await _notificationsPlugin.show(
       id: 9999,

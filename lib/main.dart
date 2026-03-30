@@ -7,8 +7,8 @@ import 'core/app_theme.dart';
 import 'screens/main_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/certificate_progression_screen.dart';
-import 'screens/privacy_policy_screen.dart';
 import 'screens/paywall_screen.dart';
+import 'screens/splash_screen.dart';
 import 'services/progress_service.dart';
 import 'services/theme_service.dart';
 import 'services/sound_service.dart';
@@ -133,7 +133,6 @@ class _ARExplorerAppState extends State<ARExplorerApp> with WidgetsBindingObserv
     final themeService = context.watch<ThemeService>();
     final isDark = themeService.isDarkMode;
     final isNeon = themeService.isNeonMode;
-    final progress = context.read<ProgressService>();
 
     return MaterialApp(
       title: 'AR Explorer',
@@ -147,11 +146,7 @@ class _ARExplorerAppState extends State<ARExplorerApp> with WidgetsBindingObserv
         '/onboarding': (_) => const OnboardingScreen(),
         '/paywall': (_) => const PaywallScreen(),
       },
-      home: !progress.hasAcceptedPrivacy
-          ? const PrivacyPolicyScreen(showConfirmButton: true)
-          : progress.hasSeenOnboarding
-              ? const MainScreen()
-              : const OnboardingScreen(),
+      home: const SplashScreen(),
     );
   }
 }

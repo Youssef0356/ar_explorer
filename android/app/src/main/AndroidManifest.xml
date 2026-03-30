@@ -6,8 +6,8 @@
     
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- REMOVED: USE_EXACT_ALARM and SCHEDULE_EXACT_ALARM to avoid Google Play rejection. 
+         Using inexact alarms is sufficient for our reminders. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
