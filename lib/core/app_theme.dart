@@ -3,10 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // ── Dark Palette ───────────────────────────────────────────────
-  static const Color primaryDark = Color(0xFF111111);
-  static const Color surfaceDark = Color(0xFF1A1A1E);
-  static const Color cardDark = Color(0xFF1E1E24);
-  static const Color cardDarkAlt = Color(0xFF25252D);
+  static const Color primaryDark = Color(0xFF0A0E21);
+  static const Color surfaceDark = Color(0xFF0A0E21);
+  static const Color cardDark = Color(0xFF1A2744);
+  static const Color cardDarkAlt = Color(0xFF1A2744);
   static const Color neonDark = Color(0xFF030303); // Near true black
 
   // ── Light Palette ──────────────────────────────────────────────
@@ -16,9 +16,9 @@ class AppTheme {
   static const Color cardLightAlt = Color(0xFFF0F2F5);
 
   // ── Accent Colors (shared) ─────────────────────────────────────
-  static const Color accentPurple = Color(0xFF4FC3F7); // Light Blue (Now Primary)
+  static const Color accentPurple = Color(0xFF4FC3F7); // Light Blue (Now Secondary)
   static const Color accentBlue = Color(0xFFBB86FC);   // Purple (Now Secondary)
-  static const Color accentCyan = Color(0xFF00D4AA); 
+  static const Color accentCyan = Color(0xFF00D4AA); // Teal (Now Primary) 
   static const Color accentTeal = Color(0xFF00BCD4); 
   static const Color accentAmber = Color(0xFFFFCA28);
   static const Color accentPink = Color(0xFFFF6B9D);
@@ -66,8 +66,14 @@ class AppTheme {
     colors: isNeon 
         ? [neonDark, const Color(0xFF0A0A0F)]
         : (isDark
-            ? [primaryDark, const Color(0xFF1E1E24)]
+            ? [primaryDark, const Color(0xFF0F172A)]
             : [const Color(0xFFF0F4FF), const Color(0xFFE8ECFF)]),
+  );
+
+  static LinearGradient primaryButtonGradient() => const LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [accentCyan, accentPurple],
   );
 
   static LinearGradient moduleGradient(Color color, bool isDark) =>
@@ -195,8 +201,8 @@ class AppTheme {
     final txtSecondary = textSecondaryC(isDark);
     final divider = dividerC(isDark);
 
-    final primaryColor = isNeon ? neonPurple : accentPurple;
-    // secondaryColor removed as it was unused (originally accentBlue / neonCyan)
+    final primaryColor = isNeon ? neonPurple : accentCyan;
+    final secondaryColor = isNeon ? neonCyan : accentPurple;
 
     return ThemeData(
       useMaterial3: true,
@@ -251,7 +257,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
-          foregroundColor: isNeon ? Colors.white : Colors.black,
+          foregroundColor: isNeon ? Colors.white : const Color(0xFF0A1A18),
           elevation: isNeon ? 4 : 0,
           shadowColor: primaryColor.withValues(alpha: isNeon ? 0.3 : 0.0),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
