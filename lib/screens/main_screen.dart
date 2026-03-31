@@ -12,6 +12,8 @@ import 'roadmap_screen.dart';
 import 'achievements_screen.dart';
 import 'play_screen.dart'; // Unified Play Tab
 import '../services/navigation_service.dart';
+import '../services/tour_service.dart';
+import '../widgets/tour_spotlight.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
@@ -53,6 +55,7 @@ class _MainScreenState extends State<MainScreen> {
 
     final navigationService = context.watch<NavigationService>();
     final currentIndex = navigationService.currentIndex;
+    final tourService = context.watch<TourService>();
 
     return Scaffold(
       body: IndexedStack(
@@ -94,13 +97,19 @@ class _MainScreenState extends State<MainScreen> {
                   fontSize: 10, fontWeight: FontWeight.bold),
               unselectedLabelStyle:
                   AppTheme.labelMedium.copyWith(fontSize: 10),
-              items: const [
+              items: [
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.home_rounded),
-                  activeIcon: Icon(Icons.home_rounded),
+                  icon: TourSpotlight(
+                    isVisible: tourService.isActive && tourService.currentStep.targetTab == 0 && tourService.currentStepIndex != 3,
+                    child: const Icon(Icons.home_rounded),
+                  ),
+                  activeIcon: TourSpotlight(
+                    isVisible: tourService.isActive && tourService.currentStep.targetTab == 0 && tourService.currentStepIndex != 3,
+                    child: const Icon(Icons.home_rounded),
+                  ),
                   label: 'HOME',
                 ),
-                BottomNavigationBarItem(
+                const BottomNavigationBarItem(
                   icon: Icon(Icons.map_rounded),
                   activeIcon: Icon(Icons.map_rounded),
                   label: 'ROADMAP',
@@ -108,13 +117,25 @@ class _MainScreenState extends State<MainScreen> {
 
                 // ── PLAY tab — Unified games hub ───────────────
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.gamepad_rounded),
-                  activeIcon: Icon(Icons.gamepad_rounded),
+                  icon: TourSpotlight(
+                    isVisible: tourService.isActive && tourService.currentStep.targetTab == 2,
+                    child: const Icon(Icons.gamepad_rounded),
+                  ),
+                  activeIcon: TourSpotlight(
+                    isVisible: tourService.isActive && tourService.currentStep.targetTab == 2,
+                    child: const Icon(Icons.gamepad_rounded),
+                  ),
                   label: 'PLAY',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.emoji_events_rounded),
-                  activeIcon: Icon(Icons.emoji_events_rounded),
+                  icon: TourSpotlight(
+                    isVisible: tourService.isActive && tourService.currentStep.targetTab == 3,
+                    child: const Icon(Icons.emoji_events_rounded),
+                  ),
+                  activeIcon: TourSpotlight(
+                    isVisible: tourService.isActive && tourService.currentStep.targetTab == 3,
+                    child: const Icon(Icons.emoji_events_rounded),
+                  ),
                   label: 'REWARDS',
                 ),
               ],

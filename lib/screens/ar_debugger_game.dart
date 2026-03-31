@@ -346,7 +346,6 @@ class ARDebuggerMapScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progress = context.watch<GameProgressService>();
-    final isPremium = context.watch<SubscriptionService>().isPremium;
 
     return Theme(
       data: ThemeData.dark(),
@@ -354,40 +353,84 @@ class ARDebuggerMapScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         body: AnimatedGoogleBackground(
           isDark: true,
-          child: Column(
-            children: [
-              _buildHeader(context, progress, isPremium),
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
-                  itemCount: debugLevels.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (ctx, i) {
-                    final level = debugLevels[i];
-                    final isLocked = progress.isLevelLocked(level.id);
-                    final isCompleted = progress.isLevelCompleted(level.id);
-                    final stars = progress.getStars(level.id);
-
-                    return _LevelCard(
-                      level: level,
-                      index: i,
-                      isLocked: isLocked,
-                      isCompleted: isCompleted,
-                      stars: stars,
-                      onTap: isLocked
-                          ? () => _showUnlockLevelDialog(ctx, level, progress)
-                          : () => Navigator.push(
-                                ctx,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      ARDebuggerGameScreen(level: level),
-                                ),
-                              ),
-                    );
-                  },
+          child: SafeArea(
+            child: CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  floating: true,
+                  pinned: true,
+                  backgroundColor: const Color(0xFF060B14).withOpacity(0.95),
+                  expandedHeight: 120,
+                  elevation: 0,
+                  leading: IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white70, size: 20),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  flexibleSpace: FlexibleSpaceBar(
+                    titlePadding: const EdgeInsets.fromLTRB(56, 0, 16, 14),
+                    title: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('AR SCENE DEBUGGER',
+                            style: TextStyle(
+                                color: Color(0xFF00E5FF),
+                                fontSize: 8,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 2.0)),
+                        const Text('Fix the broken AR app',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700)),
+                      ],
+                    ),
+                  ),
+                  actions: [
+                    Container(
+                      margin: const EdgeInsets.only(right: 16),
+                      child: Center(
+                        child: _buildProgressBadge(progress),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                SliverPadding(
+                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+                   sliver: SliverList(
+                     delegate: SliverChildBuilderDelegate(
+                       (ctx, i) {
+                         final level = debugLevels[i];
+                         final isLocked = progress.isLevelLocked(level.id);
+                         final isCompleted = progress.isLevelCompleted(level.id);
+                         final stars = progress.getStars(level.id);
+
+                         return Padding(
+                           padding: const EdgeInsets.only(bottom: 12),
+                           child: _LevelCard(
+                             level: level,
+                             index: i,
+                             isLocked: isLocked,
+                             isCompleted: isCompleted,
+                             stars: stars,
+                             onTap: isLocked
+                                 ? () => _showUnlockLevelDialog(ctx, level, progress)
+                                 : () => Navigator.push(
+                                       ctx,
+                                       MaterialPageRoute(
+                                         builder: (_) =>
+                                             ARDebuggerGameScreen(level: level),
+                                       ),
+                                     ),
+                           ),
+                         );
+                       },
+                       childCount: debugLevels.length,
+                     ),
+                   ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -454,71 +497,22 @@ class ARDebuggerMapScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, GameProgressService progress, bool isPremium) {
+  Widget _buildProgressBadge(GameProgressService progress) {
     final completed = debugLevels
         .where((l) => progress.isLevelCompleted(l.id))
         .length;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 20, 14),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFF060B14).withOpacity(0.95),
-        border: Border(
-            bottom: BorderSide(
-                color: const Color(0xFF00E5FF).withOpacity(0.15))),
+        color: Colors.white.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(8),
       ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.arrow_back_ios_rounded,
-                      color: Colors.white70, size: 16),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('AR SCENE DEBUGGER',
-                        style: TextStyle(
-                            color: Color(0xFF00E5FF),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 2.5)),
-                    const Text('Fix the broken AR app',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700)),
-                  ],
-                ),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.06),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text('$completed / ${debugLevels.length}',
-                    style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700)),
-              ),
-            ],
-          ),
-        ],
-      ),
+      child: Text('$completed / ${debugLevels.length}',
+          style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 11,
+              fontWeight: FontWeight.w700)),
     );
   }
 }

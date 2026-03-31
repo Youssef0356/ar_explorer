@@ -12,6 +12,7 @@ import '../services/sound_service.dart';
 import '../services/subscription_service.dart';
 import 'module_detail_screen.dart';
 import 'paywall_screen.dart';
+import '../widgets/animated_google_background.dart';
 
 class GamePipelineScreen extends StatefulWidget {
   final ARLevel level;
@@ -430,9 +431,11 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
     final zone = arGameZones.firstWhere((z) => z.id == widget.level.zoneId);
 
     return Theme(data: ThemeData.dark(), child: Scaffold(
-      backgroundColor: const Color(0xFF060B14),
-      body: Stack(
-        children: [
+      backgroundColor: Colors.transparent,
+      body: AnimatedGoogleBackground(
+        isDark: true,
+        child: Stack(
+          children: [
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -473,7 +476,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
           if (_showPreLevelInfo) _buildPreLevelInfo(zone),
         ],
       ),
-    ));
+    )));
   }
 
   // ── Pre-level info overlay ────────────────────────────────────────────────

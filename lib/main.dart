@@ -18,6 +18,7 @@ import 'services/subscription_service.dart';
 import 'services/game_progress_service.dart';
 import 'services/notification_service.dart';
 import 'services/navigation_service.dart';
+import 'services/tour_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +40,7 @@ void main() async {
   final gameProgressService = GameProgressService();
   final notificationService = NotificationService();
   final navigationService = NavigationService();
+  final tourService = TourService();
 
   // Initialize all services with resilience
   try {
@@ -72,6 +74,12 @@ void main() async {
   }
 
   try {
+    await tourService.init();
+  } catch (e) {
+    debugPrint('TourService init error: $e');
+  }
+
+  try {
     adService.setSubscriptionService(subscriptionService);
     adService.init();
   } catch (e) {
@@ -93,6 +101,7 @@ void main() async {
         ChangeNotifierProvider.value(value: gameProgressService),
         ChangeNotifierProvider.value(value: notificationService),
         ChangeNotifierProvider.value(value: navigationService),
+        ChangeNotifierProvider.value(value: tourService),
       ],
       child: const ARExplorerApp(),
     ),

@@ -106,92 +106,94 @@ class _GameMapScreenState extends State<GameMapScreen>
         backgroundColor: Colors.transparent,
         body: AnimatedGoogleBackground(
           isDark: true,
-          child: Stack(
-            children: [
-              SingleChildScrollView(
-                controller: _scrollController,
-                physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 20, top: 20),
-                child: SizedBox(
-                  width: screenWidth,
-                  height: scaledHeight,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      RepaintBoundary(
-                        child: SizedBox(
-                          width: screenWidth,
-                          height: scaledHeight,
-                          child: CustomPaint(
-                            painter: _StaticMapPainter(
-                              zones: arGameZones,
-                              progress: progress,
-                              levelOrder: _levelOrder,
-                              levelPositions: _levelPositions,
-                              scale: scale,
+          child: SafeArea(
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  controller: _scrollController,
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.only(bottom: 20, top: 20),
+                  child: SizedBox(
+                    width: screenWidth,
+                    height: scaledHeight,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        RepaintBoundary(
+                          child: SizedBox(
+                            width: screenWidth,
+                            height: scaledHeight,
+                            child: CustomPaint(
+                              painter: _StaticMapPainter(
+                                zones: arGameZones,
+                                progress: progress,
+                                levelOrder: _levelOrder,
+                                levelPositions: _levelPositions,
+                                scale: scale,
+                              ),
+                              isComplex: true,
+                              willChange: false,
                             ),
-                            isComplex: true,
-                            willChange: false,
                           ),
                         ),
-                      ),
-                      ...arGameZones.map((zone) {
-                        final labelY = _getZoneLabelY(zone.id) * scale;
-                        return Positioned(
-                          left: 0,
-                          right: 0,
-                          top: labelY,
-                          child: RepaintBoundary(
-                            child: _ZoneLabel(zone: zone, scale: scale),
-                          ),
-                        );
-                      }),
-                      ...arGameZones.expand((zone) => zone.levels.map((level) {
-                        final pos = _levelPositions[level.id];
-                        if (pos == null) return const SizedBox.shrink();
-                        
-                        final isLocked = progress.isLevelLocked(level.id, isFree: level.isFree);
-                        final isReadyToUnlock = progress.isLevelReadyToUnlock(level.id, _levelOrder);
-                        final stars     = progress.getStars(level.id);
-                        final scaledX   = pos.dx * scale;
-                        final scaledY   = pos.dy * scale;
-                        final nodeSize  = (level.isBoss ? 72.0 : 58.0) * scale;
-                        final delay     = Duration(milliseconds: _levelOrder.indexOf(level.id) * 30);
-
-                        return Positioned(
-                          left: scaledX - nodeSize / 2,
-                          top:  scaledY - nodeSize / 2,
-                          child: RepaintBoundary(
-                            child: _LevelNode(
-                              level: level,
-                              zone: zone,
-                              isLocked: isLocked,
-                              isCompleted: progress.isLevelCompleted(level.id),
-                              stars: stars,
-                              nodeSize: nodeSize,
-                              pulseAnimation: _pulseController,
-                              onTap: isLocked 
-                                ? (isReadyToUnlock 
-                                    ? () { _showUnlockLevelDialog(context, level, progress); }
-                                    : () { ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Complete previous levels to unlock this one!'))); })
-                                : () { _showLevelSheet(level, zone); },
-                            )
-                              .animate(delay: delay)
-                              .fadeIn(duration: 400.ms)
-                              .scale(begin: const Offset(0.5, 0.5), curve: Curves.easeOutBack),
-                          ),
-                        );
-                      })),
-                    ],
+                        ...arGameZones.map((zone) {
+                          final labelY = _getZoneLabelY(zone.id) * scale;
+                          return Positioned(
+                            left: 0,
+                            right: 0,
+                            top: labelY,
+                            child: RepaintBoundary(
+                              child: _ZoneLabel(zone: zone, scale: scale),
+                            ),
+                          );
+                        }),
+                        ...arGameZones.expand((zone) => zone.levels.map((level) {
+                          final pos = _levelPositions[level.id];
+                          if (pos == null) return const SizedBox.shrink();
+                          
+                          final isLocked = progress.isLevelLocked(level.id, isFree: level.isFree);
+                          final isReadyToUnlock = progress.isLevelReadyToUnlock(level.id, _levelOrder);
+                          final stars     = progress.getStars(level.id);
+                          final scaledX   = pos.dx * scale;
+                          final scaledY   = pos.dy * scale;
+                          final nodeSize  = (level.isBoss ? 72.0 : 58.0) * scale;
+                          final delay     = Duration(milliseconds: _levelOrder.indexOf(level.id) * 30);
+  
+                          return Positioned(
+                            left: scaledX - nodeSize / 2,
+                            top:  scaledY - nodeSize / 2,
+                            child: RepaintBoundary(
+                              child: _LevelNode(
+                                level: level,
+                                zone: zone,
+                                isLocked: isLocked,
+                                isCompleted: progress.isLevelCompleted(level.id),
+                                stars: stars,
+                                nodeSize: nodeSize,
+                                pulseAnimation: _pulseController,
+                                onTap: isLocked 
+                                  ? (isReadyToUnlock 
+                                      ? () { _showUnlockLevelDialog(context, level, progress); }
+                                      : () { ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Complete previous levels to unlock this one!'))); })
+                                  : () { _showLevelSheet(level, zone); },
+                              )
+                                .animate(delay: delay)
+                                .fadeIn(duration: 400.ms)
+                                .scale(begin: const Offset(0.5, 0.5), curve: Curves.easeOutBack),
+                            ),
+                          );
+                        })),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              Positioned(
-                top: 0, left: 0, right: 0,
-                child: RepaintBoundary(child: _buildHeader(progress)),
-              ),
-            ],
+                Positioned(
+                  top: 0, left: 0, right: 0,
+                  child: RepaintBoundary(child: _buildHeader(progress)),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -278,8 +280,7 @@ class _GameMapScreenState extends State<GameMapScreen>
     final leagueColor = _getLeagueColor(league);
 
     return Container(
-      padding: EdgeInsets.fromLTRB(
-        12, MediaQuery.of(context).padding.top + 8, 16, 14),
+      padding: const EdgeInsets.fromLTRB(12, 12, 16, 14),
       decoration: BoxDecoration(
         color: Colors.transparent,
         border: Border(bottom: BorderSide(

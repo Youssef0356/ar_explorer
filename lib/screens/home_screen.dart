@@ -37,6 +37,8 @@ import 'topic_screen.dart';
 import 'quiz_analytics_screen.dart';
 import 'certificate_progression_screen.dart';
 import '../widgets/glass_card.dart';
+import '../services/tour_service.dart';
+import '../widgets/tour_bottom_sheet.dart';
 
 
 
@@ -53,7 +55,32 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkStarterMission();
+      _checkTour();
     });
+  }
+
+  void _checkTour() {
+    final tourService = context.read<TourService>();
+    final progress = context.read<ProgressService>();
+    
+    if (!tourService.isTourComplete && progress.hasSeenOnboarding) {
+      _startTour();
+    }
+  }
+
+  void _startTour() {
+    final tourService = context.read<TourService>();
+    final isDark = context.read<ThemeService>().isDarkMode;
+    
+    tourService.startTour();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      isDismissible: false,
+      enableDrag: false,
+      builder: (_) => TourBottomSheet(isDark: isDark),
+    );
   }
 
   Future<void> _checkStarterMission() async {
@@ -1543,6 +1570,26 @@ class _HomeScreenState extends State<HomeScreen> {
                                 }
                               },
                             ),
+                            
+                            // ── APP TOUR ──
+                            ListTile(
+                              leading: const Icon(Icons.map_rounded, color: AppTheme.accentCyan),
+                              title: Text(
+                                'App Tour',
+                                style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                              ),
+                              subtitle: Text(
+                                'Re-watch the guided tour',
+                                style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                              ),
+                              trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                              onTap: () {
+                                Navigator.pop(ctx); // Close settings
+                                context.read<SoundService>().playTap();
+                                _startTour();
+                              },
+                            ),
+
                             if (!isPremium)
                               ListTile(
                                 leading: const Icon(Icons.restore_rounded, color: AppTheme.accentCyan),
