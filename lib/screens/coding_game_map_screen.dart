@@ -65,7 +65,10 @@ class _CodingGameMapScreenState extends State<CodingGameMapScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: TabBar(
         isScrollable: true,
+        tabAlignment: TabAlignment.start,
         dividerColor: Colors.transparent,
+        indicatorPadding: EdgeInsets.zero,
+        labelPadding: EdgeInsets.zero,
         indicator: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           color: AppTheme.accentPurple.withValues(alpha: 0.15),
@@ -73,13 +76,29 @@ class _CodingGameMapScreenState extends State<CodingGameMapScreen>
         ),
         labelColor: AppTheme.accentPurple,
         unselectedLabelColor: Colors.white24,
-        tabs: const [
-          Tab(icon: Icon(Icons.light_mode_rounded, size: 18), text: 'VUFORIA'),
-          Tab(icon: Icon(Icons.apple_rounded, size: 18), text: 'ARKIT'),
-          Tab(icon: Icon(Icons.android_rounded, size: 18), text: 'ARCORE'),
-          Tab(icon: Icon(Icons.settings_input_hdmi_rounded, size: 18), text: 'QUEST'),
-          Tab(icon: Icon(Icons.language_rounded, size: 18), text: 'WEBXR'),
+        tabs: [
+          _buildPlatformTab(Icons.light_mode_rounded, 'VUFORIA'),
+          _buildPlatformTab(Icons.apple_rounded, 'ARKIT'),
+          _buildPlatformTab(Icons.android_rounded, 'ARCORE'),
+          _buildPlatformTab(Icons.settings_input_hdmi_rounded, 'QUEST'),
+          _buildPlatformTab(Icons.language_rounded, 'WEBXR'),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPlatformTab(IconData icon, String text) {
+    return Tab(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18),
+            const SizedBox(width: 8),
+            Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
     );
   }

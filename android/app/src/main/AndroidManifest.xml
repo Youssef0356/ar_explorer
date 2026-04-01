@@ -15,6 +15,7 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
             android:exported="true">
             <intent-filter>

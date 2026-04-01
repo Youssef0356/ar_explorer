@@ -244,12 +244,7 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
     await _prefs?.setBool(_premiumXpGrantedKey, _premiumXpGranted);
   }
 
-  bool get hasSeenStarterMission =>
-      _prefs?.getBool('starter_mission_shown') ?? false;
 
-  Future<void> markStarterMissionShown() async {
-    await _prefs?.setBool('starter_mission_shown', true);
-  }
 
   // ── Unified XP Economy ─────────────────────────────────────────
 

@@ -36,7 +36,6 @@
 We've recently implemented several localized fixes to reduce friction and improve engagement:
 *   **Locked Module Previews**: Sneak peek into upcoming content to drive goal-setting.
 *   **Dynamic Quick Quiz FABs**: Instant access to assessments from any topic screen.
-*   **Starter Mission Overlay**: Guided onboarding for new explorers.
 *   **Credential Progress Pills**: Real-time visual tracking for certificate tiers (e.g., "75% to Bronze").
 *   **Celebratory Unlock Flows**: High-impact visual feedback when unlocking new modules, ready for social sharing.
 *   **Cross-Promotion Nodes**: Intelligent prompts to try the XR Builder simulator after successful quizzes.

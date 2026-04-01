@@ -54,7 +54,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkStarterMission();
       _checkTour();
     });
   }
@@ -83,135 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _checkStarterMission() async {
-    final progress = context.read<ProgressService>();
-    if (progress.hasSeenStarterMission) return;
-    if (!progress.hasSeenOnboarding) return;
 
-    final module = allModules[0];
-    final completed = progress.completedTopicsInModule(
-      module.id,
-      module.topics.map((t) => t.id).toList(),
-    );
-    if (completed > 0) {
-      await progress.markStarterMissionShown();
-      return;
-    }
-
-    await progress.markStarterMissionShown();
-    final isDark = context.read<ThemeService>().isDarkMode;
-    final color = AppTheme.getModuleColor(0);
-
-    if (!mounted) return;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.cardC(isDark),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Column(
-          children: [
-            Icon(Icons.rocket_launch_rounded, color: color, size: 48),
-            const SizedBox(height: 12),
-            Text(
-              'Your Starter Mission',
-              style: AppTheme.headingMedium.copyWith(color: AppTheme.textPrimaryC(isDark)),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Complete your first 3 topics to unlock the full learning roadmap.',
-              style: AppTheme.bodyMedium.copyWith(color: AppTheme.textSecondaryC(isDark)),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: 72,
-              height: 72,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 72,
-                    height: 72,
-                    child: CircularProgressIndicator(
-                      value: 0,
-                      strokeWidth: 6,
-                      backgroundColor: color.withValues(alpha: 0.15),
-                      valueColor: AlwaysStoppedAnimation<Color>(color),
-                    ),
-                  ),
-                  Text(
-                    '0 / 3',
-                    style: AppTheme.bodySmall.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: color,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
-                    ),
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ModuleDetailScreen(
-                            module: module,
-                            accentColor: color,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Text('Start Module 1', style: AppTheme.buttonText),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: Text(
-                      'Skip for now',
-                      style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.textMutedC(isDark),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildInterviewBanner(bool isDark) {
     final progress = context.watch<ProgressService>();

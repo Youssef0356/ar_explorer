@@ -16,7 +16,7 @@ class AdService extends ChangeNotifier {
 
   // Ad Cooldown Logic
   DateTime? _lastAdShownTimestamp;
-  static const Duration _adCooldown = Duration(seconds: 60);
+  static const Duration _adCooldown = Duration(seconds: 120); // Increased to 2 mins to prevent "back-to-back" ad fatigue
 
   // Ad Unit IDs (Test IDs vs Real IDs based on debug/release)
   String get _interstitialAdUnitId {
@@ -208,7 +208,6 @@ class AdService extends ChangeNotifier {
     }
 
     final completer = Completer<bool>();
-    bool earnedReward = false;
 
     debugPrint('Attempting to show RewardedAd...');
 
@@ -222,7 +221,9 @@ class AdService extends ChangeNotifier {
         ad.dispose();
         _rewardedAd = null;
         _loadRewardedAd();
-        if (!completer.isCompleted) completer.complete(earnedReward);
+        // Friendly implementation: grant the reward even if they closed it early (acts as skip)
+        // This keeps users happy while still attempting to show the ad for revenue.
+        if (!completer.isCompleted) completer.complete(true);
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
         debugPrint('Rewarded ad failed to show: $error');
@@ -236,7 +237,6 @@ class AdService extends ChangeNotifier {
     await _rewardedAd!.show(
       onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
         debugPrint('RewardedAd reward earned: ${reward.amount} ${reward.type}');
-        earnedReward = true;
       },
     );
 
