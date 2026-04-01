@@ -65,10 +65,10 @@ class _CodingGameMapScreenState extends State<CodingGameMapScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: TabBar(
         isScrollable: true,
-        dividerColor: Colors.transparent,
         tabAlignment: TabAlignment.start,
-        indicatorSize: TabBarIndicatorSize.label,
-        labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+        dividerColor: Colors.transparent,
+        indicatorPadding: EdgeInsets.zero,
+        labelPadding: EdgeInsets.zero,
         indicator: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           color: AppTheme.accentPurple.withValues(alpha: 0.15),
@@ -77,26 +77,26 @@ class _CodingGameMapScreenState extends State<CodingGameMapScreen>
         labelColor: AppTheme.accentPurple,
         unselectedLabelColor: Colors.white24,
         tabs: [
-          _buildZoneTab(Icons.light_mode_rounded, 'VUFORIA'),
-          _buildZoneTab(Icons.apple_rounded, 'ARKIT'),
-          _buildZoneTab(Icons.android_rounded, 'ARCORE'),
-          _buildZoneTab(Icons.settings_input_hdmi_rounded, 'QUEST'),
-          _buildZoneTab(Icons.language_rounded, 'WEBXR'),
+          _buildPlatformTab(Icons.light_mode_rounded, 'VUFORIA'),
+          _buildPlatformTab(Icons.apple_rounded, 'ARKIT'),
+          _buildPlatformTab(Icons.android_rounded, 'ARCORE'),
+          _buildPlatformTab(Icons.settings_input_hdmi_rounded, 'QUEST'),
+          _buildPlatformTab(Icons.language_rounded, 'WEBXR'),
         ],
       ),
     );
   }
 
-  Tab _buildZoneTab(IconData icon, String label) {
+  Widget _buildPlatformTab(IconData icon, String text) {
     return Tab(
-      child: Container(
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16),
+            Icon(icon, size: 18),
             const SizedBox(width: 8),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 1.2)),
+            Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
       ),
