@@ -15,6 +15,7 @@ class ModuleCard extends StatelessWidget {
   final bool isDark;
   final bool enableAnimations;
   final bool isPremiumModule;
+  final bool isNextUp;
 
   const ModuleCard({
     super.key,
@@ -29,6 +30,7 @@ class ModuleCard extends StatelessWidget {
     this.isDark = true,
     required this.enableAnimations,
     this.isPremiumModule = false,
+    this.isNextUp = false,
   });
 
   @override
@@ -40,9 +42,53 @@ class ModuleCard extends StatelessWidget {
               color: isLocked
                   ? AppTheme.cardC(isDark).withValues(alpha: isDark ? 0.5 : 0.7)
                   : null,
+              border: isNextUp
+                  ? Border(
+                      left: BorderSide(color: accentColor, width: 3),
+                      top: BorderSide(color: accentColor.withValues(alpha: 0.4), width: 1.5),
+                      right: BorderSide(color: accentColor.withValues(alpha: 0.4), width: 1.5),
+                      bottom: BorderSide(color: accentColor.withValues(alpha: 0.4), width: 1.5),
+                    )
+                  : null,
             ),
             child: Stack(
               children: [
+                // ── "Next up" badge ──
+                if (isNextUp)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: accentColor,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accentColor.withValues(alpha: 0.3),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 12),
+                          const SizedBox(width: 3),
+                          Text(
+                            progress > 0 ? 'Continue' : 'Start here',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                 // ── Glow effect ──
                 if (!isLocked)
                   Positioned(
@@ -96,7 +142,7 @@ class ModuleCard extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  title,
+                                  title.isEmpty ? 'Untitled Module' : title,
                                   style: AppTheme.headingSmall.copyWith(
                                     color: isLocked
                                         ? AppTheme.textMutedC(isDark)
@@ -105,7 +151,7 @@ class ModuleCard extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  description,
+                                  description.isEmpty ? 'Learn more about this topic.' : description,
                                   style: AppTheme.bodySmall.copyWith(
                                     color: isLocked
                                         ? AppTheme.textMutedC(

@@ -66,6 +66,9 @@ class _CodingGameMapScreenState extends State<CodingGameMapScreen>
       child: TabBar(
         isScrollable: true,
         dividerColor: Colors.transparent,
+        tabAlignment: TabAlignment.start,
+        indicatorSize: TabBarIndicatorSize.label,
+        labelPadding: const EdgeInsets.symmetric(horizontal: 4),
         indicator: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           color: AppTheme.accentPurple.withValues(alpha: 0.15),
@@ -73,13 +76,29 @@ class _CodingGameMapScreenState extends State<CodingGameMapScreen>
         ),
         labelColor: AppTheme.accentPurple,
         unselectedLabelColor: Colors.white24,
-        tabs: const [
-          Tab(icon: Icon(Icons.light_mode_rounded, size: 18), text: 'VUFORIA'),
-          Tab(icon: Icon(Icons.apple_rounded, size: 18), text: 'ARKIT'),
-          Tab(icon: Icon(Icons.android_rounded, size: 18), text: 'ARCORE'),
-          Tab(icon: Icon(Icons.settings_input_hdmi_rounded, size: 18), text: 'QUEST'),
-          Tab(icon: Icon(Icons.language_rounded, size: 18), text: 'WEBXR'),
+        tabs: [
+          _buildZoneTab(Icons.light_mode_rounded, 'VUFORIA'),
+          _buildZoneTab(Icons.apple_rounded, 'ARKIT'),
+          _buildZoneTab(Icons.android_rounded, 'ARCORE'),
+          _buildZoneTab(Icons.settings_input_hdmi_rounded, 'QUEST'),
+          _buildZoneTab(Icons.language_rounded, 'WEBXR'),
         ],
+      ),
+    );
+  }
+
+  Tab _buildZoneTab(IconData icon, String label) {
+    return Tab(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16),
+            const SizedBox(width: 8),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 1.2)),
+          ],
+        ),
       ),
     );
   }
@@ -118,6 +137,7 @@ class _CodingGameMapScreenState extends State<CodingGameMapScreen>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Unlock Level', style: TextStyle(color: Colors.white)),
         content: Text('Unlock "${level.title}" for $cost XP?\nYour Balance: ${progress.unifiedXP} XP', style: const TextStyle(color: Colors.white70)),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
@@ -134,7 +154,7 @@ class _CodingGameMapScreenState extends State<CodingGameMapScreen>
 
   Widget _buildHeader(GameProgressService progress) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 14),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.2),
         border: const Border(bottom: BorderSide(color: Colors.white10)),
@@ -175,12 +195,14 @@ class _CodingGameMapScreenState extends State<CodingGameMapScreen>
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Color(0xFF0F172A),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
+      builder: (_) => SafeArea(
+        bottom: true,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: Color(0xFF0F172A),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -208,8 +230,9 @@ class _CodingGameMapScreenState extends State<CodingGameMapScreen>
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _PlatformLevelCard extends StatelessWidget {

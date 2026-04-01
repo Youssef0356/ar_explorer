@@ -6,12 +6,16 @@ class TourStep {
   final String title;
   final String body;
   final int targetTab;
+  final bool scrollToModuleCard;
+  final bool showArrow;
 
   const TourStep({
     required this.icon,
     required this.title,
     required this.body,
     required this.targetTab,
+    this.scrollToModuleCard = false,
+    this.showArrow = false,
   });
 }
 
@@ -30,28 +34,36 @@ class TourService extends ChangeNotifier {
 
   final List<TourStep> steps = const [
     TourStep(
-      icon: Icons.book_rounded,
-      title: 'Learn Tab',
-      body: 'Modules, quizzes and flashcards live here. Master AR fundamentals at your own pace.',
+      icon: Icons.home_rounded,
+      title: 'Your Home Base',
+      body: 'This is your dashboard — your daily keyword, quick actions, and learning modules are all here.',
       targetTab: 0,
     ),
     TourStep(
+      icon: Icons.map_rounded,
+      title: 'Roadmap',
+      body: 'Tap Roadmap to see your full learning journey — track completed modules and plan ahead.',
+      targetTab: 1,
+    ),
+    TourStep(
       icon: Icons.gamepad_rounded,
-      title: 'Play Tab',
-      body: '4 immersive AR games to practice real-world engineering concepts in 3D.',
+      title: 'Play & Practice',
+      body: 'Tap a game to practice wiring AR components — no code needed.',
       targetTab: 2,
     ),
     TourStep(
       icon: Icons.emoji_events_rounded,
-      title: 'Rewards Tab',
-      body: 'Track your XP, earn certificates, and collect badges as you progress.',
+      title: 'Your Rewards',
+      body: 'Check your XP, earned certificates, and achievement badges here.',
       targetTab: 3,
     ),
     TourStep(
       icon: Icons.play_arrow_rounded,
-      title: 'Start Learning',
-      body: 'Tap any module card to begin. Complete topics to unlock quizzes and move to the next level.',
+      title: 'Start Here',
+      body: 'Tap this card to begin your first lesson. Complete topics to unlock quizzes and advance.',
       targetTab: 0,
+      scrollToModuleCard: true,
+      showArrow: true,
     ),
   ];
 

@@ -56,7 +56,7 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
   bool _weeklyChallengeDone = false;
   bool _streakFreezeActive = false;
   DateTime? _weeklyStartDate;
-  Set<String> _unlockedModules = {'m1'}; // Module 1 free by default
+  Set<String> _unlockedModules = {'intro_ar_basics'}; // AR Basics free by default
   DateTime? _lastDailyLoginDate;
   bool _premiumXpGranted = false;
   bool _showDebugTools = kDebugMode; // Default to true in debug, but user can hide
@@ -165,7 +165,7 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
     if (unlockedModsJson != null && unlockedModsJson.isNotEmpty) {
       _unlockedModules = unlockedModsJson.toSet();
     } else {
-      _unlockedModules = {'m1'}; // default fallback
+      _unlockedModules = {'intro_ar_basics'}; // default fallback
     }
     
     final lastDailyLoginStr = _prefs?.getString(_lastDailyLoginKey);

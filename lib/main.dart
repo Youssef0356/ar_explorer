@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,6 +24,27 @@ import 'services/tour_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = true;
+
+  // ── Orientation lock: portrait for phones, all orientations for tablets ──
+  final view = WidgetsBinding.instance.platformDispatcher.views.first;
+  final physicalSize = view.physicalSize;
+  final devicePixelRatio = view.devicePixelRatio;
+  final shortestSideDp = physicalSize.shortestSide / devicePixelRatio;
+
+  if (shortestSideDp >= 600) {
+    // Tablet — allow all orientations
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  } else {
+    // Phone — lock to portrait
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+  }
   
   // Initialize Ads with timeout to prevent hanging on emulators
   try {

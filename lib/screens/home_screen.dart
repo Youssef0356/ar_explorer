@@ -25,7 +25,7 @@ import '../services/notification_service.dart';
 import '../widgets/animated_google_background.dart';
 import '../widgets/daily_keyword_card.dart';
 import '../widgets/module_card.dart';
-import 'achievements_screen.dart';
+
 import 'bookmarks_screen.dart';
 import 'credits_screen.dart';
 import 'interview_screen.dart';
@@ -39,6 +39,7 @@ import 'certificate_progression_screen.dart';
 import '../widgets/glass_card.dart';
 import '../services/tour_service.dart';
 import '../widgets/tour_bottom_sheet.dart';
+import '../widgets/tour_spotlight.dart';
 
 
 
@@ -50,13 +51,40 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final ScrollController _scrollController = ScrollController();
+  late final VoidCallback _tourListener;
+
   @override
   void initState() {
     super.initState();
+    _tourListener = () {
+      if (!mounted) return;
+      final ts = context.read<TourService>();
+      if (ts.isActive && ts.currentStep.scrollToModuleCard) {
+        _scrollController.animateTo(
+          350, // Approximate offset to show the first module card
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOutCubic,
+        );
+      } else if (ts.isActive && !ts.currentStep.scrollToModuleCard) {
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+    };
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkStarterMission();
+      context.read<TourService>().addListener(_tourListener);
       _checkTour();
     });
+  }
+
+  @override
+  void dispose() {
+    context.read<TourService>().removeListener(_tourListener);
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _checkTour() {
@@ -77,211 +105,14 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      barrierColor: Colors.transparent, // Removes the dimmed overlay
       isDismissible: false,
       enableDrag: false,
       builder: (_) => TourBottomSheet(isDark: isDark),
     );
   }
 
-  Future<void> _checkStarterMission() async {
-    final progress = context.read<ProgressService>();
-    if (progress.hasSeenStarterMission) return;
-    if (!progress.hasSeenOnboarding) return;
 
-    final module = allModules[0];
-    final completed = progress.completedTopicsInModule(
-      module.id,
-      module.topics.map((t) => t.id).toList(),
-    );
-    if (completed > 0) {
-      await progress.markStarterMissionShown();
-      return;
-    }
-
-    await progress.markStarterMissionShown();
-    final isDark = context.read<ThemeService>().isDarkMode;
-    final color = AppTheme.getModuleColor(0);
-
-    if (!mounted) return;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.cardC(isDark),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Column(
-          children: [
-            Icon(Icons.rocket_launch_rounded, color: color, size: 48),
-            const SizedBox(height: 12),
-            Text(
-              'Your Starter Mission',
-              style: AppTheme.headingMedium.copyWith(color: AppTheme.textPrimaryC(isDark)),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Complete your first 3 topics to unlock the full learning roadmap.',
-              style: AppTheme.bodyMedium.copyWith(color: AppTheme.textSecondaryC(isDark)),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: 72,
-              height: 72,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 72,
-                    height: 72,
-                    child: CircularProgressIndicator(
-                      value: 0,
-                      strokeWidth: 6,
-                      backgroundColor: color.withValues(alpha: 0.15),
-                      valueColor: AlwaysStoppedAnimation<Color>(color),
-                    ),
-                  ),
-                  Text(
-                    '0 / 3',
-                    style: AppTheme.bodySmall.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: color,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
-                    ),
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ModuleDetailScreen(
-                            module: module,
-                            accentColor: color,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Text('Start Module 1', style: AppTheme.buttonText),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: Text(
-                      'Skip for now',
-                      style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.textMutedC(isDark),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInterviewBanner(bool isDark) {
-    final progress = context.watch<ProgressService>();
-    final isPremium = context.watch<SubscriptionService>().isPremium;
-
-    if (isPremium) return const SizedBox.shrink();
-    final attemptsLeft = progress.interviewAttemptsLeft;
-    if (attemptsLeft <= 0) return const SizedBox.shrink();
-    final completedModules = progress.completedModuleCount(allModules);
-    if (completedModules < 1) return const SizedBox.shrink();
-
-    return GestureDetector(
-      onTap: () {
-        context.read<SoundService>().playTap();
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const InterviewScreen()),
-        );
-      },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppTheme.cardC(isDark),
-          borderRadius: BorderRadius.circular(12),
-          border: const Border(
-            left: BorderSide(color: AppTheme.accentAmber, width: 3),
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: AppTheme.accentAmber.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.timer_rounded,
-                  color: AppTheme.accentAmber, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Interview Practice Available',
-                    style: AppTheme.headingSmall.copyWith(
-                      fontSize: 13,
-                      color: AppTheme.textPrimaryC(isDark),
-                    ),
-                  ),
-                  Text(
-                    '$attemptsLeft attempt${attemptsLeft > 1 ? 's' : ''} remaining today',
-                    style: AppTheme.bodySmall.copyWith(
-                      color: AppTheme.accentAmber,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.chevron_right_rounded,
-                color: AppTheme.textMutedC(isDark), size: 18),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildXPRow(bool isDark) {
     return Consumer2<ProgressService, GameProgressService>(
@@ -293,56 +124,97 @@ class _HomeScreenState extends State<HomeScreen> {
         final xp = gameProgress.unifiedXP;
         final levelTitle = AppTheme.getLevelTitle(overallProgress);
 
+        // Compute progress within current level tier
+        // Thresholds: 0-20% Beginner, 20-40% Explorer, 40-60% Builder, 60-80% Architect, 80-100% Master
+        final thresholds = [0.0, 0.20, 0.40, 0.60, 0.80, 1.0];
+        int tierIdx = 0;
+        for (int i = thresholds.length - 2; i >= 0; i--) {
+          if (overallProgress >= thresholds[i]) {
+            tierIdx = i;
+            break;
+          }
+        }
+        final tierStart = thresholds[tierIdx];
+        final tierEnd = thresholds[(tierIdx + 1).clamp(0, thresholds.length - 1)];
+        final tierRange = tierEnd - tierStart;
+        final levelProgress = tierRange > 0
+            ? ((overallProgress - tierStart) / tierRange).clamp(0.0, 1.0)
+            : 1.0;
+
         return Row(
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: AppTheme.accentCyan.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppTheme.accentCyan.withValues(alpha: 0.2), width: 1),
-              ),
-              child: Text(
-                levelTitle,
-                style: AppTheme.bodySmall.copyWith(
-                  color: AppTheme.accentBlue,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 10,
-                  letterSpacing: 0.5,
-                ),
+            // ── Username ──
+            Text(
+              progress.username,
+              style: AppTheme.bodySmall.copyWith(
+                color: AppTheme.textPrimaryC(isDark),
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Stack(
-                children: [
-                  Container(
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
-                  FractionallySizedBox(
-                    widthFactor: overallProgress.clamp(0.02, 1.0),
-                    child: Container(
-                      height: 6,
-                      decoration: BoxDecoration(
+            const SizedBox(width: 10),
+            // ── Level pill with half-width progress bar ──
+            Flexible(
+              flex: 2,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentCyan.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.accentCyan.withValues(alpha: 0.2), width: 1),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      levelTitle,
+                      style: AppTheme.bodySmall.copyWith(
                         color: AppTheme.accentBlue,
-                        borderRadius: BorderRadius.circular(3),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.accentBlue.withValues(alpha: 0.3),
-                            blurRadius: 6,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 9,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.08)
+                                  : Colors.black.withValues(alpha: 0.06),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          FractionallySizedBox(
+                            widthFactor: levelProgress.clamp(0.03, 1.0),
+                            child: Container(
+                              height: 4,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [AppTheme.accentCyan, AppTheme.accentBlue],
+                                ),
+                                borderRadius: BorderRadius.circular(2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppTheme.accentBlue.withValues(alpha: 0.3),
+                                    blurRadius: 4,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
+            // ── XP count ──
             Text(
               '$xp XP',
               style: AppTheme.headingSmall.copyWith(
@@ -437,6 +309,7 @@ class _HomeScreenState extends State<HomeScreen> {
         isDark: isDark,
         child: SafeArea(
           child: CustomScrollView(
+            controller: _scrollController,
             physics: const BouncingScrollPhysics(),
             slivers: [
               // ── Header ──
@@ -613,15 +486,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           children: [
                             _buildXPRow(isDark),
-                            const SizedBox(height: 24),
-                            // ── XP & Level Card ──
-                            _buildLevelCard(context, isDark, themeService.enableAnimations),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 16),
                             _buildDailyKeywordBanner(isDark),
-                            const SizedBox(height: 20),
-                            _buildInterviewBanner(isDark),
-                            const SizedBox(height: 20),
-                            // ── Quick Actions: Practice & Interview ──
+                            const SizedBox(height: 16),
+                            // ── Quick Actions: Practice, Interview, Analytics, Bookmarks ──
                             _buildQuickActions(context, isDark, themeService.enableAnimations),
                           ],
                         ),
@@ -654,98 +522,109 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
               // ── Module Cards ──
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final module = allModules[index];
-                      final color = AppTheme.getModuleColor(index);
+              Consumer2<ProgressService, SubscriptionService>(
+                builder: (context, progressSvc, subscriptionSvc, _) {
+                  // Compute the first uncompleted, unlocked module
+                  int nextUpModuleIndex = -1;
+                  for (int i = 0; i < allModules.length; i++) {
+                    final m = allModules[i];
+                    final unlocked = progressSvc.isModuleUnlocked(m, isPremium: subscriptionSvc.isPremium);
+                    if (!unlocked) continue;
+                    final prog = progressSvc.moduleProgress(m.id, m.totalTopics);
+                    if (prog < 1.0) {
+                      nextUpModuleIndex = i;
+                      break;
+                    }
+                  }
 
-                      return Selector2<ProgressService, SubscriptionService, ({bool isLocked, double progress})>(
-                        selector: (context, progress, subscription) {
-                          final isLocked = !progress.isModuleUnlocked(module, isPremium: subscription.isPremium);
-                          final moduleProgress = isLocked ? 0.0 : progress.moduleProgress(module.id, module.totalTopics);
+                  return SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final module = allModules[index];
+                          final color = AppTheme.getModuleColor(index);
+                          final isLocked = !progressSvc.isModuleUnlocked(module, isPremium: subscriptionSvc.isPremium);
+                          final moduleProgress = isLocked ? 0.0 : progressSvc.moduleProgress(module.id, module.totalTopics);
 
-                          return (isLocked: isLocked, progress: moduleProgress);
-                        },
-                        builder: (context, data, child) {
                           final card = ModuleCard(
                             key: ValueKey(module.id),
                             title: module.title,
-                              description: module.description,
-                              icon: module.icon,
-                              accentColor: color,
-                              progress: data.progress,
-                              isLocked: data.isLocked,
-                              isPremiumModule: module.unlockCost > 0,
-                              index: index,
-                              isDark: isDark,
-                              enableAnimations: themeService.enableAnimations,
-                              onTap: () {
-                                soundService.playTap();
-                                if (data.isLocked) {
-                                  _showXPUnlockDialog(context, module, color);
-                                  return;
-                                }
-                                Navigator.push(
-                                  context,
-                                  PageRouteBuilder(
-                                    pageBuilder: (context2, animation, secondaryAnimation) => ModuleDetailScreen(
-                                      module: module,
-                                      accentColor: color,
-                                    ),
-                                    transitionsBuilder: (context2, anim, secondaryAnim, child) {
-                                      return FadeTransition(
-                                        opacity: anim,
-                                        child: SlideTransition(
-                                          position: Tween<Offset>(
-                                            begin: const Offset(1, 0),
-                                            end: Offset.zero,
-                                          ).animate(
-                                            CurvedAnimation(
-                                              parent: anim,
-                                              curve: Curves.easeOutCubic,
-                                            ),
-                                          ),
-                                          child: child,
-                                        ),
-                                      );
-                                    },
-                                    transitionDuration: const Duration(
-                                      milliseconds: 400,
-                                    ),
+                            description: module.description,
+                            icon: module.icon,
+                            accentColor: color,
+                            progress: moduleProgress,
+                            isLocked: isLocked,
+                            isPremiumModule: module.unlockCost > 0,
+                            isNextUp: index == nextUpModuleIndex,
+                            index: index,
+                            isDark: isDark,
+                            enableAnimations: themeService.enableAnimations,
+                            onTap: () {
+                              soundService.playTap();
+                              if (isLocked) {
+                                _showXPUnlockDialog(context, module, color);
+                                return;
+                              }
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder: (context2, animation, secondaryAnimation) => ModuleDetailScreen(
+                                    module: module,
+                                    accentColor: color,
                                   ),
-                                ).then((_) {
-                                  if (context.mounted) {
-                                    final p = context.read<ProgressService>();
-                                    context.read<ReviewService>().tryShowReviewPrompt(
-                                          completedModules: p.completedModuleCount(allModules),
-                                        );
-                                  }
-                                });
-                              },
-                            );
-
-                          if (index == 0) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: card,
-                            );
-                          }
+                                  transitionsBuilder: (context2, anim, secondaryAnim, child) {
+                                    return FadeTransition(
+                                      opacity: anim,
+                                      child: SlideTransition(
+                                        position: Tween<Offset>(
+                                          begin: const Offset(1, 0),
+                                          end: Offset.zero,
+                                        ).animate(
+                                          CurvedAnimation(
+                                            parent: anim,
+                                            curve: Curves.easeOutCubic,
+                                          ),
+                                        ),
+                                        child: child,
+                                      ),
+                                    );
+                                  },
+                                  transitionDuration: const Duration(
+                                    milliseconds: 400,
+                                  ),
+                                ),
+                              ).then((_) {
+                                if (context.mounted) {
+                                  final p = context.read<ProgressService>();
+                                  context.read<ReviewService>().tryShowReviewPrompt(
+                                    completedModules: p.completedModuleCount(allModules),
+                                  );
+                                }
+                              });
+                            },
+                          );
 
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 16),
-                            child: card,
+                            child: (index == nextUpModuleIndex)
+                                ? Consumer<TourService>(
+                                    builder: (context, ts, _) => TourSpotlight(
+                                      isVisible: ts.isActive && ts.currentStep.scrollToModuleCard,
+                                      showArrow: ts.currentStep.showArrow,
+                                      child: card,
+                                    ),
+                                  )
+                                : card,
                           );
                         },
-                      );
-                    },
-                    childCount: allModules.length,
-                    addAutomaticKeepAlives: false,
-                    addRepaintBoundaries: false,
-                  ),
-                ),
+                        childCount: allModules.length,
+                        addAutomaticKeepAlives: false,
+                        addRepaintBoundaries: false,
+                      ),
+                    ),
+                  );
+                },
               ),
 
               // ── Certificate Achievement ──
@@ -807,10 +686,23 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Column(
           children: [
-            Text(
-              hasTier ? tierInfo.emoji : '🎯',
-              style: const TextStyle(fontSize: 40),
-            ),
+            hasTier
+                ? Text(
+                    tierInfo.emoji,
+                    style: const TextStyle(fontSize: 40),
+                  )
+                : Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.workspace_premium_rounded,
+                      color: accentColor,
+                      size: 40,
+                    ),
+                  ),
             const SizedBox(height: 12),
             Text(
               hasTier ? '${tierInfo.name} Certificate Earned' : 'Earn Your First Certificate',
@@ -887,145 +779,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
 
-  // ── Level / XP Card ─────────────────────────────────────────────
-  Widget _buildLevelCard(BuildContext context, bool isDark, bool enableAnimations) {
-    return Consumer<ProgressService>(
-      builder: (context, progress, child) {
-        final totalTopics = allModules.fold<int>(
-          0,
-          (sum, m) => sum + m.totalTopics,
-        );
-        final completedTopics = allModules.fold<int>(0, (sum, m) {
-          return sum +
-              m.topics
-                  .where((t) => progress.isTopicCompleted('${m.id}_${t.id}'))
-                  .length;
-        });
-        final overallProgress = totalTopics > 0
-            ? completedTopics / totalTopics
-            : 0.0;
 
-        final levelTitle = AppTheme.getLevelTitle(overallProgress);
-        final motivMsg = AppTheme.getMotivationalMessage(overallProgress);
-
-        final card = GestureDetector(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AchievementsScreen(),
-            ),
-          ),
-          child: GlassCard(
-            padding: const EdgeInsets.all(20),
-            showGlow: true,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top row: level badge
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            AppTheme.accentCyan,
-                            AppTheme.accentBlue,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.accentCyan.withValues(alpha: 0.3),
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        levelTitle,
-                        style: AppTheme.bodySmall.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 11,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-
-                // Progress bar
-                Row(
-                  children: [
-                    Expanded(
-                      child: Stack(
-                        children: [
-                          Container(
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                          ),
-                          FractionallySizedBox(
-                            widthFactor: overallProgress.clamp(0.02, 1.0),
-                            child: Container(
-                              height: 10,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [AppTheme.accentCyan, AppTheme.accentBlue],
-                                ),
-                                borderRadius: BorderRadius.circular(5),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppTheme.accentCyan.withValues(alpha: 0.4),
-                                    blurRadius: 12,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      '${(overallProgress * 100).toInt()}%',
-                      style: AppTheme.headingSmall.copyWith(
-                        color: AppTheme.accentCyan,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  motivMsg,
-                  style: AppTheme.bodySmall.copyWith(
-                    color: AppTheme.textMutedC(isDark),
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-            
-            if (enableAnimations) {
-              return card
-                  .animate()
-                  .fadeIn(duration: const Duration(milliseconds: 500))
-                  .slideY(begin: 0.1, end: 0);
-            }
-            return card;
-      },
-    );
-  }
 
   // ── Quick Actions (Practice, Interview, Roadmap, Bookmarks) ──────────
   Widget _buildQuickActions(BuildContext context, bool isDark, bool enableAnimations) {
