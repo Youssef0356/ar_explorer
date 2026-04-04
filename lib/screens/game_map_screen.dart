@@ -269,6 +269,10 @@ class _GameMapScreenState extends State<GameMapScreen>
   }[zoneId] ?? 0.0;
 
   Widget _buildHeader(GameProgressService progress) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isCompact = screenWidth < 390;
+    final isVeryCompact = screenWidth < 350;
+
     int totalStars = 0, maxStars = 0;
     for (final z in arGameZones) {
       for (final l in z.levels) {
@@ -280,43 +284,61 @@ class _GameMapScreenState extends State<GameMapScreen>
     final leagueColor = _getLeagueColor(league);
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 12, 16, 14),
+      padding: EdgeInsets.fromLTRB(
+        isCompact ? 8 : 12, 
+        12, 
+        isCompact ? 12 : 16, 
+        14
+      ),
       decoration: BoxDecoration(
-        color: Colors.transparent,
+        color: Colors.black.withValues(alpha: 0.2), // Added subtle backing to ensure legibility
         border: Border(bottom: BorderSide(
           color: AppTheme.accentPurple.withValues(alpha: 0.15))),
       ),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
+            icon: Icon(Icons.arrow_back_ios_rounded, 
+                color: Colors.white, 
+                size: isVeryCompact ? 16 : 20),
             onPressed: () => Navigator.pop(context),
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            constraints: BoxConstraints(
+                minWidth: isVeryCompact ? 30 : 36, 
+                minHeight: isVeryCompact ? 30 : 36),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: isCompact ? 4 : 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('PIPELINE CHALLENGE',
-                    style: TextStyle(
-                        color: AppTheme.accentPurple,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 2.5)),
-                const Text('Build Mini-Game',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700)),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text('PIPELINE CHALLENGE',
+                      style: TextStyle(
+                          color: AppTheme.accentPurple,
+                          fontSize: isVeryCompact ? 8 : 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: isVeryCompact ? 1.5 : 2.5)),
+                ),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text('Build Mini-Game',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: isCompact ? 18 : 20,
+                          fontWeight: FontWeight.w700)),
+                ),
               ],
             ),
           ),
+          const SizedBox(width: 8),
+          // League Badge
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            margin: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            margin: EdgeInsets.only(right: isVeryCompact ? 4 : 8),
             decoration: BoxDecoration(
               color: leagueColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
@@ -325,18 +347,21 @@ class _GameMapScreenState extends State<GameMapScreen>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(_getLeagueIcon(league), color: leagueColor, size: 14),
-                const SizedBox(width: 4),
-                Text(league,
-                  style: TextStyle(
-                    color: leagueColor, fontSize: 10,
-                    fontWeight: FontWeight.w800)),
+                Icon(_getLeagueIcon(league), color: leagueColor, size: 12),
+                if (!isVeryCompact) ...[
+                  const SizedBox(width: 4),
+                  Text(league,
+                    style: TextStyle(
+                      color: leagueColor, fontSize: 10,
+                      fontWeight: FontWeight.w800)),
+                ],
               ],
             ),
           ),
+          // XP Badge
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            margin: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            margin: EdgeInsets.only(right: isVeryCompact ? 4 : 8),
             decoration: BoxDecoration(
               color: Colors.amber.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
@@ -354,14 +379,16 @@ class _GameMapScreenState extends State<GameMapScreen>
               ],
             ),
           ),
+          // Stars Progress
           SizedBox(
-            width: 42, height: 42,
+            width: isVeryCompact ? 34 : 42, 
+            height: isVeryCompact ? 34 : 42,
             child: Stack(
               alignment: Alignment.center,
               children: [
                 CircularProgressIndicator(
                   value: maxStars > 0 ? totalStars / maxStars : 0,
-                  strokeWidth: 3,
+                  strokeWidth: isVeryCompact ? 2.5 : 3,
                   backgroundColor: Colors.white.withValues(alpha: 0.08),
                   valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
                 ),
@@ -369,9 +396,13 @@ class _GameMapScreenState extends State<GameMapScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('$totalStars',
-                      style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.w800)),
-                    Text('/ $maxStars',
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 7)),
+                      style: TextStyle(
+                        color: Colors.amber, 
+                        fontSize: isVeryCompact ? 10 : 12, 
+                        fontWeight: FontWeight.w800)),
+                    if (!isVeryCompact)
+                      Text('/ $maxStars',
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 7)),
                   ],
                 ),
               ],

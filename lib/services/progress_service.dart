@@ -37,6 +37,7 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
   static const _lastDailyLoginKey = 'last_daily_login_date';
   static const _premiumXpGrantedKey = 'premium_xp_granted';
   static const _showDebugToolsKey = 'show_debug_tools';
+  static const _activityDatesKey = 'activity_dates';
   static const int weeklyTopicsGoal = 5;
 
   SharedPreferences? _prefs;
@@ -50,7 +51,8 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
   Set<String> _adUnlockedModules = {};
   Set<String> _readKeyConcepts = {}; // Track module IDs where concepts were read
   int _interviewBestScore = 0;
-  List<int> _interviewHistory = [];
+  List<Map<String, dynamic>> _interviewHistory = []; // Now stores {'score': int, 'date': String}
+  Set<String> _activityDates = {}; // stores 'YYYY-MM-DD' strings
   bool _debugUnlockAll = false;
   int _weeklyTopicsCount = 0;
   bool _weeklyChallengeDone = false;
@@ -157,7 +159,20 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
     _interviewBestScore = _prefs?.getInt(_interviewBestKey) ?? 0;
     
     final historyStrings = _prefs?.getStringList(_interviewHistoryKey) ?? [];
-    _interviewHistory = historyStrings.map((e) => int.tryParse(e) ?? 0).toList();
+    try {
+      // Decode the new JSON format
+      _interviewHistory = historyStrings.map((e) => jsonDecode(e) as Map<String, dynamic>).toList();
+    } catch (_) {
+      // Data Migration: Handle old "integer-only" format
+      final oldHistory = historyStrings.map((e) => int.tryParse(e) ?? 0).where((e) => e > 0).toList();
+      final now = DateTime.now().toIso8601String().substring(0, 10);
+      _interviewHistory = oldHistory.map((score) => {
+        'score': score,
+        'date': now,
+      }).toList();
+    }
+    
+    _activityDates = _prefs?.getStringList(_activityDatesKey)?.toSet() ?? {};
     
     _username = _prefs?.getString(_usernameKey) ?? '';
     
@@ -242,6 +257,76 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
     await _prefs?.setStringList(_unlockedModulesKey, _unlockedModules.toList());
     if (_lastDailyLoginDate != null) await _prefs?.setString(_lastDailyLoginKey, _lastDailyLoginDate!.toIso8601String());
     await _prefs?.setBool(_premiumXpGrantedKey, _premiumXpGranted);
+    await _prefs?.setStringList(_activityDatesKey, _activityDates.toList());
+  }
+
+  void recordActivity() {
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    if (!_activityDates.contains(today)) {
+      _activityDates.add(today);
+      _saveProgress();
+      notifyListeners();
+    }
+  }
+
+  // ── Streak Calculation ───────────────────────────────────────
+  int get currentStreak {
+    if (_activityDates.isEmpty) return 0;
+    
+    final sorted = _activityDates.toList()..sort((a, b) => b.compareTo(a)); // Newest first
+    final now = DateTime.now();
+    final todayStr = now.toIso8601String().substring(0, 10);
+    final yesterdayStr = now.subtract(const Duration(days: 1)).toIso8601String().substring(0, 10);
+    
+    // If last activity isn't today OR yesterday, streak is broken
+    if (sorted.first != todayStr && sorted.first != yesterdayStr) return 0;
+    
+    int streak = 0;
+    DateTime currentCheck = DateTime.parse(sorted.first);
+    
+    for (int i = 0; i < sorted.length; i++) {
+       final dayStr = currentCheck.toIso8601String().substring(0, 10);
+       if (_activityDates.contains(dayStr)) {
+         streak++;
+         currentCheck = currentCheck.subtract(const Duration(days: 1));
+       } else {
+         break;
+       }
+    }
+    return streak;
+  }
+
+  Set<String> get activityDates => _activityDates;
+
+  // ── Predictive Helpers ─────────────────────────────────────
+  double get topicsPerDayLast7Days {
+    // Fallback: use total topics / active days (min 1 day to avoid div by zero)
+    final activeDays = _activityDates.length.clamp(1, 1000);
+    return _completedTopics.length / activeDays;
+  }
+
+  int get remainingTopicsForNextCert {
+    final certData = computeProgressForPredictions();
+    return certData.topicsToNextTier;
+  }
+
+  int get daysToNextCertificate {
+    final rate = topicsPerDayLast7Days;
+    if (rate <= 0) return 99; // Default if no progress
+    final remaining = remainingTopicsForNextCert;
+    return (remaining / rate).ceil();
+  }
+
+  // Local helper for internal calculations without circular imports
+  _CertPredData computeProgressForPredictions() {
+     final totalTopics = allModules.fold<int>(0, (s, m) => s + m.totalTopics);
+     final completed = _completedTopics.length;
+     // Thresholds: Bronze: 5, Silver: 15, Gold: 30, Platinum: All(approx 60+)
+     int nextThreshold = 5;
+     if (completed >= 30) nextThreshold = totalTopics;
+     else if (completed >= 15) nextThreshold = 30;
+     else if (completed >= 5) nextThreshold = 15;
+     return _CertPredData(completed: completed, threshold: nextThreshold);
   }
 
 
@@ -278,6 +363,7 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
     
     // Give XP using the Unified system
     await addXP(10);
+    recordActivity();
     
     _weeklyTopicsCount++;
     if (_weeklyTopicsCount >= weeklyTopicsGoal && !_weeklyChallengeDone) {
@@ -349,6 +435,7 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     await _saveProgress();
+    recordActivity();
     notifyListeners();
 
     // Snapshot currently unlocked modules after saving
@@ -471,8 +558,9 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
 
     // 3. Set interview best score
     _interviewBestScore = 100;
-    if (!_interviewHistory.contains(100)) {
-       _interviewHistory.add(100);
+    final now = DateTime.now().toIso8601String().substring(0, 10);
+    if (!_interviewHistory.any((e) => e['score'] == 100)) {
+       _interviewHistory.add({'score': 100, 'date': now});
     }
 
     // 4. Complete all game zones required for Platinum
@@ -501,6 +589,7 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> saveWrongAnswer(String questionId) async {
     _wrongAnswers.add(questionId);
+    recordActivity();
     await _saveProgress();
   }
 
@@ -527,6 +616,7 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
       _gameProgressService?.addUnifiedXP(50);
     }
     await _saveProgress();
+    recordActivity();
     notifyListeners();
   }
 
@@ -636,17 +726,19 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
     
     _gameProgressService?.addUnifiedXP(100);
 
-    _interviewHistory.add(scorePercent);
+    final now = DateTime.now().toIso8601String().substring(0, 10);
+    _interviewHistory.add({'score': scorePercent, 'date': now});
     // Keep last 15 scores for chart
     if (_interviewHistory.length > 15) {
       _interviewHistory.removeAt(0);
     }
     
     await _saveProgress();
+    recordActivity();
     notifyListeners();
   }
-  
-  List<int> get interviewHistory => List.unmodifiable(_interviewHistory);
+
+  List<Map<String, dynamic>> get interviewHistory => _interviewHistory;
 
   // ── Achievements ───────────────────────────────────────────────
   Set<String> get achievements => Set.unmodifiable(_achievements);
@@ -718,7 +810,7 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
     _readKeyConcepts = {};
     _interviewBestScore = 0;
     _interviewHistory = [];
-    _username = 'Explorer'; // Reset to 'Explorer' instead of empty string
+    _username = 'Explorer'; 
     
     // Explicitly remove ALL keys from SharedPreferences immediately
     final keys = [
@@ -732,10 +824,11 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
       _readKeyConceptsKey,
       _interviewBestKey,
       _interviewHistoryKey,
-      _usernameKey, // This will remove the stored name, getter will return 'Explorer'
+      _usernameKey, 
       _interviewAttemptsDateKey,
       _interviewAttemptsCountKey,
       _lastDailyChallengeKey,
+      _activityDatesKey,
     ];
 
     for (final key in keys) {
@@ -749,4 +842,12 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
     await _saveProgress();
     notifyListeners();
   }
+}
+
+
+class _CertPredData {
+  final int completed;
+  final int threshold;
+  _CertPredData({required this.completed, required this.threshold});
+  int get topicsToNextTier => (threshold - completed).clamp(0, 500);
 }

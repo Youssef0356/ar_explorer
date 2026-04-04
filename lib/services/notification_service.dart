@@ -5,6 +5,16 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:workmanager/workmanager.dart';
+
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    if (task == "refreshNotifications") {
+      await NotificationService.handleBackgroundRefresh();
+    }
+    return Future.value(true);
+  });
+}
 
 class NotificationService extends ChangeNotifier {
   static final NotificationService _instance = NotificationService._internal();
@@ -97,7 +107,34 @@ class NotificationService extends ChangeNotifier {
     if (_notificationsEnabled) {
       scheduleEngagementNotifications();
       scheduleDailyXPReminder();
+      
+      // Ensure WorkManager is also initialized and checking periodically
+      try {
+        Workmanager().initialize(
+          callbackDispatcher,
+          isInDebugMode: kDebugMode,
+        );
+        Workmanager().registerPeriodicTask(
+          "daily-notification-refresh",
+          "refreshNotifications",
+          frequency: const Duration(hours: 12),
+          existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
+          constraints: Constraints(
+            networkType: NetworkType.notRequired,
+            requiresBatteryNotLow: true,
+          ),
+        );
+      } catch (e) {
+        debugPrint('Workmanager registration error: $e');
+      }
     }
+  }
+
+  // --- Background Task Entry Point ---
+  static Future<void> handleBackgroundRefresh() async {
+    final service = NotificationService();
+    await service.init();
+    debugPrint('Background notification refresh completed.');
   }
 
   Future<void> toggleNotifications() async {

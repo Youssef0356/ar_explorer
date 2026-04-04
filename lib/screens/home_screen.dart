@@ -25,7 +25,7 @@ import '../services/notification_service.dart';
 import '../widgets/animated_google_background.dart';
 import '../widgets/daily_keyword_card.dart';
 import '../widgets/module_card.dart';
-import 'achievements_screen.dart';
+
 import 'bookmarks_screen.dart';
 import 'credits_screen.dart';
 import 'interview_screen.dart';
@@ -484,10 +484,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           children: [
                             _buildXPRow(isDark),
-                            const SizedBox(height: 24),
-                            // ── XP & Level Card ──
-                            _buildLevelCard(context, isDark, themeService.enableAnimations),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 16),
                             _buildDailyKeywordBanner(isDark),
                             const SizedBox(height: 20),
                             _buildInterviewBanner(isDark),
@@ -758,145 +755,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
 
-  // ── Level / XP Card ─────────────────────────────────────────────
-  Widget _buildLevelCard(BuildContext context, bool isDark, bool enableAnimations) {
-    return Consumer<ProgressService>(
-      builder: (context, progress, child) {
-        final totalTopics = allModules.fold<int>(
-          0,
-          (sum, m) => sum + m.totalTopics,
-        );
-        final completedTopics = allModules.fold<int>(0, (sum, m) {
-          return sum +
-              m.topics
-                  .where((t) => progress.isTopicCompleted('${m.id}_${t.id}'))
-                  .length;
-        });
-        final overallProgress = totalTopics > 0
-            ? completedTopics / totalTopics
-            : 0.0;
 
-        final levelTitle = AppTheme.getLevelTitle(overallProgress);
-        final motivMsg = AppTheme.getMotivationalMessage(overallProgress);
-
-        final card = GestureDetector(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AchievementsScreen(),
-            ),
-          ),
-          child: GlassCard(
-            padding: const EdgeInsets.all(20),
-            showGlow: true,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top row: level badge
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            AppTheme.accentCyan,
-                            AppTheme.accentBlue,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.accentCyan.withValues(alpha: 0.3),
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        levelTitle,
-                        style: AppTheme.bodySmall.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 11,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-
-                // Progress bar
-                Row(
-                  children: [
-                    Expanded(
-                      child: Stack(
-                        children: [
-                          Container(
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                          ),
-                          FractionallySizedBox(
-                            widthFactor: overallProgress.clamp(0.02, 1.0),
-                            child: Container(
-                              height: 10,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [AppTheme.accentCyan, AppTheme.accentBlue],
-                                ),
-                                borderRadius: BorderRadius.circular(5),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppTheme.accentCyan.withValues(alpha: 0.4),
-                                    blurRadius: 12,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      '${(overallProgress * 100).toInt()}%',
-                      style: AppTheme.headingSmall.copyWith(
-                        color: AppTheme.accentCyan,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  motivMsg,
-                  style: AppTheme.bodySmall.copyWith(
-                    color: AppTheme.textMutedC(isDark),
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-            
-            if (enableAnimations) {
-              return card
-                  .animate()
-                  .fadeIn(duration: const Duration(milliseconds: 500))
-                  .slideY(begin: 0.1, end: 0);
-            }
-            return card;
-      },
-    );
-  }
 
   // ── Quick Actions (Practice, Interview, Roadmap, Bookmarks) ──────────
   Widget _buildQuickActions(BuildContext context, bool isDark, bool enableAnimations) {

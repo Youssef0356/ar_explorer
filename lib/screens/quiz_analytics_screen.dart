@@ -12,8 +12,15 @@ import '../services/theme_service.dart';
 import '../services/sound_service.dart';
 import '../widgets/animated_google_background.dart';
 
-class QuizAnalyticsScreen extends StatelessWidget {
+class QuizAnalyticsScreen extends StatefulWidget {
   const QuizAnalyticsScreen({super.key});
+
+  @override
+  State<QuizAnalyticsScreen> createState() => _QuizAnalyticsScreenState();
+}
+
+class _QuizAnalyticsScreenState extends State<QuizAnalyticsScreen> {
+  int _filterDays = 0; // 0 for ALL, else 7 or 30
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +55,10 @@ class QuizAnalyticsScreen extends StatelessWidget {
                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                    physics: const BouncingScrollPhysics(),
                    children: [
+                      _buildActivityStreak(isDark, progress),
+                      const SizedBox(height: 24),
+                      _buildMasteryPrediction(isDark, progress),
+                      const SizedBox(height: 24),
                       _buildScoreHistoryGraph(isDark, progress),
                       const SizedBox(height: 32),
                       Text(
@@ -124,8 +135,8 @@ class QuizAnalyticsScreen extends StatelessWidget {
   }
 
   Widget _buildScoreHistoryGraph(bool isDark, ProgressService progress) {
-     final history = progress.interviewHistory;
-     if (history.isEmpty) {
+     final allHistory = progress.interviewHistory;
+     if (allHistory.isEmpty) {
         return Container(
           padding: const EdgeInsets.all(24),
           decoration: AppTheme.glassCard(isDark),
@@ -139,7 +150,36 @@ class QuizAnalyticsScreen extends StatelessWidget {
         );
      }
 
-     final maxScore = history.reduce(max).toDouble().clamp(10.0, 100.0);
+     // Filter history
+     List<Map<String, dynamic>> filteredHistory = allHistory;
+     if (_filterDays > 0) {
+        final cutoff = DateTime.now().subtract(Duration(days: _filterDays));
+        filteredHistory = allHistory.where((e) {
+          final dateStr = e['date'] as String;
+          try {
+             return DateTime.parse(dateStr).isAfter(cutoff);
+          } catch (_) {
+             return true; 
+          }
+        }).toList();
+     }
+
+     if (filteredHistory.isEmpty) {
+        return Container(
+           padding: const EdgeInsets.all(20),
+           decoration: AppTheme.glassCard(isDark),
+           child: Column(
+             children: [
+               _buildFilterToggle(isDark),
+               const SizedBox(height: 20),
+               Text('No data for this period', style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark))),
+             ],
+           ),
+        );
+     }
+
+     final scores = filteredHistory.map((e) => e['score'] as int).toList();
+     final maxScore = scores.reduce(max).toDouble().clamp(10.0, 100.0);
 
      return Container(
         padding: const EdgeInsets.all(20),
@@ -153,11 +193,13 @@ class QuizAnalyticsScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Interview Trajectory', style: AppTheme.headingSmall.copyWith(color: AppTheme.textPrimaryC(isDark))),
-                  Text(
-                    'Best: ${progress.interviewBestScore}%',
-                    style: AppTheme.bodySmall.copyWith(color: AppTheme.accentAmber, fontWeight: FontWeight.bold),
-                  ),
+                  _buildFilterToggle(isDark),
                 ],
+             ),
+             const SizedBox(height: 8),
+             Text(
+                'Best: ${progress.interviewBestScore}%',
+                style: AppTheme.bodySmall.copyWith(color: AppTheme.accentAmber, fontWeight: FontWeight.bold),
              ),
              const SizedBox(height: 24),
              SizedBox(
@@ -165,8 +207,8 @@ class QuizAnalyticsScreen extends StatelessWidget {
                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(history.length, (index) {
-                     final score = history[index];
+                  children: List.generate(filteredHistory.length, (index) {
+                     final score = filteredHistory[index]['score'] as int;
                      final heightPercent = score / maxScore;
                      
                      Color barColor = AppTheme.textMutedC(isDark).withValues(alpha: 0.5);
@@ -187,7 +229,7 @@ class QuizAnalyticsScreen extends StatelessWidget {
                               width: 14,
                               height: (100 * heightPercent).toDouble(),
                               decoration: BoxDecoration(
-                                color: barColor,
+                                color: barColor.withValues(alpha: index == filteredHistory.length - 1 ? 1.0 : 0.6),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                            ).animate().scaleY(alignment: Alignment.bottomCenter, duration: const Duration(milliseconds: 600)),
@@ -199,6 +241,162 @@ class QuizAnalyticsScreen extends StatelessWidget {
           ],
         ),
      );
+  }
+
+  Widget _buildFilterToggle(bool isDark) {
+    return SegmentedButton<int>(
+      segments: const [
+        ButtonSegment(value: 0, label: Text('ALL')),
+        ButtonSegment(value: 30, label: Text('30D')),
+        ButtonSegment(value: 7, label: Text('7D')),
+      ],
+      selected: {_filterDays},
+      onSelectionChanged: (val) {
+        setState(() => _filterDays = val.first);
+      },
+      style: SegmentedButton.styleFrom(
+        backgroundColor: Colors.transparent,
+        selectedBackgroundColor: AppTheme.accentPurple.withValues(alpha: 0.2),
+        selectedForegroundColor: AppTheme.accentPurple,
+        foregroundColor: AppTheme.textMutedC(isDark),
+        textStyle: AppTheme.bodySmall.copyWith(fontSize: 10, fontWeight: FontWeight.bold),
+        side: BorderSide(color: AppTheme.textMutedC(isDark).withValues(alpha: 0.1)),
+        visualDensity: VisualDensity.compact,
+      ),
+    );
+  }
+
+  Widget _buildActivityStreak(bool isDark, ProgressService progress) {
+     final streak = progress.currentStreak;
+     final dates = progress.activityDates;
+     final now = DateTime.now();
+     
+     return Container(
+       padding: const EdgeInsets.all(20),
+       decoration: AppTheme.glassCard(isDark),
+       child: Column(
+         crossAxisAlignment: CrossAxisAlignment.start,
+         children: [
+           Row(
+             children: [
+               Icon(Icons.local_fire_department_rounded, color: AppTheme.accentPink, size: 20),
+               const SizedBox(width: 8),
+               Text('Learning Streak', style: AppTheme.headingSmall.copyWith(color: AppTheme.textPrimaryC(isDark))),
+               const Spacer(),
+               Text('$streak Days', style: AppTheme.headingSmall.copyWith(color: AppTheme.accentPink)),
+             ],
+           ),
+           const SizedBox(height: 16),
+           Row(
+             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+             children: List.generate(14, (i) {
+               final date = now.subtract(Duration(days: 13 - i));
+               final dateStr = date.toIso8601String().substring(0, 10);
+               final isActive = dates.contains(dateStr);
+               
+               return Column(
+                 children: [
+                   Container(
+                     width: 12,
+                     height: 12,
+                     decoration: BoxDecoration(
+                       color: isActive 
+                           ? AppTheme.accentPink 
+                           : AppTheme.textMutedC(isDark).withValues(alpha: 0.1),
+                       borderRadius: BorderRadius.circular(3),
+                       boxShadow: isActive ? [
+                         BoxShadow(color: AppTheme.accentPink.withValues(alpha: 0.4), blurRadius: 4)
+                       ] : null,
+                     ),
+                   ).animate(target: isActive ? 1 : 0).shimmer(),
+                   const SizedBox(height: 6),
+                   Text(
+                     date.day.toString(),
+                     style: AppTheme.bodySmall.copyWith(
+                       fontSize: 8, 
+                       color: isActive ? AppTheme.textPrimaryC(isDark) : AppTheme.textMutedC(isDark)
+                     ),
+                   ),
+                 ],
+               );
+             }),
+           ),
+         ],
+       ),
+     );
+  }
+
+  Widget _buildMasteryPrediction(bool isDark, ProgressService progress) {
+     final daysRemaining = progress.daysToNextCertificate;
+     final topicsRemaining = progress.remainingTopicsForNextCert;
+     final rate = progress.topicsPerDayLast7Days;
+     
+     // Determine next tier name
+     final comp = progress.computeProgressForPredictions();
+     String nextTier = "Professional";
+     if (comp.threshold == 5) nextTier = "Bronze Cert";
+     else if (comp.threshold == 15) nextTier = "Silver Cert";
+     else if (comp.threshold == 30) nextTier = "Gold Cert";
+     else if (comp.threshold > 30) nextTier = "Platinum Cert";
+
+     final progressPercent = comp.completed / comp.threshold;
+
+     return Container(
+       padding: const EdgeInsets.all(20),
+       decoration: AppTheme.glassCard(isDark).copyWith(
+         border: Border.all(color: AppTheme.accentAmber.withValues(alpha: 0.2)),
+       ),
+       child: Column(
+         crossAxisAlignment: CrossAxisAlignment.start,
+         children: [
+           Row(
+             children: [
+               Icon(Icons.auto_awesome_rounded, color: AppTheme.accentAmber, size: 20),
+               const SizedBox(width: 8),
+               Text('Mastery Forecast', style: AppTheme.headingSmall.copyWith(color: AppTheme.textPrimaryC(isDark))),
+             ],
+           ),
+           const SizedBox(height: 16),
+           Text(
+             'Predicted $nextTier',
+             style: AppTheme.bodySmall.copyWith(color: AppTheme.textSecondaryC(isDark)),
+           ),
+           const SizedBox(height: 4),
+           Row(
+             crossAxisAlignment: CrossAxisAlignment.end,
+             children: [
+               Text(
+                 'In $daysRemaining Days',
+                 style: AppTheme.headingMedium.copyWith(color: AppTheme.accentAmber, fontSize: 24),
+               ),
+               const SizedBox(width: 8),
+               Padding(
+                 padding: const EdgeInsets.only(bottom: 4),
+                 child: Text(
+                   '($topicsRemaining topics left)',
+                   style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                 ),
+               ),
+             ],
+           ),
+           const SizedBox(height: 16),
+           ClipRRect(
+             borderRadius: BorderRadius.circular(4),
+             child: LinearProgressIndicator(
+               value: progressPercent.clamp(0.0, 1.0),
+               backgroundColor: AppTheme.textMutedC(isDark).withValues(alpha: 0.1),
+               color: AppTheme.accentAmber,
+               minHeight: 8,
+             ),
+           ),
+           const SizedBox(height: 12),
+           Text(
+             'Based on your velocity of ${rate.toStringAsFixed(1)} topics/day',
+             style: AppTheme.bodySmall.copyWith(fontSize: 10, color: AppTheme.textMutedC(isDark), fontStyle: FontStyle.italic),
+           ),
+         ],
+       ),
+     ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.1);
   }
 
   Widget _buildEmptyState(bool isDark) {
