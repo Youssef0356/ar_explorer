@@ -98,11 +98,11 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
 
   void _checkMinigameTour() async {
     final prefs = await SharedPreferences.getInstance();
-    final hasSeenTour = prefs.getBool('has_seen_showcase_tour_minigame') ?? false;
+    final hasSeenTour = prefs.getBool('has_seen_showcase_tour_inspector') ?? false;
     if (!hasSeenTour) {
-      await prefs.setBool('has_seen_showcase_tour_minigame', true);
+      await prefs.setBool('has_seen_showcase_tour_inspector', true);
       await Future.delayed(const Duration(milliseconds: 600));
-      if (mounted) TourKeys.startMinigameTour(context);
+      if (mounted) TourKeys.startInspectorTour(context);
     }
   }
 
@@ -286,12 +286,21 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
       body: SafeArea(
         child: Column(children: [
           _buildHeader(),
-          _buildObjectiveBanner(zone),
+          KeyedSubtree(
+            key: TourKeys.inspectorObjectiveKey,
+            child: _buildObjectiveBanner(zone),
+          ),
           Expanded(child: Row(children: [
-            Expanded(flex: 3, child: _buildViewport()),
+            Expanded(flex: 3, child: KeyedSubtree(
+              key: TourKeys.inspectorSceneKey,
+              child: _buildViewport(),
+            )),
             Expanded(flex: 2, child: _buildInspector()),
           ])),
-          _buildScriptBank(),
+          KeyedSubtree(
+            key: TourKeys.inspectorWorkAreaKey,
+            child: _buildScriptBank(),
+          ),
           _buildTerminal(),
           _buildBottomBar(hasWrong, canRun),
         ]),
@@ -351,9 +360,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
 
   // ── Objective Banner ───────────────────────────────────────────────────────
   Widget _buildObjectiveBanner(InspectorZone zone) {
-    return KeyedSubtree(
-      key: TourKeys.minigameObjectiveKey,
-      child: Container(
+    return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
         color: zone.accentColor.withValues(alpha: 0.05),
@@ -372,18 +379,17 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
                 color: Colors.white70, fontSize: 10.5, height: 1.4)),
           ])),
       ]),
-    ),
     );
   }
 
   // ── Viewport — flex 3 ──────────────────────────────────────────────────────
   Widget _buildViewport() {
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF080912),
-        border: Border(right: BorderSide(color: Color(0xFF1A1A3E))),
-      ),
-      child: Column(children: [
+        decoration: const BoxDecoration(
+          color: Color(0xFF080912),
+          border: Border(right: BorderSide(color: Color(0xFF1A1A3E))),
+        ),
+        child: Column(children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
           color: const Color(0xFF0C1420),
@@ -589,9 +595,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
 
   // ── Script Bank — height 155, Wrap ──────────────────────────────────────────
   Widget _buildScriptBank() {
-    return KeyedSubtree(
-      key: TourKeys.minigameWorkAreaKey,
-      child: Container(
+    return Container(
         constraints: const BoxConstraints(maxHeight: 155),
       decoration: const BoxDecoration(
         color: Color(0xFF0A1424),
@@ -616,7 +620,6 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
             }).toList()),
         )),
       ]),
-    ),
     );
   }
 

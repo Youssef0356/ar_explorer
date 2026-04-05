@@ -3,12 +3,14 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
 import '../services/subscription_service.dart';
 import '../core/app_theme.dart';
 import '../widgets/animated_google_background.dart';
+import '../core/tour_keys.dart';
 import 'paywall_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════════
@@ -928,6 +930,16 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
     return 1;
   }
 
+  void _checkDebuggerTour() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenTour = prefs.getBool('has_seen_showcase_tour_debugger') ?? false;
+    if (!hasSeenTour) {
+      await prefs.setBool('has_seen_showcase_tour_debugger', true);
+      await Future.delayed(const Duration(milliseconds: 600));
+      if (mounted) TourKeys.startDebuggerTour(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Theme(data: ThemeData.dark(), child: Scaffold(
@@ -937,7 +949,10 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
           SafeArea(
             child: Column(
               children: [
-                _buildHeader(),
+                KeyedSubtree(
+                  key: TourKeys.debuggerObjectiveKey,
+                  child: _buildHeader(),
+                ),
                 _buildScenarioBanner(),
                 Expanded(
                   child: SingleChildScrollView(
@@ -946,11 +961,17 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildScreenshotPreview(),
+                        KeyedSubtree(
+                          key: TourKeys.debuggerSceneKey,
+                          child: _buildScreenshotPreview(),
+                        ),
                         const SizedBox(height: 20),
                         _buildSymptomSection(),
                         const SizedBox(height: 20),
-                        _buildToolboxSection(),
+                        KeyedSubtree(
+                          key: TourKeys.debuggerWorkAreaKey,
+                          child: _buildToolboxSection(),
+                        ),
                         const SizedBox(height: 80),
                       ],
                     ),
@@ -989,10 +1010,9 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(widget.level.title,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700)),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16, fontWeight: FontWeight.w800)),
                 Text('AR Scene Debugger',
                     style: TextStyle(
                         color: widget.level.accentColor.withOpacity(0.7),
@@ -1019,35 +1039,35 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
 
   Widget _buildScenarioBanner() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      color: widget.level.accentColor.withOpacity(0.06),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('📋', style: TextStyle(fontSize: 16)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('SCENARIO',
-                    style: TextStyle(
-                        color: widget.level.accentColor,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.5)),
-                const SizedBox(height: 3),
-                Text(widget.level.scenario,
-                    style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                        height: 1.45)),
-              ],
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        color: widget.level.accentColor.withOpacity(0.06),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('📋', style: TextStyle(fontSize: 16)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('SCENARIO',
+                      style: TextStyle(
+                          color: widget.level.accentColor,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.5)),
+                  const SizedBox(height: 3),
+                  Text(widget.level.scenario,
+                      style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          height: 1.45)),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
   }
 
   Widget _buildScreenshotPreview() {
@@ -1324,7 +1344,6 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
                     color: Colors.white.withOpacity(0.2), fontSize: 9)),
           ],
         ),
-        const SizedBox(height: 10),
         ..._toolbox.map((fix) => _buildFixCardWidget(fix)),
       ],
     );
@@ -1558,10 +1577,14 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
                 const SizedBox(height: 12),
                 _buildInstructionStep('4', 'Tap fix cards to read explanations', Icons.info_outline_rounded),
                 const SizedBox(height: 28),
+                _buildToolboxSection(),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => setState(() => _showIntro = false),
+                    onPressed: () {
+                      setState(() => _showIntro = false);
+                      _checkDebuggerTour();
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: widget.level.accentColor,
                       foregroundColor: Colors.black,

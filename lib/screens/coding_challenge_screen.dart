@@ -2,8 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/app_theme.dart';
+import '../core/tour_keys.dart';
 import '../models/coding_game_models.dart';
 import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
@@ -101,6 +103,19 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
         });
       }
     }
+
+    // Launch tour if this is their first time
+    _checkMinigameTour();
+  }
+
+  void _checkMinigameTour() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenTour = prefs.getBool('has_seen_showcase_tour_coding') ?? false;
+    if (!hasSeenTour) {
+      await prefs.setBool('has_seen_showcase_tour_coding', true);
+      await Future.delayed(const Duration(milliseconds: 600));
+      if (mounted) TourKeys.startCodingGameTour(context);
+    }
   }
 
   @override
@@ -176,15 +191,24 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
                 child: Column(
                   children: [
                     const SizedBox(height: 16),
-                    _buildMascotHint(),
+                    KeyedSubtree(
+                      key: TourKeys.codingObjectiveKey,
+                      child: _buildMascotHint(),
+                    ),
                     const SizedBox(height: 24),
-                    _buildEditor(),
+                    KeyedSubtree(
+                      key: TourKeys.codingCodeAreaKey,
+                      child: _buildEditor(),
+                    ),
                     const SizedBox(height: 24),
                   ],
                 ),
               ),
             ),
-            if (!_checked) _buildWordBank(),
+            if (!_checked) KeyedSubtree(
+              key: TourKeys.codingWorkAreaKey,
+              child: _buildWordBank(),
+            ),
             _buildBottomBar(),
           ],
         ),
@@ -237,114 +261,114 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
 
   Widget _buildMascotHint() {
     return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: widget.accentColor.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-            border: Border.all(color: widget.accentColor.withValues(alpha: 0.3)),
-          ),
-          child: Icon(Icons.psychology_rounded, color: widget.accentColor, size: 28),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(14),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(16),
-                bottomLeft: Radius.circular(16),
-                bottomRight: Radius.circular(16),
-              ),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              color: widget.accentColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+              border: Border.all(color: widget.accentColor.withValues(alpha: 0.3)),
             ),
-            child: Text(
-              widget.level.mascotHint,
-              style: const TextStyle(color: Colors.white70, fontSize: 13),
+            child: Icon(Icons.psychology_rounded, color: widget.accentColor, size: 28),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
+                  bottomRight: Radius.circular(16),
+                ),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              ),
+              child: Text(
+                widget.level.mascotHint,
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
+              ),
             ),
           ),
-        ),
-      ],
-    ).animate().fadeIn().slideX(begin: -0.05);
+        ],
+      ).animate().fadeIn().slideX(begin: -0.05);
   }
 
   Widget _buildEditor() {
     return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF161B29),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10)),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.03),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        decoration: BoxDecoration(
+          color: const Color(0xFF161B29),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10)),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.03),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.code_rounded, color: Colors.white24, size: 14),
+                  const SizedBox(width: 8),
+                  Text('editor.script', style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 10, fontFamily: 'monospace')),
+                  const Spacer(),
+                  const Icon(Icons.more_horiz_rounded, color: Colors.white24, size: 14),
+                ],
+              ),
             ),
-            child: Row(
-              children: [
-                const Icon(Icons.code_rounded, color: Colors.white24, size: 14),
-                const SizedBox(width: 8),
-                Text('editor.script', style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 10, fontFamily: 'monospace')),
-                const Spacer(),
-                const Icon(Icons.more_horiz_rounded, color: Colors.white24, size: 14),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: List.generate(widget.level.lines.length, (index) {
-                final line = widget.level.lines[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 24,
-                        child: Text(
-                          '${index + 1}',
-                          style: const TextStyle(color: Colors.white12, fontSize: 11, fontFamily: 'monospace'),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: List.generate(widget.level.lines.length, (index) {
+                  final line = widget.level.lines[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 24,
+                          child: Text(
+                            '${index + 1}',
+                            style: const TextStyle(color: Colors.white12, fontSize: 11, fontFamily: 'monospace'),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            SizedBox(width: line.indent * 16),
-                            if (line.isPlain)
-                              Text(
-                                line.text!,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.6),
-                                  fontSize: 13,
-                                  fontFamily: 'monospace',
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              SizedBox(width: line.indent * 16),
+                              if (line.isPlain)
+                                Text(
+                                  line.text!,
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.6),
+                                    fontSize: 13,
+                                    fontFamily: 'monospace',
+                                  ),
                                 ),
-                              ),
-                            if (line.hasSlots)
-                              ...line.slots!.map((slot) => _buildSlot(slot)),
-                          ],
+                              if (line.hasSlots)
+                                ...line.slots!.map((slot) => _buildSlot(slot)),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
+                      ],
+                    ),
+                  );
+                }),
+              ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
   }
 
   Widget _buildSlot(CodeSlot slot) {
@@ -458,7 +482,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
     final bankHeight = (screenH * 0.22).clamp(100.0, 160.0);
 
     return Container(
-      height: bankHeight,
+        height: bankHeight,
       decoration: BoxDecoration(
         color: const Color(0xFF0F1420),
         border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),

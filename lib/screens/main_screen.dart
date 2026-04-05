@@ -149,6 +149,7 @@ class _MainScreenState extends State<MainScreen> {
               currentIndex: currentIndex,
               onTap: (index) {
                 soundService.playTap();
+                TourKeys.dismiss(); // Clean up active tours on tab switch
                 navigationService.setTab(index);
                 _checkTabTour(index);
               },

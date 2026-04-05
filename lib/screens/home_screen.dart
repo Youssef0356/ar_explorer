@@ -23,6 +23,7 @@ import '../services/game_progress_service.dart';
 import '../services/review_service.dart';
 import '../services/subscription_service.dart'; 
 import '../services/notification_service.dart';
+import '../services/navigation_service.dart';
 import '../widgets/animated_google_background.dart';
 import '../widgets/daily_keyword_card.dart';
 import '../widgets/module_card.dart';
@@ -1332,9 +1333,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 await prefs.setBool('has_seen_showcase_tour_roadmap', false);
                                 await prefs.setBool('has_seen_showcase_tour_play', false);
                                 await prefs.setBool('has_seen_showcase_tour_rewards', false);
+                                await prefs.setBool('has_seen_showcase_tour_inspector', false);
+                                await prefs.setBool('has_seen_showcase_tour_pipeline', false);
+                                await prefs.setBool('has_seen_showcase_tour_debugger', false);
                                 await prefs.setBool('has_seen_showcase_tour_minigame', false);
+                                await prefs.setBool('has_seen_showcase_tour_coding', false);
 
-                                if (ctx.mounted) {
+                                if (context.mounted) {
+                                  context.read<NavigationService>().setTab(0);
                                   Navigator.pop(ctx, true); // Pop with true to trigger tour
                                 }
                               },

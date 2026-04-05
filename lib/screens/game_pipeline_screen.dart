@@ -2,6 +2,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../core/tour_keys.dart';
 
 import '../core/app_theme.dart';
 import '../data/game_data.dart';
@@ -38,7 +40,6 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
   String  _errorMessage  = '';
 
   int  _secondsRemaining = 0;
-  bool _showPreLevelInfo = true;
 
   // ── Pipeline scroll controller (auto-scroll to latest slot) ──────────────
   final ScrollController _pipelineScrollCtrl = ScrollController();
@@ -52,7 +53,18 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
     _pool       = List.from(widget.level.availableNodes)..shuffle();
     if (widget.level.isBoss) {
       _secondsRemaining = widget.level.timeLimit;
-      // Timer starts after dismissing pre-level info
+      _startTimer();
+    }
+    _checkPipelineTour();
+  }
+
+  void _checkPipelineTour() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenTour = prefs.getBool('has_seen_showcase_tour_pipeline') ?? false;
+    if (!hasSeenTour) {
+      await prefs.setBool('has_seen_showcase_tour_pipeline', true);
+      await Future.delayed(const Duration(milliseconds: 1000));
+      if (mounted) TourKeys.startPipelineTour(context);
     }
   }
 
@@ -440,12 +452,18 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildHeader(zone),
-                _buildGoalBanner(zone),
+                KeyedSubtree(
+                  key: TourKeys.pipelineObjectiveKey,
+                  child: _buildGoalBanner(zone),
+                ),
                 _buildHowToPlay(zone.accentColor),
                 _buildContextSection(zone.accentColor),
                 const SizedBox(height: 8),
-                // ── Pipeline slots ──
-                RepaintBoundary(child: _buildPipelineRow(zone.accentColor)),
+                // ── Pipeline slots (The Visuals/Scene for this game) ──
+                KeyedSubtree(
+                  key: TourKeys.pipelineSceneKey,
+                  child: RepaintBoundary(child: _buildPipelineRow(zone.accentColor)),
+                ),
                 // ── Error / hint message ──
                 AnimatedSize(
                   duration: const Duration(milliseconds: 200),
@@ -461,9 +479,12 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                       : const SizedBox.shrink(),
                 ),
                 const SizedBox(height: 8),
-                // ── Node pool ──
+                // ── Node pool (The Work Area) ──
                 Expanded(
-                  child: RepaintBoundary(child: _buildNodePool(zone.accentColor)),
+                  child: KeyedSubtree(
+                    key: TourKeys.pipelineWorkAreaKey,
+                    child: RepaintBoundary(child: _buildNodePool(zone.accentColor)),
+                  ),
                 ),
                 // ── Submit button ──
                 _buildSubmitBar(zone.accentColor),
@@ -474,124 +495,12 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
           if (_showSuccess) _buildSuccessOverlay(zone),
           // ── Timeline / Pre-level overlay ──
           if (_isTimeout) _buildTimeoutOverlay(zone),
-          if (_showPreLevelInfo) _buildPreLevelInfo(zone),
         ],
       ),
     )));
   }
 
-  // ── Pre-level info overlay ────────────────────────────────────────────────
-  Widget _buildPreLevelInfo(ARZone zone) {
-    return Container(
-      color: const Color(0xFF060B14).withValues(alpha: 0.95),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0E1621),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: zone.accentColor.withValues(alpha: 0.3)),
-              boxShadow: [
-                BoxShadow(color: zone.accentColor.withValues(alpha: 0.1), blurRadius: 30)
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.precision_manufacturing_rounded, size: 48, color: zone.accentColor),
-                const SizedBox(height: 16),
-                Text(widget.level.title.toUpperCase(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: zone.accentColor,
-                    fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 2)),
-                const SizedBox(height: 12),
-                Text(widget.level.projectTask,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600, height: 1.4)),
-                const SizedBox(height: 16),
-                Text(widget.level.buildContext,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6), fontSize: 13, height: 1.5)),
-                const SizedBox(height: 16),
-                _buildGuidanceBox(zone),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() => _showPreLevelInfo = false);
-                      if (widget.level.isBoss) _startTimer();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: zone.accentColor,
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text('START CONFIGURATION',
-                      style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 1.5)),
-                  ),
-                ),
-              ],
-            ),
-          ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildGuidanceBox(ARZone zone) {
-    final tip = _getZoneGuidance(zone.id);
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: zone.accentColor.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: zone.accentColor.withValues(alpha: 0.15)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.lightbulb_outline_rounded, color: zone.accentColor, size: 18),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('SYSTEM ENGINEERING TIP',
-                  style: TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1)),
-                const SizedBox(height: 4),
-                Text(tip,
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 12, height: 1.45, fontWeight: FontWeight.w500)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getZoneGuidance(String zoneId) {
-    switch (zoneId) {
-      case 'zone_1':
-        return 'Establish the basics: The Camera feed and IMU data must always be initialized before any rendering can occur.';
-      case 'zone_2':
-        return 'Tracking stability is key. Ensure your SLAM node has a direct data path from sensors to maintain coordinate consistency.';
-      case 'zone_3':
-        return 'Plane detection is a process, not an input. It requires the raw camera feed as a source to identify physical surfaces.';
-      case 'zone_4':
-        return 'Occlusion requires depth-awareness. Your pipeline needs both SLAM for position and a Depth/Occlusion node for Z-buffering.';
-      case 'zone_5':
-        return 'Spatial persistence survives session death. Connect SLAM feature maps to a Spatial Anchor to save your world-state to the cloud.';
-      default:
-        return 'Connect logic nodes in the correct order to ensure a stable data flow through the AR pipeline.';
-    }
-  }
 
   // ── Header ────────────────────────────────────────────────────────────────
   Widget _buildHeader(ARZone zone) {
@@ -660,43 +569,42 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
     );
   }
 
-  // ── Goal banner ───────────────────────────────────────────────────────────
   Widget _buildGoalBanner(ARZone zone) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: zone.accentColor.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: zone.accentColor.withValues(alpha: 0.2))),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Project Task - the concrete scenario
-          if (widget.level.projectTask.isNotEmpty)
-            Text(widget.level.projectTask,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.95),
-                fontSize: 13, fontWeight: FontWeight.w600, height: 1.4)),
-          if (widget.level.projectTask.isNotEmpty && widget.level.goal.isNotEmpty)
-            const SizedBox(height: 6),
-          // Goal - the short directive
-          if (widget.level.goal.isNotEmpty)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.flag_rounded, color: zone.accentColor, size: 14),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(widget.level.goal,
-                    style: TextStyle(
-                      color: zone.accentColor.withValues(alpha: 0.9),
-                      fontSize: 11, fontWeight: FontWeight.w500, height: 1.4))),
-              ],
-            ),
-        ],
-      ),
-    );
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: zone.accentColor.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: zone.accentColor.withValues(alpha: 0.2))),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Project Task - the concrete scenario
+            if (widget.level.projectTask.isNotEmpty)
+              Text(widget.level.projectTask,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.95),
+                  fontSize: 13, fontWeight: FontWeight.w600, height: 1.4)),
+            if (widget.level.projectTask.isNotEmpty && widget.level.goal.isNotEmpty)
+              const SizedBox(height: 6),
+            // Goal - the short directive
+            if (widget.level.goal.isNotEmpty)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.flag_rounded, color: zone.accentColor, size: 14),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(widget.level.goal,
+                      style: TextStyle(
+                        color: zone.accentColor.withValues(alpha: 0.9),
+                        fontSize: 11, fontWeight: FontWeight.w500, height: 1.4))),
+                ],
+              ),
+          ],
+        ),
+      );
   }
 
   // ── How-to-play strip ─────────────────────────────────────────────────────

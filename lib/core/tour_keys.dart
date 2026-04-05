@@ -33,9 +33,33 @@ class TourKeys {
   static final GlobalKey rewardsDashboardKey = GlobalKey();
   static final GlobalKey rewardsBadgesKey    = GlobalKey();
 
-  // ── MINIGAMES ──
-  static final GlobalKey minigameObjectiveKey = GlobalKey();
-  static final GlobalKey minigameWorkAreaKey = GlobalKey();
+  // ── MINI-GAMES (UNIQUE KEYS TO AVOID DUPLICATE GLOBALKEY ERRORS) ──
+  // Pipeline Challenge (Systems Engineer)
+  static final GlobalKey pipelineObjectiveKey = GlobalKey();
+  static final GlobalKey pipelineSceneKey     = GlobalKey();
+  static final GlobalKey pipelineWorkAreaKey  = GlobalKey();
+
+  // AR Debugger
+  static final GlobalKey debuggerObjectiveKey  = GlobalKey();
+  static final GlobalKey debuggerSceneKey      = GlobalKey();
+  static final GlobalKey debuggerWorkAreaKey    = GlobalKey();
+
+  // Inspector Game
+  static final GlobalKey inspectorObjectiveKey = GlobalKey();
+  static final GlobalKey inspectorSceneKey     = GlobalKey();
+  static final GlobalKey inspectorWorkAreaKey  = GlobalKey();
+
+  // XR Coding
+  static final GlobalKey codingObjectiveKey    = GlobalKey();
+  static final GlobalKey codingCodeAreaKey     = GlobalKey();
+  static final GlobalKey codingWorkAreaKey     = GlobalKey();
+
+  static TutorialCoachMark? _currentMark;
+
+  static void dismiss() {
+    _currentMark?.finish();
+    _currentMark = null;
+  }
 
   /// The main on-boarding tour triggered on first launch.
   static void startHomeTour(BuildContext context, {ScrollController? scrollController}) {
@@ -213,39 +237,136 @@ class TourKeys {
     _show(context, targets, 'rewards_tour');
   }
 
-  static void startMinigameTour(BuildContext context) {
+  static void startInspectorTour(BuildContext context) {
     final targets = <TargetFocus>[
       _target(
-        key: minigameObjectiveKey,
-        identify: 'minigame_objective',
-        title: 'Challenge Objective',
-        description: 'Read your mission and goals here before you start placing components.',
+        key: inspectorObjectiveKey,
+        identify: 'inspector_objective',
+        title: 'Mission Objective',
+        description: 'Read your mission and goals here before you start configuring the scene.',
         contentAlign: ContentAlign.bottom,
       ),
       _target(
-        key: minigameWorkAreaKey,
-        identify: 'minigame_workarea',
-        title: 'The Sandbox Work Area',
-        description: 'Drag and drop or interact here to build your solution. Have fun!',
+        key: inspectorSceneKey,
+        identify: 'inspector_scene',
+        title: '3D Preview',
+        description: 'This is the AR scene you need to fix. Watch it closely for feedback as you apply scripts.',
+        contentAlign: ContentAlign.bottom,
+      ),
+      _target(
+        key: inspectorWorkAreaKey,
+        identify: 'inspector_workarea',
+        title: 'Script Bank',
+        description: 'Drag scripts from here to the Inspector on the right to build your solution.',
         contentAlign: ContentAlign.top,
       ),
     ];
 
-    _show(context, targets, 'minigame_tour');
+    _show(context, targets, 'inspector_tour');
   }
 
-  /// Shared internal method to show the tour.
+  static void startPipelineTour(BuildContext context) {
+    final targets = <TargetFocus>[
+      _target(
+        key: pipelineObjectiveKey,
+        identify: 'pipeline_objective',
+        title: 'Mission Objective',
+        description: 'Understand the AR configuration required for this engineering task.',
+        contentAlign: ContentAlign.bottom,
+      ),
+      _target(
+        key: pipelineSceneKey,
+        identify: 'pipeline_flow',
+        title: 'The Logic (The Code)',
+        description: 'This is your AR Processing Pipeline. It works like a code sequence—order is critical!',
+        contentAlign: ContentAlign.bottom,
+      ),
+      _target(
+        key: pipelineWorkAreaKey,
+        identify: 'pipeline_pool',
+        title: 'Component Toolkit',
+        description: 'Tap components here to build your logic flow in the correct engineering order.',
+        contentAlign: ContentAlign.top,
+      ),
+    ];
+
+    _show(context, targets, 'pipeline_tour');
+  }
+
+  static void startDebuggerTour(BuildContext context) {
+    final targets = <TargetFocus>[
+      _target(
+        key: debuggerObjectiveKey,
+        identify: 'debugger_objective',
+        title: 'Debugger Scenario',
+        description: 'Read about the broken AR behavior and the symptoms reported.',
+        contentAlign: ContentAlign.bottom,
+      ),
+      _target(
+        key: debuggerSceneKey,
+        identify: 'debugger_bug',
+        title: 'Visual Symptom',
+        description: 'See the issue visually in this app preview to understand what is wrong.',
+        contentAlign: ContentAlign.bottom,
+      ),
+      _target(
+        key: debuggerWorkAreaKey,
+        identify: 'debugger_toolbox',
+        title: 'Fix Toolkit',
+        description: 'Drag matching fix cards onto the symptoms reported below to repair the app.',
+        contentAlign: ContentAlign.top,
+      ),
+    ];
+
+    _show(context, targets, 'debugger_tour');
+  }
+
+  static void startCodingGameTour(BuildContext context) {
+    final targets = <TargetFocus>[
+      _target(
+        key: codingObjectiveKey,
+        identify: 'coding_objective',
+        title: 'Mission Objective',
+        description: 'Read your mission and goals here before you start placing components.',
+        contentAlign: ContentAlign.bottom,
+      ),
+      _target(
+        key: codingCodeAreaKey,
+        identify: 'coding_code_area',
+        title: 'The Code',
+        description: 'This is the code snippet you need to fix or complete.',
+        contentAlign: ContentAlign.top,
+      ),
+      _target(
+        key: codingWorkAreaKey,
+        identify: 'coding_workarea',
+        title: 'Your Toolkit',
+        description: 'Drag and drop chips from here into the code slots above to build your solution!',
+        contentAlign: ContentAlign.top,
+      ),
+    ];
+
+    _show(context, targets, 'coding_game_tour');
+  }
+
   static void _show(BuildContext context, List<TargetFocus> targets, String tag) {
-    TutorialCoachMark(
+    if (targets.isEmpty) return;
+
+    dismiss(); // Ensure no other tour is running
+    _currentMark = TutorialCoachMark(
       targets: targets,
-      colorShadow: const Color(0xFF0A0E1A),
-      opacityShadow: 0.90,
-      textSkip: 'SKIP',
-      paddingFocus: 8,
-      hideSkip: false,
-      onFinish: () => debugPrint('App Tour ($tag): Finished'),
-      onSkip: () => true,
-    ).show(context: context);
+      colorShadow: Colors.black,
+      paddingFocus: 10,
+      opacityShadow: 0.85,
+      onFinish: () => _currentMark = null,
+      onSkip: () {
+        _currentMark = null;
+        return true;
+      },
+      onClickTarget: (target) {},
+      alignSkip: Alignment.topRight,
+      textSkip: "SKIP",
+    )..show(context: context);
   }
 
   static TargetFocus _target({
