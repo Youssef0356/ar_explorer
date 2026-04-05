@@ -425,7 +425,6 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
     );
   }
 
-  // ── BUILD ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final zone = arGameZones.firstWhere((z) => z.id == widget.level.zoneId);
@@ -463,7 +462,9 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                 ),
                 const SizedBox(height: 8),
                 // ── Node pool ──
-                Expanded(child: RepaintBoundary(child: _buildNodePool(zone.accentColor))),
+                Expanded(
+                  child: RepaintBoundary(child: _buildNodePool(zone.accentColor)),
+                ),
                 // ── Submit button ──
                 _buildSubmitBar(zone.accentColor),
               ],

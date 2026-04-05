@@ -125,6 +125,22 @@ final List<DebugLevel> debugLevels = [
         correctSymptomId: 'none',
         isDistractor: true,
       ),
+      const FixCard(
+        id: 'f4',
+        icon: '📏',
+        label: 'Increase Near Clip Plane',
+        explanation: 'The near clip plane prevents rendering objects too close to the camera. It has no effect on the camera background itself.',
+        correctSymptomId: 'none',
+        isDistractor: true,
+      ),
+      const FixCard(
+        id: 'f5',
+        icon: '🎨',
+        label: 'Change Background Color',
+        explanation: 'Changing the clear color just changes what color the skybox shows — it doesn\'t enable camera feed rendering.',
+        correctSymptomId: 'none',
+        isDistractor: true,
+      ),
     ],
     successMessage: 'Camera feed is live! The real world is now visible behind your 3D content.',
   ),
@@ -170,6 +186,22 @@ final List<DebugLevel> debugLevels = [
         correctSymptomId: 'none',
         isDistractor: true,
       ),
+      const FixCard(
+        id: 'f4',
+        icon: '📏',
+        label: 'Adjust Placement Offset',
+        explanation: 'While you could adjust the offset manually, this is a workaround — the real issue is the missing anchor that locks the object to the world.',
+        correctSymptomId: 'none',
+        isDistractor: true,
+      ),
+      const FixCard(
+        id: 'f5',
+        icon: '🌍',
+        label: 'Use World Coordinates',
+        explanation: 'World coordinates alone don\'t solve drift — without an anchor, the coordinate system itself drifts relative to the physical world.',
+        correctSymptomId: 'none',
+        isDistractor: true,
+      ),
     ],
     successMessage: 'Object anchored! The sofa stays exactly where you placed it, even after walking around.',
   ),
@@ -211,6 +243,22 @@ final List<DebugLevel> debugLevels = [
         icon: '📏',
         label: 'Scale the object down',
         explanation: 'Scaling changes object size but not its vertical position above the surface.',
+        correctSymptomId: 'none',
+        isDistractor: true,
+      ),
+      const FixCard(
+        id: 'f4',
+        icon: '📐',
+        label: 'Add Y-axis Offset',
+        explanation: 'Adding a Y offset would make the object float even higher — the opposite of what you need. The bug is already an accidental offset.',
+        correctSymptomId: 'none',
+        isDistractor: true,
+      ),
+      const FixCard(
+        id: 'f5',
+        icon: '🔽',
+        label: 'Use Plane Center Point',
+        explanation: 'The plane center is just an arbitrary point on the plane — it doesn\'t correspond to where the user tapped.',
         correctSymptomId: 'none',
         isDistractor: true,
       ),
@@ -328,6 +376,22 @@ final List<DebugLevel> debugLevels = [
         icon: '🔃',
         label: 'Increase texture atlas size',
         explanation: 'Texture atlasing reduces draw calls but has no effect on depth-based occlusion.',
+        correctSymptomId: 'none',
+        isDistractor: true,
+      ),
+      const FixCard(
+        id: 'f5',
+        icon: '🎨',
+        label: 'Enable Post-Processing',
+        explanation: 'Post-processing effects like bloom and color grading affect the final rendered look but don\'t create real-world depth masking.',
+        correctSymptomId: 'none',
+        isDistractor: true,
+      ),
+      const FixCard(
+        id: 'f6',
+        icon: '📉',
+        label: 'Reduce Poly Count',
+        explanation: 'Lower polygon count improves general performance but doesn\'t specifically address occlusion overhead.',
         correctSymptomId: 'none',
         isDistractor: true,
       ),
@@ -738,6 +802,7 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
 
   bool _showSuccess = false;
   bool _isChecking = false;
+  bool _showIntro = true; // Show intro dialog on first open
   String? _expandedFixId; // for explanation popover
 
   // Animation controllers
@@ -896,6 +961,7 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
             ),
           ),
           if (_showSuccess) _buildSuccessOverlay(),
+          if (_showIntro) _buildIntroDialog(),
         ],
       ),
     ));
@@ -1438,6 +1504,120 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildIntroDialog() {
+    return Container(
+      color: Colors.black.withOpacity(0.92),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Container(
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F1420),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: widget.level.accentColor.withOpacity(0.3),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '🐛',
+                  style: const TextStyle(fontSize: 48),
+                ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
+                const SizedBox(height: 20),
+                const Text(
+                  'AR SCENE DEBUGGER',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Find and fix the bugs!',
+                  style: TextStyle(
+                    color: widget.level.accentColor.withOpacity(0.8),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Instructions
+                _buildInstructionStep('1', 'Review the scenario and symptoms', Icons.visibility_rounded),
+                const SizedBox(height: 12),
+                _buildInstructionStep('2', 'Drag fix cards from the toolkit', Icons.touch_app_rounded),
+                const SizedBox(height: 12),
+                _buildInstructionStep('3', 'Drop them onto matching symptoms', Icons.drag_indicator_rounded),
+                const SizedBox(height: 12),
+                _buildInstructionStep('4', 'Tap fix cards to read explanations', Icons.info_outline_rounded),
+                const SizedBox(height: 28),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => setState(() => _showIntro = false),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: widget.level.accentColor,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'GOT IT!',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInstructionStep(String number, String text, IconData icon) {
+    return Row(
+      children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: widget.level.accentColor.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Center(
+            child: Icon(
+              icon,
+              color: widget.level.accentColor,
+              size: 14,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 13,
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

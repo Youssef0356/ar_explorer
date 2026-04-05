@@ -177,7 +177,8 @@ class ModuleCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      // Progress bar
+                      // Topic count removed - was too cluttered
+                      // Progress bar only
                       if (!isLocked) ...[
                         const SizedBox(height: 16),
                         Row(

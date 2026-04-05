@@ -204,40 +204,46 @@ class _QuizAnalyticsScreenState extends State<QuizAnalyticsScreen> {
              const SizedBox(height: 24),
              SizedBox(
                height: 150,
-               child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(filteredHistory.length, (index) {
-                     final score = filteredHistory[index]['score'] as int;
-                     final heightPercent = score / maxScore;
-                     
-                     Color barColor = AppTheme.textMutedC(isDark).withValues(alpha: 0.5);
-                     if (score >= 80) {
-                       barColor = AppTheme.successGreen;
-                     } else if (score >= 50) {
-                       barColor = AppTheme.accentAmber;
-                     } else {
-                       barColor = AppTheme.accentPink;
-                     }
+               child: SingleChildScrollView(
+                 scrollDirection: Axis.horizontal,
+                 child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: List.generate(filteredHistory.length, (index) {
+                       final score = filteredHistory[index]['score'] as int;
+                       final heightPercent = score / maxScore;
+                       
+                       Color barColor = AppTheme.textMutedC(isDark).withValues(alpha: 0.5);
+                       if (score >= 80) {
+                         barColor = AppTheme.successGreen;
+                       } else if (score >= 50) {
+                         barColor = AppTheme.accentAmber;
+                       } else {
+                         barColor = AppTheme.accentPink;
+                       }
 
-                     return Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                           Text('$score', style: AppTheme.bodySmall.copyWith(fontSize: 10, color: AppTheme.textMutedC(isDark))),
-                           const SizedBox(height: 4),
-                           Container(
-                              width: 14,
-                              height: (100 * heightPercent).toDouble(),
-                              decoration: BoxDecoration(
-                                color: barColor.withValues(alpha: index == filteredHistory.length - 1 ? 1.0 : 0.6),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                           ).animate().scaleY(alignment: Alignment.bottomCenter, duration: const Duration(milliseconds: 600)),
-                        ],
-                     );
-                  }),
+                       return Padding(
+                         padding: const EdgeInsets.symmetric(horizontal: 4),
+                         child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                               Text('$score', style: AppTheme.bodySmall.copyWith(fontSize: 10, color: AppTheme.textMutedC(isDark))),
+                               const SizedBox(height: 4),
+                               Container(
+                                  width: 14,
+                                  height: (100 * heightPercent).toDouble(),
+                                  decoration: BoxDecoration(
+                                    color: barColor.withValues(alpha: index == filteredHistory.length - 1 ? 1.0 : 0.6),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                               ).animate().scaleY(alignment: Alignment.bottomCenter, duration: const Duration(milliseconds: 600)),
+                            ],
+                         ),
+                       );
+                    }),
+                 ),
                ),
-             )
+             ),
           ],
         ),
      );
@@ -266,66 +272,6 @@ class _QuizAnalyticsScreenState extends State<QuizAnalyticsScreen> {
     );
   }
 
-  Widget _buildActivityStreak(bool isDark, ProgressService progress) {
-     final streak = progress.currentStreak;
-     final dates = progress.activityDates;
-     final now = DateTime.now();
-     
-     return Container(
-       padding: const EdgeInsets.all(20),
-       decoration: AppTheme.glassCard(isDark),
-       child: Column(
-         crossAxisAlignment: CrossAxisAlignment.start,
-         children: [
-           Row(
-             children: [
-               Icon(Icons.local_fire_department_rounded, color: AppTheme.accentPink, size: 20),
-               const SizedBox(width: 8),
-               Text('Learning Streak', style: AppTheme.headingSmall.copyWith(color: AppTheme.textPrimaryC(isDark))),
-               const Spacer(),
-               Text('$streak Days', style: AppTheme.headingSmall.copyWith(color: AppTheme.accentPink)),
-             ],
-           ),
-           const SizedBox(height: 16),
-           Row(
-             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-             children: List.generate(14, (i) {
-               final date = now.subtract(Duration(days: 13 - i));
-               final dateStr = date.toIso8601String().substring(0, 10);
-               final isActive = dates.contains(dateStr);
-               
-               return Column(
-                 children: [
-                   Container(
-                     width: 12,
-                     height: 12,
-                     decoration: BoxDecoration(
-                       color: isActive 
-                           ? AppTheme.accentPink 
-                           : AppTheme.textMutedC(isDark).withValues(alpha: 0.1),
-                       borderRadius: BorderRadius.circular(3),
-                       boxShadow: isActive ? [
-                         BoxShadow(color: AppTheme.accentPink.withValues(alpha: 0.4), blurRadius: 4)
-                       ] : null,
-                     ),
-                   ).animate(target: isActive ? 1 : 0).shimmer(),
-                   const SizedBox(height: 6),
-                   Text(
-                     date.day.toString(),
-                     style: AppTheme.bodySmall.copyWith(
-                       fontSize: 8, 
-                       color: isActive ? AppTheme.textPrimaryC(isDark) : AppTheme.textMutedC(isDark)
-                     ),
-                   ),
-                 ],
-               );
-             }),
-           ),
-         ],
-       ),
-     );
-  }
-
   Widget _buildMasteryPrediction(bool isDark, ProgressService progress) {
      final daysRemaining = progress.daysToNextCertificate;
      final topicsRemaining = progress.remainingTopicsForNextCert;
@@ -334,8 +280,9 @@ class _QuizAnalyticsScreenState extends State<QuizAnalyticsScreen> {
      // Determine next tier name
      final comp = progress.computeProgressForPredictions();
      String nextTier = "Professional";
-     if (comp.threshold == 5) nextTier = "Bronze Cert";
-     else if (comp.threshold == 15) nextTier = "Silver Cert";
+     if (comp.threshold == 5) {
+       nextTier = "Bronze Cert";
+     } else if (comp.threshold == 15) nextTier = "Silver Cert";
      else if (comp.threshold == 30) nextTier = "Gold Cert";
      else if (comp.threshold > 30) nextTier = "Platinum Cert";
 
@@ -477,6 +424,75 @@ class _QuizAnalyticsScreenState extends State<QuizAnalyticsScreen> {
                    ),
                 ),
              ).animate().scaleX(alignment: Alignment.centerLeft, duration: const Duration(milliseconds: 500)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityStreak(bool isDark, ProgressService progress) {
+    final now = DateTime.now();
+    final dates = progress.interviewHistory.map((e) => e['date'] as String).toList();
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: AppTheme.glassCard(isDark).copyWith(
+        border: Border.all(color: AppTheme.textMutedC(isDark).withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.calendar_today_rounded, color: AppTheme.accentAmber, size: 20),
+              const SizedBox(width: 8),
+              Text('Interview Streak', style: AppTheme.headingSmall.copyWith(color: AppTheme.textPrimaryC(isDark))),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Your interview activity over the past 2 weeks.',
+            style: AppTheme.bodySmall.copyWith(color: AppTheme.textSecondaryC(isDark)),
+          ),
+          const SizedBox(height: 16),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: List.generate(14, (i) {
+                final date = now.subtract(Duration(days: 13 - i));
+                final dateStr = date.toIso8601String().substring(0, 10);
+                final isActive = dates.contains(dateStr);
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: isActive 
+                              ? AppTheme.accentPink 
+                              : AppTheme.textMutedC(isDark).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(3),
+                          boxShadow: isActive ? [
+                            BoxShadow(color: AppTheme.accentPink.withValues(alpha: 0.4), blurRadius: 4)
+                          ] : null,
+                        ),
+                      ).animate(target: isActive ? 1 : 0).shimmer(),
+                      const SizedBox(height: 6),
+                      Text(
+                        date.day.toString(),
+                        style: AppTheme.bodySmall.copyWith(
+                          fontSize: 8, 
+                          color: isActive ? AppTheme.textPrimaryC(isDark) : AppTheme.textMutedC(isDark)
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ),
           ),
         ],
       ),

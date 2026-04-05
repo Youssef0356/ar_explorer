@@ -34,6 +34,12 @@ class _CodeGameScreenState extends State<CodeGameScreen>
   int _hintsUsed = 0;
   bool _showHint = false;
   String _currentHint = '';
+  bool _showIntro = true; // Show intro on first open
+
+  // Showcase keys for tour
+  final GlobalKey _codeEditorKey = GlobalKey();
+  final GlobalKey _wordBankKey = GlobalKey();
+  final GlobalKey _checkButtonKey = GlobalKey();
 
   // Timer
   Timer? _timer;
@@ -83,7 +89,10 @@ class _CodeGameScreenState extends State<CodeGameScreen>
                   children: [
                     _buildTitleCard(),
                     const SizedBox(height: 16),
-                    _buildCodeEditor(),
+                    KeyedSubtree(
+                      key: _codeEditorKey,
+                      child: _buildCodeEditor(),
+                    ),
                     const SizedBox(height: 16),
                     if (_checked) _buildFeedbackPanel(),
                     if (_showHint && !_checked) _buildHintBubble(),
@@ -91,8 +100,17 @@ class _CodeGameScreenState extends State<CodeGameScreen>
                 ),
               ),
             ),
-            if (!_checked) _buildWordBank(sound),
-            _buildBottomActions(sound),
+            if (!_checked) 
+              KeyedSubtree(
+                key: _wordBankKey,
+                child: _buildWordBank(sound),
+              ),
+            KeyedSubtree(
+              key: _checkButtonKey,
+              child: _buildBottomActions(sound),
+            ),
+            // ── Intro dialog overlay ──
+            if (_showIntro) _buildIntroDialog(),
           ],
         ),
       ),
@@ -253,6 +271,108 @@ class _CodeGameScreenState extends State<CodeGameScreen>
     ).animate().fadeIn().slideY(begin: -0.05);
   }
 
+  // ── Intro dialog ────────────────────────────────────────────────────────────
+  Widget _buildIntroDialog() {
+    return Container(
+      color: const Color(0xFF0A0E1A).withValues(alpha: 0.95),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFF111522),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: widget.zoneColor.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.touch_app_rounded, size: 48, color: widget.zoneColor),
+                const SizedBox(height: 16),
+                const Text('HOW TO PLAY',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 2)),
+                const SizedBox(height: 16),
+                _buildIntroStep('1. Select', 'Tap a word from the Word Bank to select it.'),
+                const SizedBox(height: 12),
+                _buildIntroStep('2. Place', 'Tap a blank space (______) in the code to place the word.'),
+                const SizedBox(height: 12),
+                _buildIntroStep('3. Check', 'When all blanks are filled, press CHECK to validate.'),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() => _showIntro = false);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: widget.zoneColor,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('GOT IT',
+                      style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 1.5)),
+                  ),
+                ),
+              ],
+            ),
+          ).animate().fadeIn().scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIntroStep(String title, String body) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: widget.zoneColor.withValues(alpha: 0.15),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              title.split('.')[0],
+              style: TextStyle(
+                color: widget.zoneColor,
+                fontSize: 11,
+                fontWeight: FontWeight.w700),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title.substring(3),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700)),
+              const SizedBox(height: 2),
+              Text(
+                body,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  fontSize: 12,
+                  height: 1.4)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   // ── Code editor ─────────────────────────────────────────────────────────────
   Widget _buildCodeEditor() {
     // Parse template into segments: text and blanks
@@ -385,7 +505,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
     if (_wordBank.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8), // Reduced padding
       decoration: BoxDecoration(
         color: const Color(0xFF111522),
         border: Border(
@@ -394,6 +514,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min, // Minimize height
         children: [
           Text('WORD BANK',
               style: TextStyle(
@@ -401,10 +522,10 @@ class _CodeGameScreenState extends State<CodeGameScreen>
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.5)),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6), // Reduced spacing
           Wrap(
             spacing: 8,
-            runSpacing: 8,
+            runSpacing: 6, // Reduced run spacing
             children: _wordBank.map((token) {
               final isSelected = _selectedToken == token;
               return GestureDetector(
@@ -417,12 +538,12 @@ class _CodeGameScreenState extends State<CodeGameScreen>
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6), // Reduced padding
                   decoration: BoxDecoration(
                     color: isSelected
                         ? widget.zoneColor.withValues(alpha: 0.15)
                         : Colors.white.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(8), // Smaller radius
                     border: Border.all(
                       color: isSelected
                           ? widget.zoneColor.withValues(alpha: 0.6)
@@ -442,7 +563,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
                     token,
                     style: TextStyle(
                       fontFamily: 'monospace',
-                      fontSize: 12,
+                      fontSize: 11, // Smaller font
                       fontWeight:
                           isSelected ? FontWeight.w700 : FontWeight.w500,
                       color: isSelected
@@ -467,27 +588,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       child: Row(
         children: [
-          // Hint button
-          if (!_checked)
-            GestureDetector(
-              onTap: () {
-                sound.playTap();
-                _showNextHint();
-              },
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.amber.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: Colors.amber.withValues(alpha: 0.2)),
-                ),
-                child: const Icon(Icons.lightbulb_outline_rounded,
-                    color: Colors.amber, size: 20),
-              ),
-            ),
-          if (!_checked) const SizedBox(width: 12),
-          // CHECK / CONTINUE button
+          // CHECK / CONTINUE button (PRIMARY - full width emphasis)
           Expanded(
             child: ElevatedButton(
               onPressed: _checked
@@ -505,7 +606,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
-                elevation: 0,
+                elevation: 2,
               ),
               child: Text(
                 _checked
@@ -520,6 +621,37 @@ class _CodeGameScreenState extends State<CodeGameScreen>
               ),
             ),
           ),
+          // Hint button (SECONDARY - outlined style)
+          if (!_checked) ...[
+            const SizedBox(width: 12),
+            OutlinedButton(
+              onPressed: () {
+                sound.playTap();
+                _showNextHint();
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.amber,
+                side: BorderSide(color: Colors.amber.withValues(alpha: 0.3)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.lightbulb_outline_rounded, size: 18),
+                  const SizedBox(width: 6),
+                  Text(
+                    'GET HINT',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

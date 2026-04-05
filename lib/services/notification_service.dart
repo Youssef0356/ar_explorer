@@ -9,8 +9,11 @@ import 'package:workmanager/workmanager.dart';
 
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
-    if (task == "refreshNotifications") {
-      await NotificationService.handleBackgroundRefresh();
+    debugPrint('WorkManager task executing: $task');
+    if (task == "refreshNotifications" || task == "scheduleEngagement") {
+      // Re-schedule engagement notifications periodically
+      final service = NotificationService();
+      await service._rescheduleEngagementFromBackground();
     }
     return Future.value(true);
   });
@@ -33,6 +36,7 @@ class NotificationService extends ChangeNotifier {
   static const String _dailyChannelName = 'Daily XP Reminders';
 
   final List<String> _funnyMessages = [
+    "We miss you! Come back and continue your AR journey! 🤖",
     "We are waiting for your interview, don't keep the hologram hanging! 🤖",
     "Your AR skills are getting rusty. Time to polish them! ✨",
     "Did you know? AR doesn't stand for 'Always Resting'. Get back to work! 🔥",
@@ -135,6 +139,41 @@ class NotificationService extends ChangeNotifier {
     final service = NotificationService();
     await service.init();
     debugPrint('Background notification refresh completed.');
+  }
+
+  // Internal method for WorkManager to reschedule engagement notifications
+  Future<void> _rescheduleEngagementFromBackground() async {
+    final prefs = await SharedPreferences.getInstance();
+    _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+    
+    if (!_notificationsEnabled) return;
+    
+    // Re-schedule engagement notifications with new timing
+    final random = Random();
+    final List<int> days = [1, 3, 6]; // Slightly different intervals for background refresh
+    
+    for (int i = 0; i < days.length; i++) {
+      await _notificationsPlugin.cancel(id: 2000 + i);
+      final String message = _funnyMessages[random.nextInt(_funnyMessages.length)];
+      
+      await _notificationsPlugin.zonedSchedule(
+        id: 2000 + i,
+        title: "Continue Your Journey 🚀",
+        body: message,
+        scheduledDate: tz.TZDateTime.now(tz.local).add(Duration(days: days[i])),
+        notificationDetails: const NotificationDetails(
+          android: AndroidNotificationDetails(
+            _funnyChannelId,
+            _funnyChannelName,
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(),
+        ),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      );
+    }
+    debugPrint('Engagement notifications rescheduled from background.');
   }
 
   Future<void> toggleNotifications() async {

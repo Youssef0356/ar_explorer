@@ -467,17 +467,18 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
       // is never pushed below the visible area by the bottom bar.
       child: Stack(
         children: [
-          Scrollbar(
-            controller: _wordBankController,
-            thumbVisibility: true,
-            thickness: 6,
-            radius: const Radius.circular(3),
-            child: ListView.builder(
+          Positioned.fill(
+            child: Scrollbar(
               controller: _wordBankController,
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              itemCount: _wordBank.length,
-              itemBuilder: (context, index) {
+              thumbVisibility: true,
+              thickness: 6,
+              radius: const Radius.circular(3),
+              child: ListView.builder(
+                controller: _wordBankController,
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                itemCount: _wordBank.length,
+                itemBuilder: (context, index) {
                 final chip = _wordBank[index];
                 return Padding(
                   padding: const EdgeInsets.only(right: 12),
@@ -493,6 +494,7 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
                 );
               },
             ),
+          ),
           ),
         ],
       ),

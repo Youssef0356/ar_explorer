@@ -16,15 +16,15 @@ const _pink   = Color(0xFFFF6B9D);
 const _wrongDot = Color(0xFFEF5350);
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  ZONE 1 — SEE THE WORLD
+//  ZONE 1 — WIRE THE AR CAMERA
 //  The player learns that AR = camera + session + background renderer.
 //  Everything is written in plain English. Zero jargon assumed.
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _zone1 = InspectorZone(
   id: 'zone_inspector_1',
-  name: 'Zone 1 — See the World',
-  subtitle: 'Get the camera running',
+  name: 'Zone 1 — Wire the AR Camera',
+  subtitle: 'Fix the black screen and get camera running',
   accentColor: _cyan,
   icon: Icons.videocam_rounded,
   levels: [
@@ -33,10 +33,10 @@ const _zone1 = InspectorZone(
     InspectorLevel(
       id: 'iz1_l1',
       zoneId: 'zone_inspector_1',
-      title: 'The Screen is Black',
+      title: 'Fix: No Camera Feed (Black Screen)',
       isFree: true,
       objective:
-          'Your XR app opens and the screen is completely black. '
+          'Your XR app opens but the screen is completely black. '
           'The player can\'t see anything. '
           'Add the right scripts to the Camera so it shows the real world through the phone\'s camera.',
       gameObjectName: 'Main Camera',
@@ -137,7 +137,7 @@ const _zone1 = InspectorZone(
     InspectorLevel(
       id: 'iz1_l2',
       zoneId: 'zone_inspector_1',
-      title: 'Put a Cube in the Room',
+      title: 'Fix: Virtual Object Tracking',
       objective:
           'The camera works, but virtual objects don\'t know where "forward" is. '
           'Add the scripts that let the XR Rig understand its position and orientation '
@@ -211,7 +211,7 @@ const _zone1 = InspectorZone(
     InspectorLevel(
       id: 'iz1_l3',
       zoneId: 'zone_inspector_1',
-      title: 'Front Camera Face Filter',
+      title: 'Fix: Front Camera Face Filter',
       objective:
           'You want to add a face filter like Snapchat — a virtual hat that sticks to the user\'s head. '
           'Switch to the front-facing camera and add face tracking so the hat knows where the face is.',
@@ -282,7 +282,92 @@ const _zone1 = InspectorZone(
       ],
     ),
 
-    // ── L1-BOSS: Multi-camera mixed reality ────────────────────────────────
+       // ── L1-4 (Generated) ─────────────────────────────────────────────
+    InspectorLevel(
+      id: 'iz1_l4',
+      zoneId: 'zone_inspector_1',
+      title: 'Advanced Front Camera Face Filter',
+      objective: 'Configure additional settings to master the workflow in this zone.',
+      gameObjectName: 'Manager',
+      gameObjectIcon: '⚙',
+      sceneObjects: [SceneObjectType.cube],
+      existingComponents: [
+        ExistingComponent(name: 'Transform', icon: '⊞', accentColor: Color(0xFF4FC3F7), fields: []),
+      ],
+      idleTerminal: [
+        TerminalLine(TerminalLineType.dim, '> Analyzing setup...'),
+        TerminalLine(TerminalLineType.warning, '> WARNING: Requires optimization'),
+      ],
+      hint: 'Use the correct component to resolve the warning and proceed.',
+      scriptBank: [
+        ScriptChip(
+          id: 'gen_correct1',
+          label: 'Optimizer Script',
+          description: 'A script that finalizes the configuration.',
+          dotColor: Color(0xFF00D4AA),
+          isCorrect: true,
+          addLines: [TerminalLine(TerminalLineType.success, '> Configuration complete')],
+          addFields: [InspectorField(label: 'Status', value: 'Active')],
+        ),
+        ScriptChip(
+          id: 'gen_wrong1',
+          label: 'Debug Mode',
+          description: 'Enables debug logging.',
+          dotColor: Color(0xFFEF5350),
+          isCorrect: false,
+          errorMessage: 'This is not needed for the optimization.',
+        )
+      ],
+      correctIds: ['gen_correct1'],
+      successMessage: 'Configuration applied successfully!',
+      successTerminal: [
+        TerminalLine(TerminalLineType.success, '> ✓ Optimization complete'),
+      ],
+    ),
+
+    // ── L1-5 (Generated) ─────────────────────────────────────────────
+    InspectorLevel(
+      id: 'iz1_l5',
+      zoneId: 'zone_inspector_1',
+      title: 'Expert Front Camera Face Filter',
+      objective: 'Apply the final polish to your environment.',
+      gameObjectName: 'Controller',
+      gameObjectIcon: '🎛',
+      sceneObjects: [SceneObjectType.cube],
+      existingComponents: [
+        ExistingComponent(name: 'Transform', icon: '⊞', accentColor: Color(0xFF4FC3F7), fields: []),
+      ],
+      idleTerminal: [
+        TerminalLine(TerminalLineType.dim, '> Awaiting finalization...'),
+        TerminalLine(TerminalLineType.warning, '> WARNING: Deployment checks pending'),
+      ],
+      hint: 'Attach the deployment script.',
+      scriptBank: [
+        ScriptChip(
+          id: 'gen_correct2',
+          label: 'Deployment Script',
+          description: 'Prepares the scene for deployment.',
+          dotColor: Color(0xFF00D4AA),
+          isCorrect: true,
+          addLines: [TerminalLine(TerminalLineType.success, '> Deployment ready')],
+          addFields: [InspectorField(label: 'Mode', value: 'Release')],
+        ),
+        ScriptChip(
+          id: 'gen_wrong2',
+          label: 'Test Script',
+          description: 'Fires test events.',
+          dotColor: Color(0xFFEF5350),
+          isCorrect: false,
+          errorMessage: 'Incorrect mode selected.',
+        )
+      ],
+      correctIds: ['gen_correct2'],
+      successMessage: 'Deployment ready!',
+      successTerminal: [
+        TerminalLine(TerminalLineType.success, '> ✓ Environment finalized'),
+      ],
+    ),
+ // ── L1-BOSS: Multi-camera mixed reality ────────────────────────────────
     InspectorLevel(
       id: 'iz1_boss',
       zoneId: 'zone_inspector_1',
@@ -387,14 +472,14 @@ const _zone1 = InspectorZone(
 
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  ZONE 2 — USE YOUR HANDS
+//  ZONE 2 — ADD HAND TRACKING
 //  The player learns XR hand tracking, interaction toolkit, and gesture input.
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _zone2 = InspectorZone(
   id: 'zone_inspector_2',
-  name: 'Zone 2 — Use Your Hands',
-  subtitle: 'Track and interact with bare hands',
+  name: 'Zone 2 — Add Hand Tracking',
+  subtitle: 'Make hands visible and interactive in AR',
   accentColor: _green,
   icon: Icons.back_hand_rounded,
   levels: [
@@ -699,7 +784,92 @@ const _zone2 = InspectorZone(
       ],
     ),
 
-    // ── L2-BOSS: Full hand interaction suite ──────────────────────────────
+       // ── L2-4 (Generated) ─────────────────────────────────────────────
+    InspectorLevel(
+      id: 'iz2_l4',
+      zoneId: 'zone_inspector_2',
+      title: 'Advanced Pinch to Scale Objects',
+      objective: 'Configure additional settings to master the workflow in this zone.',
+      gameObjectName: 'Manager',
+      gameObjectIcon: '⚙',
+      sceneObjects: [SceneObjectType.cube],
+      existingComponents: [
+        ExistingComponent(name: 'Transform', icon: '⊞', accentColor: Color(0xFF4FC3F7), fields: []),
+      ],
+      idleTerminal: [
+        TerminalLine(TerminalLineType.dim, '> Analyzing setup...'),
+        TerminalLine(TerminalLineType.warning, '> WARNING: Requires optimization'),
+      ],
+      hint: 'Use the correct component to resolve the warning and proceed.',
+      scriptBank: [
+        ScriptChip(
+          id: 'gen_correct1',
+          label: 'Optimizer Script',
+          description: 'A script that finalizes the configuration.',
+          dotColor: Color(0xFF00D4AA),
+          isCorrect: true,
+          addLines: [TerminalLine(TerminalLineType.success, '> Configuration complete')],
+          addFields: [InspectorField(label: 'Status', value: 'Active')],
+        ),
+        ScriptChip(
+          id: 'gen_wrong1',
+          label: 'Debug Mode',
+          description: 'Enables debug logging.',
+          dotColor: Color(0xFFEF5350),
+          isCorrect: false,
+          errorMessage: 'This is not needed for the optimization.',
+        )
+      ],
+      correctIds: ['gen_correct1'],
+      successMessage: 'Configuration applied successfully!',
+      successTerminal: [
+        TerminalLine(TerminalLineType.success, '> ✓ Optimization complete'),
+      ],
+    ),
+
+    // ── L2-5 (Generated) ─────────────────────────────────────────────
+    InspectorLevel(
+      id: 'iz2_l5',
+      zoneId: 'zone_inspector_2',
+      title: 'Expert Pinch to Scale Objects',
+      objective: 'Apply the final polish to your environment.',
+      gameObjectName: 'Controller',
+      gameObjectIcon: '🎛',
+      sceneObjects: [SceneObjectType.cube],
+      existingComponents: [
+        ExistingComponent(name: 'Transform', icon: '⊞', accentColor: Color(0xFF4FC3F7), fields: []),
+      ],
+      idleTerminal: [
+        TerminalLine(TerminalLineType.dim, '> Awaiting finalization...'),
+        TerminalLine(TerminalLineType.warning, '> WARNING: Deployment checks pending'),
+      ],
+      hint: 'Attach the deployment script.',
+      scriptBank: [
+        ScriptChip(
+          id: 'gen_correct2',
+          label: 'Deployment Script',
+          description: 'Prepares the scene for deployment.',
+          dotColor: Color(0xFF00D4AA),
+          isCorrect: true,
+          addLines: [TerminalLine(TerminalLineType.success, '> Deployment ready')],
+          addFields: [InspectorField(label: 'Mode', value: 'Release')],
+        ),
+        ScriptChip(
+          id: 'gen_wrong2',
+          label: 'Test Script',
+          description: 'Fires test events.',
+          dotColor: Color(0xFFEF5350),
+          isCorrect: false,
+          errorMessage: 'Incorrect mode selected.',
+        )
+      ],
+      correctIds: ['gen_correct2'],
+      successMessage: 'Deployment ready!',
+      successTerminal: [
+        TerminalLine(TerminalLineType.success, '> ✓ Environment finalized'),
+      ],
+    ),
+ // ── L2-BOSS: Full hand interaction suite ──────────────────────────────
     InspectorLevel(
       id: 'iz2_boss',
       zoneId: 'zone_inspector_2',
@@ -797,14 +967,14 @@ const _zone2 = InspectorZone(
 
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  ZONE 3 — TOUCH THE WORLD
+//  ZONE 3 — PLACE OBJECTS ON SURFACES
 //  Plane detection, hit testing, tap-to-place, surface anchors.
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _zone3 = InspectorZone(
   id: 'zone_inspector_3',
-  name: 'Zone 3 — Touch the World',
-  subtitle: 'Detect surfaces and place objects on them',
+  name: 'Zone 3 — Place Objects on Surfaces',
+  subtitle: 'Detect floors and walls to place virtual furniture',
   accentColor: _amber,
   icon: Icons.touch_app_rounded,
   levels: [
@@ -1029,7 +1199,92 @@ const _zone3 = InspectorZone(
       ],
     ),
 
-    // ── L3-BOSS: Full interior AR app ─────────────────────────────────────
+       // ── L3-4 (Generated) ─────────────────────────────────────────────
+    InspectorLevel(
+      id: 'iz3_l4',
+      zoneId: 'zone_inspector_3',
+      title: 'Advanced Remember Where I Put It',
+      objective: 'Configure additional settings to master the workflow in this zone.',
+      gameObjectName: 'Manager',
+      gameObjectIcon: '⚙',
+      sceneObjects: [SceneObjectType.cube],
+      existingComponents: [
+        ExistingComponent(name: 'Transform', icon: '⊞', accentColor: Color(0xFF4FC3F7), fields: []),
+      ],
+      idleTerminal: [
+        TerminalLine(TerminalLineType.dim, '> Analyzing setup...'),
+        TerminalLine(TerminalLineType.warning, '> WARNING: Requires optimization'),
+      ],
+      hint: 'Use the correct component to resolve the warning and proceed.',
+      scriptBank: [
+        ScriptChip(
+          id: 'gen_correct1',
+          label: 'Optimizer Script',
+          description: 'A script that finalizes the configuration.',
+          dotColor: Color(0xFF00D4AA),
+          isCorrect: true,
+          addLines: [TerminalLine(TerminalLineType.success, '> Configuration complete')],
+          addFields: [InspectorField(label: 'Status', value: 'Active')],
+        ),
+        ScriptChip(
+          id: 'gen_wrong1',
+          label: 'Debug Mode',
+          description: 'Enables debug logging.',
+          dotColor: Color(0xFFEF5350),
+          isCorrect: false,
+          errorMessage: 'This is not needed for the optimization.',
+        )
+      ],
+      correctIds: ['gen_correct1'],
+      successMessage: 'Configuration applied successfully!',
+      successTerminal: [
+        TerminalLine(TerminalLineType.success, '> ✓ Optimization complete'),
+      ],
+    ),
+
+    // ── L3-5 (Generated) ─────────────────────────────────────────────
+    InspectorLevel(
+      id: 'iz3_l5',
+      zoneId: 'zone_inspector_3',
+      title: 'Expert Remember Where I Put It',
+      objective: 'Apply the final polish to your environment.',
+      gameObjectName: 'Controller',
+      gameObjectIcon: '🎛',
+      sceneObjects: [SceneObjectType.cube],
+      existingComponents: [
+        ExistingComponent(name: 'Transform', icon: '⊞', accentColor: Color(0xFF4FC3F7), fields: []),
+      ],
+      idleTerminal: [
+        TerminalLine(TerminalLineType.dim, '> Awaiting finalization...'),
+        TerminalLine(TerminalLineType.warning, '> WARNING: Deployment checks pending'),
+      ],
+      hint: 'Attach the deployment script.',
+      scriptBank: [
+        ScriptChip(
+          id: 'gen_correct2',
+          label: 'Deployment Script',
+          description: 'Prepares the scene for deployment.',
+          dotColor: Color(0xFF00D4AA),
+          isCorrect: true,
+          addLines: [TerminalLine(TerminalLineType.success, '> Deployment ready')],
+          addFields: [InspectorField(label: 'Mode', value: 'Release')],
+        ),
+        ScriptChip(
+          id: 'gen_wrong2',
+          label: 'Test Script',
+          description: 'Fires test events.',
+          dotColor: Color(0xFFEF5350),
+          isCorrect: false,
+          errorMessage: 'Incorrect mode selected.',
+        )
+      ],
+      correctIds: ['gen_correct2'],
+      successMessage: 'Deployment ready!',
+      successTerminal: [
+        TerminalLine(TerminalLineType.success, '> ✓ Environment finalized'),
+      ],
+    ),
+ // ── L3-BOSS: Full interior AR app ─────────────────────────────────────
     InspectorLevel(
       id: 'iz3_boss',
       zoneId: 'zone_inspector_3',
@@ -1114,14 +1369,14 @@ const _zone3 = InspectorZone(
 
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  ZONE 4 — MAKE IT LOOK REAL
+//  ZONE 4 — ADD REALISTIC LIGHTING
 //  Lighting estimation, occlusion, shadows. Visual realism.
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _zone4 = InspectorZone(
   id: 'zone_inspector_4',
-  name: 'Zone 4 — Make It Look Real',
-  subtitle: 'Lighting, shadows, and occlusion',
+  name: 'Zone 4 — Add Realistic Lighting',
+  subtitle: 'Match virtual lights to real-world lighting',
   accentColor: _purple,
   icon: Icons.lightbulb_rounded,
   levels: [
@@ -1341,8 +1596,96 @@ const _zone4 = InspectorZone(
       ],
     ),
 
+    // ── L4-4 (Generated) ─────────────────────────────────────────────
+    InspectorLevel(
+      id: 'iz4_l4',
+      zoneId: 'zone_inspector_4',
+      title: 'Advanced Shadows',
+      objective: 'Configure additional settings to master the workflow in this zone.',
+      gameObjectName: 'Manager',
+      gameObjectIcon: '⚙',
+      sceneObjects: [SceneObjectType.cube],
+      existingComponents: [
+        ExistingComponent(name: 'Transform', icon: '⊞', accentColor: Color(0xFF4FC3F7), fields: []),
+      ],
+      idleTerminal: [
+        TerminalLine(TerminalLineType.dim, '> Analyzing setup...'),
+        TerminalLine(TerminalLineType.warning, '> WARNING: Requires optimization'),
+      ],
+      hint: 'Use the correct component to resolve the warning and proceed.',
+      scriptBank: [
+        ScriptChip(
+          id: 'gen_correct1',
+          label: 'Optimizer Script',
+          description: 'A script that finalizes the configuration.',
+          dotColor: Color(0xFF00D4AA),
+          isCorrect: true,
+          addLines: [TerminalLine(TerminalLineType.success, '> Configuration complete')],
+          addFields: [InspectorField(label: 'Status', value: 'Active')],
+        ),
+        ScriptChip(
+          id: 'gen_wrong1',
+          label: 'Debug Mode',
+          description: 'Enables debug logging.',
+          dotColor: Color(0xFFEF5350),
+          isCorrect: false,
+          errorMessage: 'This is not needed for the optimization.',
+        )
+      ],
+      correctIds: ['gen_correct1'],
+      successMessage: 'Configuration applied successfully!',
+      successTerminal: [
+        TerminalLine(TerminalLineType.success, '> ✓ Optimization complete'),
+      ],
+    ),
+
+    // ── L4-5 (Generated) ─────────────────────────────────────────────
+    InspectorLevel(
+      id: 'iz4_l5',
+      zoneId: 'zone_inspector_4',
+      title: 'Expert Shadows',
+      objective: 'Apply the final polish to your environment.',
+      gameObjectName: 'Controller',
+      gameObjectIcon: '🎛',
+      sceneObjects: [SceneObjectType.cube],
+      existingComponents: [
+        ExistingComponent(name: 'Transform', icon: '⊞', accentColor: Color(0xFF4FC3F7), fields: []),
+      ],
+      idleTerminal: [
+        TerminalLine(TerminalLineType.dim, '> Awaiting finalization...'),
+        TerminalLine(TerminalLineType.warning, '> WARNING: Deployment checks pending'),
+      ],
+      hint: 'Attach the deployment script.',
+      scriptBank: [
+        ScriptChip(
+          id: 'gen_correct2',
+          label: 'Deployment Script',
+          description: 'Prepares the scene for deployment.',
+          dotColor: Color(0xFF00D4AA),
+          isCorrect: true,
+          addLines: [TerminalLine(TerminalLineType.success, '> Deployment ready')],
+          addFields: [InspectorField(label: 'Mode', value: 'Release')],
+        ),
+        ScriptChip(
+          id: 'gen_wrong2',
+          label: 'Test Script',
+          description: 'Fires test events.',
+          dotColor: Color(0xFFEF5350),
+          isCorrect: false,
+          errorMessage: 'Incorrect mode selected.',
+        )
+      ],
+      correctIds: ['gen_correct2'],
+      successMessage: 'Deployment ready!',
+      successTerminal: [
+        TerminalLine(TerminalLineType.success, '> ✓ Environment finalized'),
+      ],
+    ),
+
     InspectorLevel(
       id: 'iz4_boss',
+
+
       zoneId: 'zone_inspector_4',
       isBoss: true,
       timeLimit: 90,
@@ -1423,15 +1766,15 @@ const _zone4 = InspectorZone(
 
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  ZONE 5 — MASTER THE SCENE
+//  ZONE 5 — BUILD MULTIPLAYER EXPERIENCES
 //  Multiplayer shared anchors, cloud, image tracking, SLAM depth.
 //  Only accessible to premium / highest-XP players.
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _zone5 = InspectorZone(
   id: 'zone_inspector_5',
-  name: 'Zone 5 — Master the Scene',
-  subtitle: 'Multiplayer, cloud anchors, and advanced tracking',
+  name: 'Zone 5 — Build Multiplayer Experiences',
+  subtitle: 'Connect multiple players in shared AR worlds',
   accentColor: _pink,
   icon: Icons.public_rounded,
   levels: [
@@ -1653,8 +1996,96 @@ const _zone5 = InspectorZone(
     ),
 
     // ── FINAL BOSS ─────────────────────────────────────────────────────────
+    // ── L5-4 (Generated) ─────────────────────────────────────────────
+    InspectorLevel(
+      id: 'iz5_l4',
+      zoneId: 'zone_inspector_5',
+      title: 'Advanced LiDAR',
+      objective: 'Configure additional settings to master the workflow in this zone.',
+      gameObjectName: 'Manager',
+      gameObjectIcon: '⚙',
+      sceneObjects: [SceneObjectType.cube],
+      existingComponents: [
+        ExistingComponent(name: 'Transform', icon: '⊞', accentColor: Color(0xFF4FC3F7), fields: []),
+      ],
+      idleTerminal: [
+        TerminalLine(TerminalLineType.dim, '> Analyzing setup...'),
+        TerminalLine(TerminalLineType.warning, '> WARNING: Requires optimization'),
+      ],
+      hint: 'Use the correct component to resolve the warning and proceed.',
+      scriptBank: [
+        ScriptChip(
+          id: 'gen_correct1',
+          label: 'Optimizer Script',
+          description: 'A script that finalizes the configuration.',
+          dotColor: Color(0xFF00D4AA),
+          isCorrect: true,
+          addLines: [TerminalLine(TerminalLineType.success, '> Configuration complete')],
+          addFields: [InspectorField(label: 'Status', value: 'Active')],
+        ),
+        ScriptChip(
+          id: 'gen_wrong1',
+          label: 'Debug Mode',
+          description: 'Enables debug logging.',
+          dotColor: Color(0xFFEF5350),
+          isCorrect: false,
+          errorMessage: 'This is not needed for the optimization.',
+        )
+      ],
+      correctIds: ['gen_correct1'],
+      successMessage: 'Configuration applied successfully!',
+      successTerminal: [
+        TerminalLine(TerminalLineType.success, '> ✓ Optimization complete'),
+      ],
+    ),
+
+    // ── L5-5 (Generated) ─────────────────────────────────────────────
+    InspectorLevel(
+      id: 'iz5_l5',
+      zoneId: 'zone_inspector_5',
+      title: 'Expert LiDAR',
+      objective: 'Apply the final polish to your environment.',
+      gameObjectName: 'Controller',
+      gameObjectIcon: '🎛',
+      sceneObjects: [SceneObjectType.cube],
+      existingComponents: [
+        ExistingComponent(name: 'Transform', icon: '⊞', accentColor: Color(0xFF4FC3F7), fields: []),
+      ],
+      idleTerminal: [
+        TerminalLine(TerminalLineType.dim, '> Awaiting finalization...'),
+        TerminalLine(TerminalLineType.warning, '> WARNING: Deployment checks pending'),
+      ],
+      hint: 'Attach the deployment script.',
+      scriptBank: [
+        ScriptChip(
+          id: 'gen_correct2',
+          label: 'Deployment Script',
+          description: 'Prepares the scene for deployment.',
+          dotColor: Color(0xFF00D4AA),
+          isCorrect: true,
+          addLines: [TerminalLine(TerminalLineType.success, '> Deployment ready')],
+          addFields: [InspectorField(label: 'Mode', value: 'Release')],
+        ),
+        ScriptChip(
+          id: 'gen_wrong2',
+          label: 'Test Script',
+          description: 'Fires test events.',
+          dotColor: Color(0xFFEF5350),
+          isCorrect: false,
+          errorMessage: 'Incorrect mode selected.',
+        )
+      ],
+      correctIds: ['gen_correct2'],
+      successMessage: 'Deployment ready!',
+      successTerminal: [
+        TerminalLine(TerminalLineType.success, '> ✓ Environment finalized'),
+      ],
+    ),
+
     InspectorLevel(
       id: 'iz5_boss',
+
+
       zoneId: 'zone_inspector_5',
       isBoss: true,
       timeLimit: 120,

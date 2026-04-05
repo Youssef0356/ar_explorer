@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/app_theme.dart';
+import '../core/tour_keys.dart';
 import '../data/modules_data.dart';
 import '../services/game_progress_service.dart';
 import '../services/progress_service.dart';
@@ -129,13 +130,16 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                   child: Column(
                     children: [
                       // ── Level & XP Dashboard ──
-                      _buildDashboard(
-                        isDark,
-                        levelTitle,
-                        xp,
-                        overallProgress,
-                        completedTopics,
-                        totalTopics,
+                      KeyedSubtree(
+                        key: TourKeys.rewardsDashboardKey,
+                        child: _buildDashboard(
+                          isDark,
+                          levelTitle,
+                          xp,
+                          overallProgress,
+                          completedTopics,
+                          totalTopics,
+                        ),
                       ),
 
                       const SizedBox(height: 24),
@@ -166,7 +170,10 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                       _sectionTitle('🏆 EARNED BADGES', isDark),
                       const SizedBox(height: 16),
 
-                      _buildBadgeGrid(coreProgress, isDark),
+                      KeyedSubtree(
+                        key: TourKeys.rewardsBadgesKey,
+                        child: _buildBadgeGrid(coreProgress, isDark),
+                      ),
 
                       const SizedBox(height: 40),
                     ],

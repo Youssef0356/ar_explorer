@@ -25,6 +25,7 @@ import '../services/notification_service.dart';
 import '../widgets/animated_google_background.dart';
 import '../widgets/daily_keyword_card.dart';
 import '../widgets/module_card.dart';
+import '../core/tour_keys.dart';
 
 import 'bookmarks_screen.dart';
 import 'credits_screen.dart';
@@ -37,8 +38,6 @@ import 'topic_screen.dart';
 import 'quiz_analytics_screen.dart';
 import 'certificate_progression_screen.dart';
 import '../widgets/glass_card.dart';
-import '../services/tour_service.dart';
-import '../widgets/tour_bottom_sheet.dart';
 
 
 
@@ -53,33 +52,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkTour();
-    });
-  }
-
-  void _checkTour() {
-    final tourService = context.read<TourService>();
-    final progress = context.read<ProgressService>();
-    
-    if (!tourService.isTourComplete && progress.hasSeenOnboarding) {
-      _startTour();
-    }
-  }
-
-  void _startTour() {
-    final tourService = context.read<TourService>();
-    final isDark = context.read<ThemeService>().isDarkMode;
-    
-    tourService.startTour();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      isDismissible: false,
-      enableDrag: false,
-      builder: (_) => TourBottomSheet(isDark: isDark),
-    );
   }
 
 
@@ -102,53 +74,56 @@ class _HomeScreenState extends State<HomeScreen> {
           MaterialPageRoute(builder: (_) => const InterviewScreen()),
         );
       },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppTheme.cardC(isDark),
-          borderRadius: BorderRadius.circular(12),
-          border: const Border(
-            left: BorderSide(color: AppTheme.accentAmber, width: 3),
+      child: KeyedSubtree(
+        key: TourKeys.homeInterviewKey,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppTheme.cardC(isDark),
+            borderRadius: BorderRadius.circular(12),
+            border: const Border(
+              left: BorderSide(color: AppTheme.accentAmber, width: 3),
+            ),
           ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: AppTheme.accentAmber.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppTheme.accentAmber.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.timer_rounded,
+                    color: AppTheme.accentAmber, size: 20),
               ),
-              child: const Icon(Icons.timer_rounded,
-                  color: AppTheme.accentAmber, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Interview Practice Available',
-                    style: AppTheme.headingSmall.copyWith(
-                      fontSize: 13,
-                      color: AppTheme.textPrimaryC(isDark),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Interview Practice Available',
+                      style: AppTheme.headingSmall.copyWith(
+                        fontSize: 13,
+                        color: AppTheme.textPrimaryC(isDark),
+                      ),
                     ),
-                  ),
-                  Text(
-                    '$attemptsLeft attempt${attemptsLeft > 1 ? 's' : ''} remaining today',
-                    style: AppTheme.bodySmall.copyWith(
-                      color: AppTheme.accentAmber,
-                      fontWeight: FontWeight.w600,
+                    Text(
+                      '$attemptsLeft attempt${attemptsLeft > 1 ? 's' : ''} remaining today',
+                      style: AppTheme.bodySmall.copyWith(
+                        color: AppTheme.accentAmber,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Icon(Icons.chevron_right_rounded,
-                color: AppTheme.textMutedC(isDark), size: 18),
-          ],
+              Icon(Icons.chevron_right_rounded,
+                  color: AppTheme.textMutedC(isDark), size: 18),
+            ],
+          ),
         ),
       ),
     );
@@ -241,56 +216,59 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppTheme.cardC(isDark),
-          borderRadius: BorderRadius.circular(12),
-          border: const Border(
-            left: BorderSide(color: AppTheme.accentCyan, width: 3),
+      child: KeyedSubtree(
+        key: TourKeys.homeKeywordKey,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppTheme.cardC(isDark),
+            borderRadius: BorderRadius.circular(12),
+            border: const Border(
+              left: BorderSide(color: AppTheme.accentCyan, width: 3),
+            ),
           ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Today\'s AR Keyword',
-                    style: AppTheme.bodySmall.copyWith(
-                      color: AppTheme.accentCyan,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 10,
-                      letterSpacing: 1.5,
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Today\'s AR Keyword',
+                      style: AppTheme.bodySmall.copyWith(
+                        color: AppTheme.accentCyan,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 10,
+                        letterSpacing: 1.5,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    entry.key,
-                    style: AppTheme.headingSmall.copyWith(
-                      fontSize: 14,
-                      color: AppTheme.textPrimaryC(isDark),
+                    const SizedBox(height: 4),
+                    Text(
+                      entry.key,
+                      style: AppTheme.headingSmall.copyWith(
+                        fontSize: 14,
+                        color: AppTheme.textPrimaryC(isDark),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'Tap to define',
-              style: AppTheme.bodySmall.copyWith(
-                color: AppTheme.textMutedC(isDark),
-                fontSize: 11,
+              const SizedBox(width: 12),
+              Text(
+                'Tap to define',
+                style: AppTheme.bodySmall.copyWith(
+                  color: AppTheme.textMutedC(isDark),
+                  fontSize: 11,
+                ),
               ),
-            ),
-            const SizedBox(width: 4),
-            Icon(Icons.chevron_right_rounded,
-                color: AppTheme.textMutedC(isDark), size: 16),
-          ],
+              const SizedBox(width: 4),
+              Icon(Icons.chevron_right_rounded,
+                  color: AppTheme.textMutedC(isDark), size: 16),
+            ],
+          ),
         ),
       ),
     );
@@ -598,7 +576,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (index == 0) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 16),
-                              child: card,
+                              child: KeyedSubtree(
+                                key: TourKeys.homeModulesKey,
+                                child: card,
+                              ),
                             );
                           }
 
@@ -843,51 +824,57 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Consumer<SubscriptionService>(
                 builder: (context, subscription, _) => Expanded(
-                  child: _buildQuickActionButton(
-                    context: context,
-                    isDark: isDark,
-                    title: 'Quiz Analytics',
-                    subtitle: 'Advanced Insights',
-                    icon: Icons.insights_rounded,
-                    iconColor: AppTheme.accentAmber,
-                    enableAnimations: enableAnimations,
-                    isPremiumLocked: !subscription.isPremium,
-                    progressPill: certPill,
-                    pillColor: certPillColor,
-                    onTap: () {
-                      if (!subscription.isPremium) {
+                  child: KeyedSubtree(
+                    key: TourKeys.homeAnalyticsKey,
+                    child: _buildQuickActionButton(
+                      context: context,
+                      isDark: isDark,
+                      title: 'Quiz Analytics',
+                      subtitle: 'Advanced Insights',
+                      icon: Icons.insights_rounded,
+                      iconColor: AppTheme.accentAmber,
+                      enableAnimations: enableAnimations,
+                      isPremiumLocked: !subscription.isPremium,
+                      progressPill: certPill,
+                      pillColor: certPillColor,
+                      onTap: () {
+                        if (!subscription.isPremium) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const PaywallScreen()),
+                          );
+                          return;
+                        }
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const PaywallScreen()),
+                          MaterialPageRoute(builder: (_) => const QuizAnalyticsScreen()),
                         );
-                        return;
-                      }
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const QuizAnalyticsScreen()),
-                      );
-                    },
-                    delay: 600,
+                      },
+                      delay: 600,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-              child: _buildQuickActionButton(
-                context: context,
-                isDark: isDark,
-                title: 'Bookmarks',
-                subtitle: 'Saved Notes',
-                icon: Icons.bookmark_rounded,
-                iconColor: AppTheme.accentPurple,
-                enableAnimations: enableAnimations,
-                isPremiumLocked: false,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const BookmarksScreen()),
+                child: KeyedSubtree(
+                  key: TourKeys.homeBookmarksKey,
+                  child: _buildQuickActionButton(
+                    context: context,
+                    isDark: isDark,
+                    title: 'Bookmarks',
+                    subtitle: 'Saved Notes',
+                    icon: Icons.bookmark_rounded,
+                    iconColor: AppTheme.accentPurple,
+                    enableAnimations: enableAnimations,
+                    isPremiumLocked: false,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const BookmarksScreen()),
+                    ),
+                    delay: 700,
+                  ),
                 ),
-                delay: 700,
-              ),
               ),
             ],
           ),
@@ -1316,7 +1303,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               onTap: () {
                                 Navigator.pop(ctx); // Close settings
                                 context.read<SoundService>().playTap();
-                                _startTour();
+                                if (context.mounted) {
+                                  TourKeys.startHomeTour(context);
+                                }
                               },
                             ),
 

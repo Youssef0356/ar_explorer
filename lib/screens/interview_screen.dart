@@ -619,11 +619,39 @@ class _InterviewScreenState extends State<InterviewScreen>
               minHeight: 4,
             ),
           ),
-          const SizedBox(height: 24),
-          Text(
-            q.question,
-            style: AppTheme.headingSmall.copyWith(
-                color: AppTheme.textPrimaryC(isDark), fontSize: 17),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 32, height: 32,
+                decoration: BoxDecoration(
+                  color: AppTheme.accentCyan.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppTheme.accentCyan.withValues(alpha: 0.2)),
+                ),
+                child: const Center(child: Text('🤖', style: TextStyle(fontSize: 16))),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.03),
+                    borderRadius: const BorderRadius.only(
+                      topRight: Radius.circular(16),
+                      bottomRight: Radius.circular(16),
+                      bottomLeft: Radius.circular(16),
+                    ),
+                    border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
+                  ),
+                  child: Text(
+                    q.question,
+                    style: AppTheme.headingSmall.copyWith(
+                        color: AppTheme.textPrimaryC(isDark), fontSize: 16, height: 1.4),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           ...List.generate(q.options.length, (i) {

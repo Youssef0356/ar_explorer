@@ -323,8 +323,9 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
      final completed = _completedTopics.length;
      // Thresholds: Bronze: 5, Silver: 15, Gold: 30, Platinum: All(approx 60+)
      int nextThreshold = 5;
-     if (completed >= 30) nextThreshold = totalTopics;
-     else if (completed >= 15) nextThreshold = 30;
+     if (completed >= 30) {
+       nextThreshold = totalTopics;
+     } else if (completed >= 15) nextThreshold = 30;
      else if (completed >= 5) nextThreshold = 15;
      return _CertPredData(completed: completed, threshold: nextThreshold);
   }

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
-import '../data/inspector_game_data.dart';
+import '../data/inspector_game_data.dart' as ig_data;
 import '../models/inspector_game_models.dart';
 import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
@@ -13,17 +13,17 @@ import '../services/sound_service.dart';
 //  InspectorGameScreen — v2
 //
 //  All bugs fixed + improvements applied:
-//   ✅ 1.  Terminal overflow — ListView, never clips, auto-scrolls
-//   ✅ 2.  Viewport icons no longer overlap — spaced fixed-% positions
-//   ✅ 3.  Wrong scripts CAN be placed; errors surface only on "Run Scene"
-//   ✅ 4.  Viewport larger (flex:3 viewport vs flex:2 inspector)
-//   ✅ 5.  More distractors in data — listed in boss section note
-//   ✅ 6.  Terminal height 140px (was 90px) with a Clear button
-//   ✅ 7.  Script chips are ALL neutral grey — no colour hints before Run
-//   ✅ 8.  After success: expandable code snippet shows real C# / Swift
-//   ✅ 9.  Intro popup on first open (game description dialog)
-//   ✅ 10. Wrong chips placed → ERR badge in Inspector, removable with ×
-//   ✅ 11. Scene objects float (AnimatedBuilder) + pulse on activation
+//   1.  Terminal overflow — ListView, never clips, auto-scrolls
+//   2.  Viewport icons no longer overlap — spaced fixed-% positions
+//   3.  Wrong scripts CAN be placed; errors surface only on "Run Scene"
+//   4.  Viewport larger (flex:3 viewport vs flex:2 inspector)
+//   5.  More distractors in data — listed in boss section note
+//   6.  Terminal height 140px (was 90px) with a Clear button
+//   7.  Script chips are ALL neutral grey — no colour hints before Run
+//   8.  After success: expandable code snippet shows real C# / Swift
+//   9.  Intro popup on first open (game description dialog)
+//   10. Wrong chips placed → ERR badge in Inspector, removable with ×
+//   11. Scene objects float (AnimatedBuilder) + pulse on activation
 // ═══════════════════════════════════════════════════════════════════════════
 
 class InspectorGameScreen extends StatefulWidget {
@@ -86,7 +86,12 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
     }
 
     if (widget.showIntro) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _showIntroPopup());
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showIntroPopup();
+      });
+    } else {
+      // User has seen intro, no automatic showcase needed
+      // Showcase tour can be triggered manually if needed
     }
   }
 
@@ -104,152 +109,105 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
     super.dispose();
   }
 
-  // ── Intro popup ───────────────────────────────────────────────────────────
-  void _showIntroPopup() => showDialog(
-    context: context,
-    barrierDismissible: true,
-    builder: (_) => const _IntroPopupDialog(),
-  );
-
-  // ── Timer ─────────────────────────────────────────────────────────────────
   void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
-      setState(() => _secondsLeft--);
-      if (_secondsLeft <= 0) { _timer?.cancel(); _handleTimeout(); }
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) { t.cancel(); return; }
+      setState(() {
+        if (_secondsLeft > 0) {
+          _secondsLeft--;
+        } else {
+          t.cancel();
+          _onTimeOut();
+        }
+      });
     });
   }
 
-  void _handleTimeout() {
-    _addTermLine(TerminalLine(TerminalLineType.error,
-        '> TIME\'S UP — compilation aborted'));
-    setState(() { _showSuccess = false; _isValidating = false; });
-    _showResultDialog(timedOut: true);
-  }
-
-  // ── Terminal ───────────────────────────────────────────────────────────────
-  void _addTermLine(TerminalLine line) {
+  void _onTimeOut() {
     setState(() {
-      _termLog.add(line);
-      if (_termLog.length > 80) _termLog.removeAt(0);
+      _hasRun = true;
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_termScroll.hasClients) {
-        _termScroll.animateTo(_termScroll.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeOut);
-      }
-    });
+    _showFailurePopup(timedOut: true);
   }
 
-  void _addTermLines(List<TerminalLine> lines) {
-    for (final l in lines) {
-      _addTermLine(l);
-    }
-  }
-
-  // ── Place script ───────────────────────────────────────────────────────────
   void _placeScript(ScriptChip chip) {
-    if (_placedChips.containsKey(chip.id) || _showSuccess) return;
-    context.read<SoundService>().playTap();
-    setState(() => _placedChips[chip.id] = chip.isCorrect);
-
-    if (chip.isCorrect) {
-      for (final obj in chip.activates) {
-        _activatedObjects.add(obj);
-        _pulseCtrls[obj]?.forward(from: 0);
-      }
-    }
-    // Wrong script: no immediate feedback until Run Scene is pressed
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_inspScroll.hasClients) {
-        _inspScroll.animateTo(_inspScroll.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 280), curve: Curves.easeOut);
-      }
+    if (_placedChips.containsKey(chip.id)) return;
+    setState(() {
+      _placedChips[chip.id] = chip.isCorrect;
+      _termLog.add(TerminalLine(
+        TerminalLineType.info,
+        'Attached script: ${chip.label}',
+      ));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_termScroll.hasClients) {
+          _termScroll.animateTo(_termScroll.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+        }
+      });
     });
   }
 
   void _removeScript(String chipId) {
-    if (_showSuccess) return;
-    final chip = widget.level.scriptBank.firstWhere((c) => c.id == chipId);
     setState(() {
       _placedChips.remove(chipId);
-      if (chip.isCorrect) {
-        for (final obj in chip.activates) {
-          final still = widget.level.scriptBank
-              .where((c) => _placedChips.containsKey(c.id) && c.isCorrect)
-              .any((c) => c.activates.contains(obj));
-          if (!still) _activatedObjects.remove(obj);
-        }
-      }
+      _hasRun = false;
     });
   }
 
-  // ── Validate ──────────────────────────────────────────────────────────────
-  void _validate() {
-    if (_isValidating || _showSuccess || _placedChips.isEmpty) return;
-    setState(() { _isValidating = true; _hasRun = true; });
-    context.read<SoundService>().playTap();
+  void _validate() async {
+    if (_isValidating) return;
+    setState(() {
+      _isValidating = true;
+      _hasRun = true;
+      _termLog.add(TerminalLine(TerminalLineType.dim, 'Compiling scene...'));
+    });
 
-    final wrongPlaced = _placedChips.entries
-        .where((e) => !e.value)
-        .map((e) => widget.level.scriptBank.firstWhere((c) => c.id == e.key))
-        .toList();
+    await Future.delayed(const Duration(milliseconds: 800));
 
-    final missingCorrect = widget.level.correctIds
-        .where((id) => !_placedChips.containsKey(id))
-        .toList();
+    final totalCorrect = widget.level.correctIds.length;
+    final placedCorrect = _placedChips.keys.where(widget.level.correctIds.contains).length;
+    final placedWrong   = _placedChips.keys.where((id) => !widget.level.correctIds.contains(id)).length;
 
-    if (wrongPlaced.isNotEmpty || missingCorrect.isNotEmpty) {
-      for (final chip in wrongPlaced) {
-        _mistakeCount++;
-        _addTermLine(TerminalLine(TerminalLineType.error,
-            '> ERROR: ${chip.errorMessage}'));
-      }
-      if (missingCorrect.isNotEmpty) {
-        _addTermLine(TerminalLine(TerminalLineType.error,
-            '> ERROR: Missing ${missingCorrect.length} required component(s)'));
-        _addTermLine(TerminalLine(TerminalLineType.warning,
-            '> Fix errors and click Run Scene again'));
-      }
-      setState(() => _isValidating = false);
-      _showResultDialog(compileFailed: true);
-      return;
+    if (!mounted) return;
+
+    if (placedCorrect == totalCorrect && placedWrong == 0) {
+      _onSuccess();
+    } else {
+      _onFailure();
     }
+  }
 
-    // ── Success path ──
-    _timer?.cancel();
-    for (final entry in _placedChips.entries) {
-      if (entry.value) { // if isCorrect
-        final chip = widget.level.scriptBank.firstWhere((c) => c.id == entry.key);
-        _addTermLines(chip.addLines);
+  void _onSuccess() {
+    setState(() {
+      _isValidating = false;
+      _showSuccess  = true;
+      _activatedObjects.addAll(widget.level.sceneObjects);
+      for (final obj in widget.level.sceneObjects) {
+        _pulseCtrls[obj]?.forward(from: 0);
       }
-    }
-    _addTermLines(widget.level.successTerminal);
+      _termLog.add(TerminalLine(TerminalLineType.success, 'Build Successful!'));
+      _termLog.add(TerminalLine(TerminalLineType.success, 'Scene running with ${ig_data.allInspectorLevels.length} scripts.'));
+    });// Added missing closing brace here
 
+    final progress = context.read<GameProgressService>();
     final stars = _computeStars();
-    final xp    = widget.level.isBoss ? 50 : 25;
-    context.read<GameProgressService>().completeLevel(widget.level.id, stars, isBoss: widget.level.isBoss);
-    context.read<GameProgressService>().addXP(xp);
-    if (widget.level.isBoss) context.read<GameProgressService>().updateStreak();
-
-    setState(() { _showSuccess = true; _isValidating = false; });
+    final xpReward = _computeXPReward();
+    progress.completeLevel(widget.level.id, stars, isBoss: widget.level.isBoss, unifiedXPReward: xpReward);
+    
+    context.read<SoundService>().playAchievement();
   }
 
-  int _computeStars() {
-    if (_mistakeCount == 0 && _hintsUsed == 0) return 3;
-    if (_mistakeCount <= 1) return 2;
-    return 1;
+  void _onFailure() {
+    setState(() {
+      _isValidating = false;
+      _mistakeCount++;
+      _termLog.add(TerminalLine(TerminalLineType.error, 'Compilation Error: scripts mismatch!'));
+    });
+    _showFailurePopup();
+    context.read<SoundService>().playFailure();
   }
 
-  void _showHint() {
-    setState(() => _hintsUsed++);
-    _addTermLine(TerminalLine(TerminalLineType.warning,
-        '> HINT: ${widget.level.hint}'));
-  }
-
-  void _showResultDialog({bool timedOut = false, bool compileFailed = false}) {
+  void _showFailurePopup({bool timedOut = false}) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -260,13 +218,13 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
                 fontWeight: FontWeight.w700)),
         content: Text(
           timedOut
-              ? 'You ran out of time. Read the console and try again.'
+              ? 'You ran out of time! Try harder next time.'
               : 'The scene has errors. Remove wrong components and try again.',
           style: const TextStyle(color: Colors.white70, fontSize: 13)),
         actions: [
           TextButton(
             onPressed: () { Navigator.pop(context); _resetLevel(); },
-            child: const Text('Reset')),
+            child: const Text('Restart', style: TextStyle(color: Colors.white24))),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Fix It',
@@ -279,19 +237,37 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
   void _resetLevel() {
     setState(() {
       _placedChips.clear();
-      _activatedObjects.clear();
-      _mistakeCount = 0; _hintsUsed = 0;
-      _showSuccess = false; _isValidating = false; _showCodeSnippet = false; _hasRun = false;
-      _termLog..clear()..addAll(widget.level.idleTerminal);
-      _shuffledBank = [...widget.level.scriptBank]..shuffle(Random());
-      if (widget.level.isBoss) { _secondsLeft = widget.level.timeLimit; _startTimer(); }
+      _termLog.clear();
+      _termLog.addAll(widget.level.idleTerminal);
+      _hasRun = false;
+      _showSuccess = false;
+      _secondsLeft = widget.level.timeLimit;
     });
+    if (widget.level.isBoss) _startTimer();
   }
 
-  // ── BUILD ─────────────────────────────────────────────────────────────────
+  int _computeStars() {
+    // Star calculation based on engineer feedback:
+    // 0 mistakes, 0 hints = 3 stars, full XP
+    // 1-2 mistakes OR hints used = 2 stars, 75% XP
+    // 3+ mistakes = 1 star, 50% XP
+    if (_mistakeCount == 0 && _hintsUsed == 0) return 3;
+    if (_mistakeCount <= 2 || _hintsUsed <= 2) return 2;
+    return 1;
+  }
+
+  int _computeXPReward() {
+    final baseXP = widget.level.isBoss ? 50 : 25;
+    final stars = _computeStars();
+    if (stars == 3) return baseXP; // Full XP
+    if (stars == 2) return (baseXP * 0.75).round(); // 75% XP
+    return (baseXP * 0.5).round(); // 50% XP
+  }
+
   @override
   Widget build(BuildContext context) {
-    final hasWrong    = _placedChips.entries.any((e) => !e.value);
+    final zone        = ig_data.inspectorGameZones.firstWhere((z) => z.id == widget.level.zoneId);
+    final hasWrong    = _placedChips.values.any((correct) => !correct);
     final canRun      = _placedChips.isNotEmpty && !_showSuccess;
 
     return Theme(data: ThemeData.dark(), child: Scaffold(
@@ -299,24 +275,23 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
       body: SafeArea(
         child: Column(children: [
           _buildHeader(),
-          _buildObjectiveBanner(),
-          Expanded(flex: 10,
-            child: Row(crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(flex: 3, child: _buildViewport()),
-                Expanded(flex: 2, child: _buildInspector()),
-              ])),
+          _buildObjectiveBanner(zone),
+          Expanded(child: Row(children: [
+            Expanded(flex: 3, child: _buildViewport()),
+            Expanded(flex: 2, child: _buildInspector()),
+          ])),
+          _buildScriptBank(),
           _buildTerminal(),
-          if (_showSuccess && _showCodeSnippet) _buildCodeSnippet(),
-          _buildBottomBar(canRun, hasWrong),
+          _buildBottomBar(hasWrong, canRun),
         ]),
       ),
+      bottomNavigationBar: _showCodeSnippet ? _buildCodeSnippet() : null,
     ));
   }
 
-  // ── Header ────────────────────────────────────────────────────────────────
+  // ── Header — title, zone, stars ───────────────────────────────────────────
   Widget _buildHeader() {
-    final zone  = _zone();
+    final zone  = ig_data.inspectorGameZones.firstWhere((z) => z.id == widget.level.zoneId);
     final stars = _computeStars();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -363,9 +338,8 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
     );
   }
 
-  // ── Objective banner ───────────────────────────────────────────────────────
-  Widget _buildObjectiveBanner() {
-    final zone = _zone();
+  // ── Objective Banner ───────────────────────────────────────────────────────
+  Widget _buildObjectiveBanner(InspectorZone zone) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
@@ -375,7 +349,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(widget.level.gameObjectIcon, style: const TextStyle(fontSize: 15)),
-        const SizedBox(width: 8),
+        const SizedBox(width: 10),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('OBJECTIVE', style: TextStyle(color: zone.accentColor,
@@ -388,7 +362,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
     );
   }
 
-  // ── 3D Viewport ───────────────────────────────────────────────────────────
+  // ── Viewport — flex 3 ──────────────────────────────────────────────────────
   Widget _buildViewport() {
     return Container(
       decoration: const BoxDecoration(
@@ -397,19 +371,19 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
       ),
       child: Column(children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
           color: const Color(0xFF0C1420),
           child: Row(children: [
-            _vpBtn('Scene', active: true),
-            const SizedBox(width: 4),
-            _vpBtn('Game',  active: false),
+            Text('3D PREVIEW \u2014 HIERARCHY', style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.2),
+                fontSize: 7, fontWeight: FontWeight.w800, letterSpacing: 0.8)),
             const Spacer(),
-            Text('Persp ▾', style: TextStyle(
+            Text('Persp \u25BE', style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.22), fontSize: 8)),
           ]),
         ),
         Expanded(child: LayoutBuilder(builder: (ctx, constraints) {
-          return Stack(clipBehavior: Clip.hardEdge, children: [
+          return Stack(clipBehavior: Clip.none, children: [
             Positioned.fill(child: Container(
               decoration: const BoxDecoration(gradient: LinearGradient(
                 begin: Alignment.topCenter, end: Alignment.bottomCenter,
@@ -417,9 +391,8 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
               )),
             )),
             Positioned(bottom: 0, left: 0, right: 0,
-              height: constraints.maxHeight * 0.42,
-              child: CustomPaint(painter: _GridFloorPainter())),
-            Positioned(bottom: constraints.maxHeight * 0.42,
+              child: CustomPaint(size: Size(constraints.maxWidth, 60), painter: _GridPainter())),
+            Positioned(top: constraints.maxHeight * .4,
               left: 0, right: 0,
               child: Container(height: 1,
                 decoration: BoxDecoration(gradient: LinearGradient(colors: [
@@ -435,93 +408,80 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
     );
   }
 
-  Widget _vpBtn(String label, {required bool active}) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-    decoration: BoxDecoration(
-      color: active ? const Color(0xFF0F3460) : const Color(0xFF131D2E),
-      borderRadius: BorderRadius.circular(3),
-    ),
-    child: Text(label, style: TextStyle(
-        color: active ? const Color(0xFF00E5FF) : Colors.white30,
-        fontSize: 9, fontWeight: FontWeight.w600)),
-  );
 
-  // Fixed positions — carefully spread so no two overlap
-  static const _pos = <SceneObjectType, Offset>{
-    SceneObjectType.camera:        Offset(0.12, 0.22),
-    SceneObjectType.xrRig:         Offset(0.45, 0.28),
-    SceneObjectType.handLeft:      Offset(0.16, 0.55),
-    SceneObjectType.handRight:     Offset(0.62, 0.55),
-    SceneObjectType.cube:          Offset(0.74, 0.24),
-    SceneObjectType.plane:         Offset(0.44, 0.70),
-    SceneObjectType.lightProbe:    Offset(0.20, 0.12),
-    SceneObjectType.avatar:        Offset(0.65, 0.18),
-    SceneObjectType.portal:        Offset(0.82, 0.48),
-    SceneObjectType.spatialAnchor: Offset(0.50, 0.46),
-  };
-  static const _icons  = <SceneObjectType, String>{
-    SceneObjectType.camera:        '📷',
-    SceneObjectType.xrRig:         '🥽',
-    SceneObjectType.handLeft:      '🤚',
-    SceneObjectType.handRight:     '🖐',
-    SceneObjectType.cube:          '📦',
-    SceneObjectType.plane:         '▭',
-    SceneObjectType.lightProbe:    '💡',
-    SceneObjectType.avatar:        '🧍',
-    SceneObjectType.portal:        '🌀',
-    SceneObjectType.spatialAnchor: '📌',
-  };
-  static const _labels = <SceneObjectType, String>{
-    SceneObjectType.camera:        'Camera',
-    SceneObjectType.xrRig:         'XR Rig',
-    SceneObjectType.handLeft:      'Left Hand',
-    SceneObjectType.handRight:     'Right Hand',
-    SceneObjectType.cube:          'Object',
-    SceneObjectType.plane:         'AR Plane',
-    SceneObjectType.lightProbe:    'Light',
-    SceneObjectType.avatar:        'Avatar',
-    SceneObjectType.portal:        'Portal',
-    SceneObjectType.spatialAnchor: 'Anchor',
-  };
 
-  List<Widget> _buildSceneObjects(BoxConstraints c) {
-    const tw = 46.0; const th = 50.0;
-    return widget.level.sceneObjects.map((obj) {
-      final p   = _pos[obj]       ?? const Offset(0.5, 0.4);
-      final ico = _icons[obj]     ?? '?';
-      final lbl = _labels[obj]    ?? '';
-      return Positioned(
-        left: (c.maxWidth  * p.dx - tw / 2).clamp(0, c.maxWidth  - tw),
-        top:  (c.maxHeight * p.dy - th / 2).clamp(0, c.maxHeight - th),
-        width: tw, height: th,
-        child: _SceneObjectWidget(
-          icon: ico, label: lbl,
-          activated: _activatedObjects.contains(obj),
-          floatCtrl: _floatCtrls[obj],
-          pulseCtrl: _pulseCtrls[obj],
+  List<Widget> _buildSceneObjects(BoxConstraints constraints) {
+    final List<Widget> list = [];
+    final w = constraints.maxWidth;
+    final h = constraints.maxHeight;
+
+    // Use valid enum values from inspector_game_models.dart
+    final positions = {
+      SceneObjectType.camera:        Offset(w * .5,  h * .3),
+      SceneObjectType.xrRig:         Offset(w * .2,  h * .5),
+      SceneObjectType.handLeft:      Offset(w * .8,  h * .4),
+      SceneObjectType.handRight:     Offset(w * .3,  h * .7),
+      SceneObjectType.spatialAnchor: Offset(w * .7,  h * .75),
+      SceneObjectType.cube:          Offset(w * .5,  h * .1),
+      SceneObjectType.plane:         Offset(w * .5,  h * .45),
+      SceneObjectType.lightProbe:    Offset(w * .65, h * .6),
+      SceneObjectType.avatar:        Offset(w * .4,  h * .55),
+      SceneObjectType.portal:        Offset(w * .15, h * .35),
+    };
+
+    for (final obj in widget.level.sceneObjects) {
+      final pos = positions[obj] ?? Offset(w * .5, h * .5);
+      final active = _activatedObjects.contains(obj);
+
+      list.add(Positioned(
+        left: pos.dx - 20,
+        top: pos.dy - 30,
+        child: AnimatedBuilder(
+          animation: Listenable.merge([_floatCtrls[obj], _pulseCtrls[obj]]),
+          builder: (context, _) {
+            final fVal = _floatCtrls[obj]?.value ?? 0;
+            final pVal = _pulseCtrls[obj]?.value ?? 0;
+            return Transform.translate(
+              offset: Offset(0, fVal * 10 - 5),
+              child: Transform.scale(
+                scale: 1.0 + pVal * 0.4,
+                child: Column(children: [
+                  Text(widget.level.gameObjectIcon,
+                    style: TextStyle(fontSize: 24,
+                        shadows: active ? [
+                          const Shadow(color: Color(0xFF00E5FF), blurRadius: 15)
+                        ] : null)),
+                  const SizedBox(height: 2),
+                  Text(widget.level.gameObjectName,
+                    style: TextStyle(color: active ? const Color(0xFF00E5FF) : Colors.white24,
+                        fontSize: 8, fontWeight: FontWeight.bold)),
+                ]),
+              ),
+            );
+          },
         ),
-      );
-    }).toList();
+      ));
+    }
+    return list;
   }
 
   Widget _buildSuccessOverlay() {
-    final stars = _computeStars();
     final xp    = widget.level.isBoss ? 50 : 25;
     return Positioned.fill(
       child: Container(
         color: Colors.black.withValues(alpha: 0.72),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          const Text('✅', style: TextStyle(fontSize: 28))
+          const Text('\u2705', style: TextStyle(fontSize: 28))
               .animate().scale(duration: 400.ms, curve: Curves.elasticOut),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           const Text('IT WORKS!', style: TextStyle(
               color: Color(0xFF00E5FF), fontSize: 13,
               fontWeight: FontWeight.w800, letterSpacing: 1)),
           const SizedBox(height: 4),
           Row(mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(3, (i) => Icon(
-              i < stars ? Icons.star_rounded : Icons.star_outline_rounded,
-              color: i < stars ? Colors.amber : Colors.white24, size: 18))),
+              i < _computeStars() ? Icons.star_rounded : Icons.star_outline_rounded,
+              color: i < _computeStars() ? Colors.amber : Colors.white24, size: 18))),
           const SizedBox(height: 2),
           Text('+$xp XP', style: const TextStyle(
               color: Colors.amber, fontSize: 11, fontWeight: FontWeight.w700)),
@@ -535,30 +495,30 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
                 borderRadius: BorderRadius.circular(5),
                 border: Border.all(color: Colors.white24)),
               child: Text(
-                _showCodeSnippet ? 'Hide Code ▲' : '⚙  See How It Works',
+                _showCodeSnippet ? 'Hide Code \u25B2' : '\u2699  See How It Works',
                 style: const TextStyle(color: Colors.white60, fontSize: 9,
                     fontWeight: FontWeight.w600)),
             ),
           ),
-          const SizedBox(height: 7),
+          const SizedBox(height: 12),
           GestureDetector(
-            onTap: () => Navigator.pop(context, true),
+            onTap: () => Navigator.pop(context),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
               decoration: BoxDecoration(
                 color: const Color(0xFF00E5FF),
                 borderRadius: BorderRadius.circular(6)),
-              child: const Text('Next Level →', style: TextStyle(
+              child: const Text('Next Level \u2192', style: TextStyle(
                   color: Color(0xFF060B14), fontSize: 10,
                   fontWeight: FontWeight.w800)),
             ),
           ),
         ]),
-      ).animate().fadeIn(duration: 350.ms),
+      ).animate().fadeIn(duration: 300.ms),
     );
   }
 
-  // ── Inspector ──────────────────────────────────────────────────────────────
+  // ── Inspector — flex 2 ────────────────────────────────────────────────────
   Widget _buildInspector() {
     return Container(
       decoration: const BoxDecoration(
@@ -567,7 +527,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
           color: const Color(0xFF0C1626),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Text('Inspector', style: TextStyle(
@@ -595,28 +555,25 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
                 .where((c) => _placedChips.containsKey(c.id))
                 .map((c) {
                   final correct = _placedChips[c.id]!;
-                  // Before Run Scene: all chips look identical — no hints
                   // After Run Scene: correct = accent colour + "on", wrong = red + "ERR"
                   return _ComponentTile(
-                    name: c.label, icon: '⚙',
+                    name: c.label, icon: '\u2699',
                     accentColor: (_hasRun && !correct)
                         ? Colors.red
                         : (_hasRun && correct ? c.dotColor : const Color(0xFF3A5070)),
                     fields: (_hasRun && correct) ? c.addFields : [],
                     locked: false,
                     isError: _hasRun && !correct,
-                    showStatus: _hasRun,
                     onRemove: () => _removeScript(c.id),
-                  ).animate().fadeIn(duration: 270.ms).slideY(begin: .08);
+                  );
                 }),
-            const SizedBox(height: 4),
-          ]),
-        )),
-        _buildScriptBank(),
+          ])),
+        ),
       ]),
     );
   }
 
+  // ── Script Bank — height 155, Wrap ──────────────────────────────────────────
   Widget _buildScriptBank() {
     return Container(
       constraints: const BoxConstraints(maxHeight: 155),
@@ -636,7 +593,9 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
             children: _shuffledBank.map((chip) {
               final placed = _placedChips.containsKey(chip.id);
               return _ScriptBankChip(
-                chip: chip, placed: placed,
+                chip: chip, 
+                placed: placed,
+                validated: _hasRun, // Only highlight after Run Scene
                 onTap: placed ? null : () => _placeScript(chip));
             }).toList()),
         )),
@@ -709,6 +668,8 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
     final chips = widget.level.scriptBank
         .where((c) => c.isCorrect && _placedChips.containsKey(c.id))
         .toList();
+    if (chips.isEmpty) return const SizedBox.shrink();
+
     return Container(
       constraints: const BoxConstraints(maxHeight: 190),
       decoration: const BoxDecoration(
@@ -717,10 +678,10 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
       ),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
           color: const Color(0xFF07120A),
           child: Row(children: [
-            const Text('⚙  How these scripts work in C#', style: TextStyle(
+            const Text('\u2699  How these scripts work in C#', style: TextStyle(
                 color: Color(0xFF00C853), fontSize: 9,
                 fontWeight: FontWeight.w700, letterSpacing: .4)),
             const Spacer(),
@@ -731,13 +692,13 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
           ]),
         ),
         Flexible(child: ListView.builder(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           itemCount: chips.length,
-          itemBuilder: (_, i) {
+          itemBuilder: (context, i) {
             final chip = chips[i];
             return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.only(bottom: 15),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(children: [
                     Container(width: 7, height: 7,
@@ -773,44 +734,38 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
     );
   }
 
-  String _codeSnippet(String id) {
-    const m = <String, String>{
-      'ar_session':       '// Starts the global AR tracking engine\nARSession session = GetComponent<ARSession>();\nsession.Reset(); // force re-localise',
-      'ar_cam_bg':        '// Renders real-world camera feed behind 3D scene\nvar bg = cam.gameObject\n  .AddComponent<ARCameraBackground>();\nbg.useCustomMaterial = false;',
-      'ar_cam_mgr':       '// Feeds device pose into AR system each frame\narCamMgr.frameReceived += (args) => {\n  var pose = args.frame.camera.GetPose();\n  transform.SetPositionAndRotation(\n    pose.position, pose.rotation);\n};',
-      'ar_face_mgr':      '// Detects and tracks face geometry\nfaceMgr.facesChanged += (args) => {\n  foreach (var face in args.added)\n    SpawnFaceFilter(face.transform);\n};',
-      'xr_hand_sub':      '// Activates 26-joint hand skeleton tracking\nvar sub = XRHandSubsystem.running;\nsub.updatedHands += (s, updateType,\n  leftHand, rightHand) => { ... };',
-      'xr_hand_mesh':     '// Renders visible skin mesh over skeleton\n[SerializeField]\nXRHandMeshRenderer meshRenderer;\n// Assign DefaultHand prefab in Inspector',
-      'rigidbody':        '// Adds mass + gravity to the object\nvar rb = gameObject.AddComponent<Rigidbody>();\nrb.mass = 1f;\nrb.useGravity = true;',
-      'box_collider':     '// Defines physical touch boundary\nvar col = gameObject.AddComponent<BoxCollider>();\ncol.size = new Vector3(0.2f, 0.2f, 0.2f);',
-      'xr_grab':          '// Makes object grabbable + throwable\nvar grab = gameObject\n  .AddComponent<XRGrabInteractable>();\ngrab.throwVelocityScale = 1.5f;',
-      'gesture_recognizer':'// Fires event when pinch gesture detected\n[SerializeField] XRHandGestureRecognizer rec;\nrec.performedGesture.AddListener(OnPinch);',
-      'xr_manipulator':   '// Applies pinch gesture to scale the object\nvar manip = gameObject\n  .AddComponent<XRObjectManipulator>();\nmanip.allowedTransformations =\n  XRObjectManipulator.TransformFlags.Scale;',
-      'xr_poke':          '// Lets a fingertip press flat surfaces\nvar poke = finger.gameObject\n  .AddComponent<XRPokeInteractor>();\npoke.pokeDepth = 0.01f;',
-      'ar_plane_mgr':     '// Scans room and creates surface meshes\nplaneMgr.planesChanged += (args) => {\n  foreach (var p in args.added)\n    ShowPlaneVisual(p);\n};',
-      'ar_raycast_mgr':   '// Converts screen tap → 3D surface point\nif (rayMgr.Raycast(tap, hits,\n    TrackableType.PlaneWithinPolygon)) {\n  var pose = hits[0].pose;\n  Instantiate(prefab, pose.position,\n    pose.rotation);\n}',
-      'ar_anchor':        '// Locks object to physical world feature\nvar anchor = ARAnchorManager\n  .AttachAnchor(plane, pose);\nPlayerPrefs.SetString("anchor",\n  anchor.trackableId.ToString());',
-      'light_estimation': '// Reads real room brightness each frame\ncamMgr.frameReceived += (args) => {\n  var b = args.lightEstimation\n    .averageBrightness ?? 1f;\n  dirLight.intensity = b;\n};',
-      'light_est_shadow': '// Aligns shadow direction to real light source\ncamMgr.frameReceived += (args) => {\n  var dir = args.lightEstimation\n    .mainLightDirection;\n  if (dir.HasValue)\n    dirLight.transform.rotation =\n      Quaternion.LookRotation(dir.Value);\n};',
-      'ar_occlusion':     '// Hides virtual content behind real objects\noccMgr.requestedEnvironmentDepthMode\n  = EnvironmentDepthMode.Fastest;',
-      'ar_img_mgr':       '// Matches camera frame to reference images\nimgMgr.trackedImagesChanged += (args) => {\n  foreach (var img in args.added)\n    SpawnContent(img.transform);\n};',
-      'ar_cloud_anchor':  '// Shares anchor position with other devices\nvar result = await\n  ARAnchorManager\n    .ResolveCloudAnchorIdAsync(anchorId);\nif (result.resultCode == Success)\n  PlaceSharedObject(result.anchor);',
-      'ar_mesh_mgr':      '// Full room geometry via LiDAR\nmeshMgr.meshesChanged += (args) => {\n  foreach (var mesh in args.added) {\n    mesh.gameObject.AddComponent<MeshCollider>();\n  }\n};',
+  String _codeSnippet(String chipId) {
+    final snippets = {
+      'ar_session': 'void Start() {\n  arSession.enabled = true;\n}',
+      'anchor_mgr': 'var anchor = anchorMgr.AddAnchor(pose);\nDebug.Log("Anchor set");',
+      'raycast_mgr': 'if (raycastMgr.Raycast(pos, hits)) {\n  spawnObject(hits[0]);\n}',
+      'plane_mgr': 'planeMgr.planesChanged += (args) => {\n  updateVisuals(args);\n};',
+      'face_mgr': 'faceMgr.facesChanged += OnFacesChanged;',
+      'light_est': 'void Update() {\n  var brightness = cameraMgr.brightness;\n}',
+      'point_cloud': 'void OnEnable() {\n  cloudMgr.pointCloudUpdated += OnUpdate;\n}',
+      'body_track': 'foreach (var body in args.added) {\n  IdentifyJoints(body);\n}',
+      'env_probe': 'probeMgr.automaticPlacement = true;\nprobeMgr.RefreshAll();',
+      'mesh_mgr': 'meshMgr.generateMeshVisuals = true;\nmeshMgr.SetMeshDensity(0.8f);',
+      'occlusion_mgr': 'occlusionMgr.humanSegmentationStencilMode = true;',
+      'depth_mgr': 'var depthTexture = depthMgr.depthTexture;',
+      'image_mgr': 'if (imgMgr.trackedImage.name == "Target") {\n  ShowARContent();\n}',
+      'object_mgr': 'foreach (var obj in args.added) {\n  PlaceModel(obj.pose);\n}',
     };
-    return m[id] ?? '// ${id.replaceAll('_', ' ')}\n// See Unity XR docs for full API';
+    return snippets[chipId] ?? '// Logic for $chipId applied automatically';
   }
 
-  // ── Bottom bar ─────────────────────────────────────────────────────────────
-  Widget _buildBottomBar(bool canRun, bool hasWrong) {
+  // ── Bottom Controls ────────────────────────────────────────────────────────
+  Widget _buildBottomBar(bool hasWrong, bool canRun) {
     final total  = widget.level.correctIds.length;
-    final placed = _placedChips.keys.where(widget.level.correctIds.contains).length;
+    // Progress starts at 0 and only fills once validated
+    final placed = _showSuccess ? total : 0;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       color: const Color(0xFF0A1020),
       child: Row(children: [
         Expanded(child: Wrap(spacing: 5,
           children: List.generate(total, (i) => Container(
-            width: 18, height: 4,
+            width: 14, height: 3,
             decoration: BoxDecoration(
               color: i < placed ? const Color(0xFF00E5FF) : Colors.white12,
               borderRadius: BorderRadius.circular(2)))))),
@@ -822,14 +777,13 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
               color: Colors.white.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(5),
               border: Border.all(color: Colors.white10)),
-            child: const Text('Hint 💡',
+            child: const Text('Hint \ud83d\udca1',
                 style: TextStyle(color: Colors.white38, fontSize: 10)))),
         const SizedBox(width: 8),
         GestureDetector(
           onTap: (canRun && !_isValidating) ? _validate : null,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             decoration: BoxDecoration(
               color: (canRun && !_isValidating)
                   ? (hasWrong
@@ -837,7 +791,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
                       : const Color(0xFF00E5FF))
                   : Colors.white.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(5)),
-            child: Text('Run Scene ▶',
+            child: Text('Run Scene \u25B6',
               style: TextStyle(
                 color: (canRun && !_isValidating)
                     ? const Color(0xFF060B14) : Colors.white24,
@@ -847,31 +801,38 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
     );
   }
 
-  InspectorZone _zone() => inspectorGameZones.firstWhere(
-      (z) => z.id == widget.level.zoneId,
-      orElse: () => inspectorGameZones.first);
+  void _showHint() {
+    _hintsUsed++;
+    final missing = widget.level.correctIds.firstWhere((id) => !_placedChips.containsKey(id));
+    final label   = widget.level.scriptBank.firstWhere((c) => c.id == missing).label;
+
+    _termLog.add(TerminalLine(TerminalLineType.warning, 'HINT: Try attaching "$label"'));
+    setState(() {});
+  }
+
+  void _showIntroPopup() {
+    showDialog(context: context, builder: (_) => const _IntroDialog());
+  }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-//  Scene Object — floats + pulses on activation
-// ═══════════════════════════════════════════════════════════════════════════
-class _SceneObjectWidget extends StatelessWidget {
-  final String icon;
-  final String label;
-  final bool activated;
-  final AnimationController? floatCtrl;
-  final AnimationController? pulseCtrl;
-  const _SceneObjectWidget({
-    required this.icon, required this.label,
-    required this.activated, this.floatCtrl, this.pulseCtrl});
+// ── Shared Widgets ──────────────────────────────────────────────────────────
+
+
+
+class _ScriptBankChip extends StatelessWidget {
+  final ScriptChip chip;
+  final bool placed;
+  final bool validated; // New: only true after Run Scene
+  final VoidCallback? onTap;
+  const _ScriptBankChip({required this.chip, required this.placed, this.validated = false, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    Widget child = SizedBox(
-      width: 46, height: 50,
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 350),
+    final activated = placed && validated; // Only highlight after validation
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(children: [
+        Container(
           width: 34, height: 34,
           decoration: BoxDecoration(
             color: activated
@@ -886,44 +847,21 @@ class _SceneObjectWidget extends StatelessWidget {
             boxShadow: activated ? [BoxShadow(
               color: const Color(0xFF00E5FF).withValues(alpha: 0.30),
               blurRadius: 10, spreadRadius: 1)] : null),
-          child: Center(child: Text(icon,
+          child: Center(child: Text('\u2699', // Gear icon as ScriptChip has no icon
             style: TextStyle(
-              fontSize: 15,
+              fontSize: 16,
               color: activated ? null : const Color(0xFF3A4060))))),
         const SizedBox(height: 2),
-        Text(label,
+        Text(chip.label,
           style: TextStyle(
             color: activated ? Colors.white54 : Colors.white24,
             fontSize: 7),
           overflow: TextOverflow.ellipsis, maxLines: 1),
       ]),
     );
-
-    // Float (gentle vertical oscillation)
-    if (floatCtrl != null) {
-      child = AnimatedBuilder(
-        animation: floatCtrl!,
-        builder: (_, c) => Transform.translate(
-            offset: Offset(0, -5 * floatCtrl!.value), child: c),
-        child: child);
-    }
-
-    // Pulse on activation (quick scale pop)
-    if (pulseCtrl != null) {
-      child = AnimatedBuilder(
-        animation: pulseCtrl!,
-        builder: (_, c) => Transform.scale(
-            scale: 1.0 + 0.14 * sin(pulseCtrl!.value * pi), child: c),
-        child: child);
-    }
-
-    return child;
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-//  Inspector component tile
-// ═══════════════════════════════════════════════════════════════════════════
 class _ComponentTile extends StatefulWidget {
   final String name;
   final String icon;
@@ -931,13 +869,12 @@ class _ComponentTile extends StatefulWidget {
   final List<InspectorField> fields;
   final bool locked;
   final bool isError;
-  final bool showStatus; // when false, hide "on"/"ERR" badges entirely
   final VoidCallback? onRemove;
   const _ComponentTile({
     required this.name, required this.icon,
     required this.accentColor, required this.fields,
     required this.locked, this.isError = false,
-    this.showStatus = true, this.onRemove});
+    this.onRemove});
 
   @override
   State<_ComponentTile> createState() => _ComponentTileState();
@@ -947,7 +884,7 @@ class _ComponentTileState extends State<_ComponentTile> {
   bool _exp = false;
   @override
   Widget build(BuildContext context) {
-    final bdr = (widget.isError && widget.showStatus)
+    final bdr = widget.isError
         ? Colors.red.withValues(alpha: 0.35)
         : (widget.locked
             ? const Color(0xFF1E3255)
@@ -955,7 +892,7 @@ class _ComponentTileState extends State<_ComponentTile> {
     return Container(
       margin: const EdgeInsets.fromLTRB(5, 2, 5, 0),
       decoration: BoxDecoration(
-        color: (widget.isError && widget.showStatus)
+        color: widget.isError
             ? Colors.red.withValues(alpha: 0.05)
             : const Color(0xFF162236),
         borderRadius: BorderRadius.circular(4),
@@ -978,19 +915,19 @@ class _ComponentTileState extends State<_ComponentTile> {
                   borderRadius: BorderRadius.circular(2)),
                 child: Center(child: Text(widget.icon,
                     style: const TextStyle(fontSize: 7)))),
-              const SizedBox(width: 4),
+              const SizedBox(width: 5),
               Expanded(child: Text(widget.name,
                 style: TextStyle(
-                  color: (widget.isError && widget.showStatus)
+                  color: widget.isError
                       ? const Color(0xFFEF7070)
                       : const Color(0xFFC0D8F0),
                   fontSize: 9, fontWeight: FontWeight.w600),
                 overflow: TextOverflow.ellipsis)),
-              if (widget.isError && widget.showStatus)
-                const Text('ERR', style: TextStyle(
+              if (widget.isError)
+                const Text(' ERR ', style: TextStyle(
                     color: Color(0xFFEF5350), fontSize: 7,
                     fontWeight: FontWeight.w800))
-              else if (!widget.locked && !widget.isError && widget.showStatus)
+              else if (!widget.locked && !widget.isError)
                 Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 3, vertical: 1),
@@ -999,7 +936,7 @@ class _ComponentTileState extends State<_ComponentTile> {
                     borderRadius: BorderRadius.circular(2),
                     border: Border.all(
                         color: const Color(0xFF00C853).withValues(alpha: 0.28))),
-                  child: const Text('● on', style: TextStyle(
+                  child: const Text('\u25cf on', style: TextStyle(
                       color: Color(0xFF00C853), fontSize: 7,
                       fontWeight: FontWeight.w600))),
               if (widget.onRemove != null) ...[
@@ -1011,7 +948,7 @@ class _ComponentTileState extends State<_ComponentTile> {
               ],
             ]),
           )),
-        if (_exp && widget.fields.isNotEmpty)
+        if (_exp)
           Container(
             decoration: const BoxDecoration(
                 border: Border(top: BorderSide(color: Color(0xFF1E3255)))),
@@ -1031,73 +968,10 @@ class _ComponentTileState extends State<_ComponentTile> {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-//  Script bank chip — ALL NEUTRAL (no colour hints)
-// ═══════════════════════════════════════════════════════════════════════════
-class _ScriptBankChip extends StatefulWidget {
-  final ScriptChip chip;
-  final bool placed;
-  final VoidCallback? onTap;
-  const _ScriptBankChip({required this.chip, required this.placed, this.onTap});
-  @override
-  State<_ScriptBankChip> createState() => _ScriptBankChipState();
-}
-
-class _ScriptBankChipState extends State<_ScriptBankChip>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _press;
-  @override
-  void initState() {
-    super.initState();
-    _press = AnimationController(vsync: this,
-        duration: const Duration(milliseconds: 110));
-  }
-  @override
-  void dispose() { _press.dispose(); super.dispose(); }
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _press.forward(),
-      onTapUp: (_) { _press.reverse(); if (!widget.placed) widget.onTap?.call(); },
-      onTapCancel: () => _press.reverse(),
-      child: AnimatedBuilder(
-        animation: _press,
-        builder: (_, child) => Transform.scale(
-            scale: 1.0 - 0.06 * _press.value, child: child),
-        child: AnimatedOpacity(
-          opacity: widget.placed ? .25 : 1.0,
-          duration: const Duration(milliseconds: 180),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-            decoration: BoxDecoration(
-              // Neutral style — no green/red giveaway
-              color: const Color(0xFF0C1A2E),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.08))),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Container(width: 5, height: 5,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF406080), shape: BoxShape.circle)),
-              const SizedBox(width: 4),
-              Flexible(child: Text(widget.chip.label,
-                style: const TextStyle(
-                  color: Color(0xFF6A8AAA), fontSize: 9,
-                  fontWeight: FontWeight.w500),
-                overflow: TextOverflow.ellipsis)),
-            ]),
-          )),
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-//  Grid floor painter
-// ═══════════════════════════════════════════════════════════════════════════
-class _GridFloorPainter extends CustomPainter {
+class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..strokeWidth = .4;
+    final paint = Paint()..strokeWidth = 1.0;
     const cols = 10; const rows = 6;
     for (int i = 0; i <= cols; i++) {
       final x = size.width * i / cols;
@@ -1113,14 +987,11 @@ class _GridFloorPainter extends CustomPainter {
     }
   }
   @override
-  bool shouldRepaint(_) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-//  Intro popup (shown once when user opens XR Builder for the first time)
-// ═══════════════════════════════════════════════════════════════════════════
-class _IntroPopupDialog extends StatelessWidget {
-  const _IntroPopupDialog();
+class _IntroDialog extends StatelessWidget {
+  const _IntroDialog();
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -1145,7 +1016,7 @@ class _IntroPopupDialog extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: const Color(0xFF00E5FF).withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(10)),
-                child: const Center(child: Text('⬡',
+                child: const Center(child: Text('\u2b21',
                     style: TextStyle(color: Color(0xFF00E5FF), fontSize: 20)))),
               const SizedBox(width: 10),
               const Expanded(child: Column(
@@ -1154,22 +1025,24 @@ class _IntroPopupDialog extends StatelessWidget {
                   Text('XR Builder', style: TextStyle(
                       color: Color(0xFF00E5FF), fontSize: 15,
                       fontWeight: FontWeight.w800, letterSpacing: .5)),
-                  Text('Simulate real Unity development — no code required',
+                  Text('Simulate real Unity development \u2014 no code required',
                     style: TextStyle(color: Colors.white38, fontSize: 10)),
                 ])),
             ])),
           Flexible(child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Column(children: [
-              _bullet('🎯', 'Your job', 'Each level gives you a plain-English challenge — "make the screen show the real world", "let players grab objects". Add the right Unity scripts to the GameObject in the Inspector to make it work.'),
-              const SizedBox(height: 10),
-              _bullet('📋', 'Script bank', 'The bank shows real Unity script names. Some are correct. Some are convincing fakes. Tap any chip to add it to the Inspector — you\'ll only know if it\'s right when you Run the scene.'),
-              const SizedBox(height: 10),
-              _bullet('▶', 'Run Scene', 'When ready, tap "Run Scene". The Console shows what worked and what failed. Wrong scripts show ERR in the Inspector — tap × to remove them and try again.'),
-              const SizedBox(height: 10),
-              _bullet('⚙', 'Learn', 'Pass a level and tap "See How It Works" to read the real C# code behind each script you placed. You\'re not just guessing — you\'re learning.'),
-              const SizedBox(height: 16),
-              SizedBox(width: double.infinity,
+              _introStep('1. Inspect', 'Drag correctly named scripts into the GameObject inspector.', '\ud83d\udd0d'),
+              const SizedBox(height: 18),
+              _introStep('2. Simulate', 'Hit "Run Scene" to see your components in action.', '\u25b6'),
+              const SizedBox(height: 18),
+              _introStep('3. Debug', 'Check the console for errors and fix your build.', '\ud83d\udc1e'),
+            ]),
+          )),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: SizedBox(
+                width: double.infinity,
                 child: GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Container(
@@ -1177,24 +1050,29 @@ class _IntroPopupDialog extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: const Color(0xFF00E5FF),
                       borderRadius: BorderRadius.circular(10)),
-                    child: const Center(child: Text('Let\'s Build  →',
+                    child: const Center(child: Text('Let\'s Build  \u2192',
                       style: TextStyle(
                         color: Color(0xFF060B14), fontSize: 13,
                         fontWeight: FontWeight.w800, letterSpacing: .5))),
                   ),
                 )),
-            ]),
-          )),
+          ),
         ]),
       ),
     );
   }
 
-  Widget _bullet(String emoji, String title, String body) => Row(
+  Widget _introStep(String title, String body, String icon) => Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(emoji, style: const TextStyle(fontSize: 16)),
-      const SizedBox(width: 9),
+      Container(
+        width: 24, height: 24,
+        decoration: BoxDecoration(
+          color: const Color(0xFF00E5FF).withValues(alpha: 0.08),
+          shape: BoxShape.circle),
+        child: Center(child: Text(icon, style: const TextStyle(fontSize: 12))),
+      ),
+      const SizedBox(width: 12),
       Expanded(child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

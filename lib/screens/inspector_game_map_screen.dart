@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/app_theme.dart';
-import '../data/inspector_game_data.dart';
+import '../data/inspector_game_data.dart' as ig_data;
 import '../data/xr_builder_config.dart';
 import '../models/inspector_game_models.dart';
 import '../services/game_progress_service.dart';
@@ -65,11 +65,11 @@ class InspectorGameMapScreen extends StatelessWidget {
               SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, i) => _ZoneCard(
-                    zone: inspectorGameZones[i],
+                    zone: ig_data.inspectorGameZones[i],
                     progress: progress,
                     isDark: isDark,
                   ),
-                  childCount: inspectorGameZones.length,
+                  childCount: ig_data.inspectorGameZones.length,
                 ),
               ),
               const SliverToBoxAdapter(child: SizedBox(height: 32)),
@@ -89,8 +89,8 @@ class _StatsStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total     = allInspectorLevels.length;
-    final completed = allInspectorLevels
+    final total     = ig_data.allInspectorLevels.length;
+    final completed = ig_data.allInspectorLevels
         .where((l) => progress.isLevelCompleted(l.id))
         .length;
     final pct = total > 0 ? completed / total : 0.0;
