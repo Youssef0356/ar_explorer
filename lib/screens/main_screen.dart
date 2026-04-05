@@ -35,9 +35,9 @@ class _MainScreenState extends State<MainScreen> {
 
   void _checkAndStartTour() async {
     final prefs = await SharedPreferences.getInstance();
-    final hasSeenHomeTour = prefs.getBool('has_seen_showcase_tour_home') ?? false;
+    final hasSeenHomeTour = prefs.getBool('has_seen_showcase_tour_home_v2') ?? false;
     if (!hasSeenHomeTour) {
-      await prefs.setBool('has_seen_showcase_tour_home', true);
+      await prefs.setBool('has_seen_showcase_tour_home_v2', true);
       // Small delay so all keys are rendered and attached
       await Future.delayed(const Duration(milliseconds: 600));
       if (mounted) {
@@ -48,19 +48,42 @@ class _MainScreenState extends State<MainScreen> {
 
   void _checkTabTour(int index) async {
     final prefs = await SharedPreferences.getInstance();
-    if (index == 2) { // PLAY
+
+    if (index == 0) { // HOME
+      final hasSeenHomeTour = prefs.getBool('has_seen_showcase_tour_home_v2') ?? false;
+      if (!hasSeenHomeTour) {
+        await prefs.setBool('has_seen_showcase_tour_home_v2', true);
+        await Future.delayed(const Duration(milliseconds: 400));
+        if (mounted && context.read<NavigationService>().currentIndex == 0) {
+          TourKeys.startHomeTour(context);
+        }
+      }
+    } else if (index == 1) { // ROADMAP
+      final hasSeenRoadmapTour = prefs.getBool('has_seen_showcase_tour_roadmap') ?? false;
+      if (!hasSeenRoadmapTour) {
+        await prefs.setBool('has_seen_showcase_tour_roadmap', true);
+        await Future.delayed(const Duration(milliseconds: 400));
+        if (mounted && context.read<NavigationService>().currentIndex == 1) {
+          TourKeys.startRoadmapTour(context);
+        }
+      }
+    } else if (index == 2) { // PLAY
       final hasSeenPlayTour = prefs.getBool('has_seen_showcase_tour_play') ?? false;
       if (!hasSeenPlayTour) {
         await prefs.setBool('has_seen_showcase_tour_play', true);
         await Future.delayed(const Duration(milliseconds: 400));
-        if (mounted) TourKeys.startPlayTour(context);
+        if (mounted && context.read<NavigationService>().currentIndex == 2) {
+          TourKeys.startPlayTour(context);
+        }
       }
     } else if (index == 3) { // REWARDS
       final hasSeenRewardsTour = prefs.getBool('has_seen_showcase_tour_rewards') ?? false;
       if (!hasSeenRewardsTour) {
         await prefs.setBool('has_seen_showcase_tour_rewards', true);
         await Future.delayed(const Duration(milliseconds: 400));
-        if (mounted) TourKeys.startRewardsTour(context);
+        if (mounted && context.read<NavigationService>().currentIndex == 3) {
+          TourKeys.startRewardsTour(context);
+        }
       }
     }
   }
@@ -145,10 +168,7 @@ class _MainScreenState extends State<MainScreen> {
                     key: TourKeys.homeTabKey,
                     child: const Icon(Icons.home_rounded),
                   ),
-                  activeIcon: KeyedSubtree(
-                    key: TourKeys.homeTabKey,
-                    child: const Icon(Icons.home_rounded),
-                  ),
+                  activeIcon: const Icon(Icons.home_rounded),
                   label: 'HOME',
                 ),
                 BottomNavigationBarItem(
@@ -156,10 +176,7 @@ class _MainScreenState extends State<MainScreen> {
                     key: TourKeys.roadmapTabKey,
                     child: const Icon(Icons.map_rounded),
                   ),
-                  activeIcon: KeyedSubtree(
-                    key: TourKeys.roadmapTabKey,
-                    child: const Icon(Icons.map_rounded),
-                  ),
+                  activeIcon: const Icon(Icons.map_rounded),
                   label: 'ROADMAP',
                 ),
                 BottomNavigationBarItem(
@@ -167,10 +184,7 @@ class _MainScreenState extends State<MainScreen> {
                     key: TourKeys.playTabKey,
                     child: const Icon(Icons.gamepad_rounded),
                   ),
-                  activeIcon: KeyedSubtree(
-                    key: TourKeys.playTabKey,
-                    child: const Icon(Icons.gamepad_rounded),
-                  ),
+                  activeIcon: const Icon(Icons.gamepad_rounded),
                   label: 'PLAY',
                 ),
                 BottomNavigationBarItem(
@@ -178,10 +192,7 @@ class _MainScreenState extends State<MainScreen> {
                     key: TourKeys.rewardsTabKey,
                     child: const Icon(Icons.emoji_events_rounded),
                   ),
-                  activeIcon: KeyedSubtree(
-                    key: TourKeys.rewardsTabKey,
-                    child: const Icon(Icons.emoji_events_rounded),
-                  ),
+                  activeIcon: const Icon(Icons.emoji_events_rounded),
                   label: 'REWARDS',
                 ),
               ],

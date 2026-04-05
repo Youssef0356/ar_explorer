@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../widgets/animated_google_background.dart';
+import '../core/tour_keys.dart';
 import '../core/app_theme.dart';
 import '../data/modules_data.dart';
 import '../models/module_model.dart';
@@ -40,10 +41,13 @@ class RoadmapScreen extends StatelessWidget {
                 title: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Learning Roadmap',
-                      style: AppTheme.headingMedium.copyWith(
-                        color: AppTheme.textPrimaryC(isDark),
+                    KeyedSubtree(
+                      key: TourKeys.roadmapTitleKey,
+                      child: Text(
+                        'Learning Roadmap',
+                        style: AppTheme.headingMedium.copyWith(
+                          color: AppTheme.textPrimaryC(isDark),
+                        ),
                       ),
                     ),
                     Text(

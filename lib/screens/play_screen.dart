@@ -33,9 +33,7 @@ class PlayScreen extends StatelessWidget {
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: KeyedSubtree(
-                    key: TourKeys.playGamesListKey,
-                    child: Column(
+                  child: Column(
                       children: [
                         const SizedBox(height: 16),
                         Text(
@@ -46,65 +44,76 @@ class PlayScreen extends StatelessWidget {
                         ).animate().fadeIn(duration: 400.ms),
                         const SizedBox(height: 32),
                         
-                        _buildGameCard(
-                          context: context,
-                          isDark: isDark,
-                          sound: soundService,
-                          title: 'XR Builder',
-                          subtitle: 'Build AR Inspector setups like a pro',
-                          icon: Icons.architecture_rounded,
-                          color: AppTheme.accentCyan,
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InspectorGameMapScreen())),
-                          delay: 100,
+                        KeyedSubtree(
+                          key: TourKeys.playGameXRBuilderKey,
+                          child: _buildGameCard(
+                            context: context,
+                            isDark: isDark,
+                            sound: soundService,
+                            title: 'XR Builder',
+                            subtitle: 'Build AR Inspector setups like a pro',
+                            icon: Icons.architecture_rounded,
+                            color: AppTheme.accentCyan,
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InspectorGameMapScreen())),
+                            delay: 100,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         
-                        _buildGameCard(
-                          context: context,
-                          isDark: isDark,
-                          sound: soundService,
-                          title: 'Systems Engineer',
-                          subtitle: 'Master AR logic & master scripts.',
-                          icon: Icons.code_rounded,
-                          color: const Color(0xFF00E5FF),
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CodingGameMapScreen())),
-                          delay: 200,
+                        KeyedSubtree(
+                          key: TourKeys.playGameSystemsEngineerKey,
+                          child: _buildGameCard(
+                            context: context,
+                            isDark: isDark,
+                            sound: soundService,
+                            title: 'Systems Engineer',
+                            subtitle: 'Master AR logic & master scripts.',
+                            icon: Icons.code_rounded,
+                            color: const Color(0xFF00E5FF),
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CodingGameMapScreen())),
+                            delay: 200,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         
-                        _buildGameCard(
-                          context: context,
-                          isDark: isDark,
-                          sound: soundService,
-                          title: 'Pipeline Challenge',
-                          subtitle: 'Connect logic pipelines in a spatial mapping puzzle.',
-                          icon: Icons.account_tree_rounded,
-                          color: AppTheme.accentPurple,
-                          onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const GameMapScreen()));
-                          },
-                          delay: 300,
+                        KeyedSubtree(
+                          key: TourKeys.playGamePipelineChallengeKey,
+                          child: _buildGameCard(
+                            context: context,
+                            isDark: isDark,
+                            sound: soundService,
+                            title: 'Pipeline Challenge',
+                            subtitle: 'Connect logic pipelines in a spatial mapping puzzle.',
+                            icon: Icons.account_tree_rounded,
+                            color: AppTheme.accentPurple,
+                            onTap: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (_) => const GameMapScreen()));
+                            },
+                            delay: 300,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         
-                        _buildGameCard(
-                          context: context,
-                          isDark: isDark,
-                          sound: soundService,
-                          title: 'AR Debugger',
-                          subtitle: 'Diagnose & fix broken AR apps',
-                          icon: Icons.bug_report_rounded,
-                          color: AppTheme.errorRed,
-                          onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const ARDebuggerMapScreen()));
-                          },
-                          delay: 400,
+                        KeyedSubtree(
+                          key: TourKeys.playGameARDebuggerKey,
+                          child: _buildGameCard(
+                            context: context,
+                            isDark: isDark,
+                            sound: soundService,
+                            title: 'AR Debugger',
+                            subtitle: 'Diagnose & fix broken AR apps',
+                            icon: Icons.bug_report_rounded,
+                            color: AppTheme.errorRed,
+                            onTap: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (_) => const ARDebuggerMapScreen()));
+                            },
+                            delay: 400,
+                          ),
                         ),
                         const SizedBox(height: 48),
                       ],
                     ),
                   ),
-                ),
               ),
             ],
           ),

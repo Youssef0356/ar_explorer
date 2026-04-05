@@ -8,6 +8,8 @@ import '../data/inspector_game_data.dart' as ig_data;
 import '../models/inspector_game_models.dart';
 import '../services/game_progress_service.dart';
 import '../services/sound_service.dart';
+import '../core/tour_keys.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  InspectorGameScreen — v2
@@ -90,8 +92,17 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
         _showIntroPopup();
       });
     } else {
-      // User has seen intro, no automatic showcase needed
-      // Showcase tour can be triggered manually if needed
+      _checkMinigameTour();
+    }
+  }
+
+  void _checkMinigameTour() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenTour = prefs.getBool('has_seen_showcase_tour_minigame') ?? false;
+    if (!hasSeenTour) {
+      await prefs.setBool('has_seen_showcase_tour_minigame', true);
+      await Future.delayed(const Duration(milliseconds: 600));
+      if (mounted) TourKeys.startMinigameTour(context);
     }
   }
 
@@ -340,8 +351,10 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
 
   // ── Objective Banner ───────────────────────────────────────────────────────
   Widget _buildObjectiveBanner(InspectorZone zone) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+    return KeyedSubtree(
+      key: TourKeys.minigameObjectiveKey,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
         color: zone.accentColor.withValues(alpha: 0.05),
         border: Border(bottom:
@@ -359,6 +372,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
                 color: Colors.white70, fontSize: 10.5, height: 1.4)),
           ])),
       ]),
+    ),
     );
   }
 
@@ -575,8 +589,10 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
 
   // ── Script Bank — height 155, Wrap ──────────────────────────────────────────
   Widget _buildScriptBank() {
-    return Container(
-      constraints: const BoxConstraints(maxHeight: 155),
+    return KeyedSubtree(
+      key: TourKeys.minigameWorkAreaKey,
+      child: Container(
+        constraints: const BoxConstraints(maxHeight: 155),
       decoration: const BoxDecoration(
         color: Color(0xFF0A1424),
         border: Border(top: BorderSide(color: Color(0xFF1A2A4A))),
@@ -600,6 +616,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
             }).toList()),
         )),
       ]),
+    ),
     );
   }
 

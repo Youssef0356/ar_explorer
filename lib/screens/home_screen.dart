@@ -7,6 +7,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/app_theme.dart';
 import '../data/ar_keywords_data.dart';
@@ -139,9 +140,11 @@ class _HomeScreenState extends State<HomeScreen> {
         final xp = gameProgress.unifiedXP;
         final levelTitle = AppTheme.getLevelTitle(overallProgress);
 
-        return Row(
-          children: [
-            Container(
+        return KeyedSubtree(
+          key: TourKeys.homeXpKey,
+          child: Row(
+            children: [
+              Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: AppTheme.accentCyan.withValues(alpha: 0.15),
@@ -198,6 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ],
+        ),
         );
       },
     );
@@ -287,6 +291,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: SafeArea(
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
+            cacheExtent: 5000,
             slivers: [
               // ── Header ──
               SliverToBoxAdapter(
@@ -440,10 +445,23 @@ class _HomeScreenState extends State<HomeScreen> {
                               icon: Icons.settings_rounded,
                               tooltip: 'Settings',
                               isDark: isDark,
-                              onTap: () {
+                              onTap: () async {
                                 if (!context.mounted) return;
                                 soundService.playTap();
-                                _showSettingsModal(context, isDark, themeService);
+                                final shouldStart = await _showSettingsModal(context, isDark, themeService);
+                                if (shouldStart == true) {
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Tours reset! Starting Home Tour...'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                  await Future.delayed(const Duration(milliseconds: 600));
+                                  if (context.mounted) {
+                                    TourKeys.startHomeTour(context);
+                                  }
+                                }
                               },
                             ),
                           ],
@@ -608,7 +626,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   return SliverPadding(
                     padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
                     sliver: SliverToBoxAdapter(
-                      child: _buildCertificateCard(context, isDark, tierInfo, certData),
+                      child: KeyedSubtree(
+                        key: TourKeys.homeCertificatesKey,
+                        child: _buildCertificateCard(context, isDark, tierInfo, certData),
+                      ),
                     ),
                   );
                 },
@@ -762,20 +783,23 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: _buildQuickActionButton(
-                  context: context,
-                  isDark: isDark,
-                  title: 'Practice',
-                  subtitle: 'Review & Daily',
-                  icon: Icons.fitness_center_rounded,
-                  iconColor: AppTheme.accentPink,
-                  enableAnimations: enableAnimations,
-                  isPremiumLocked: false,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const PracticeScreen()),
+                child: KeyedSubtree(
+                  key: TourKeys.homePracticeKey,
+                  child: _buildQuickActionButton(
+                    context: context,
+                    isDark: isDark,
+                    title: 'Practice',
+                    subtitle: 'Review & Daily',
+                    icon: Icons.fitness_center_rounded,
+                    iconColor: AppTheme.accentPink,
+                    enableAnimations: enableAnimations,
+                    isPremiumLocked: false,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PracticeScreen()),
+                    ),
+                    delay: 400,
                   ),
-                  delay: 400,
                 ),
               ),
               const SizedBox(width: 12),
@@ -1205,8 +1229,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ── Settings Modal ───────────────────────────────────────────
-  void _showSettingsModal(BuildContext context, bool isDark, ThemeService themeService) {
-    showModalBottomSheet(
+  Future<bool?> _showSettingsModal(BuildContext context, bool isDark, ThemeService themeService) {
+    return showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppTheme.cardC(isDark),
@@ -1300,11 +1324,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                 style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
                               ),
                               trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
-                              onTap: () {
-                                Navigator.pop(ctx); // Close settings
+                              onTap: () async {
                                 context.read<SoundService>().playTap();
-                                if (context.mounted) {
-                                  TourKeys.startHomeTour(context);
+                                
+                                final prefs = await SharedPreferences.getInstance();
+                                await prefs.setBool('has_seen_showcase_tour_home_v2', false);
+                                await prefs.setBool('has_seen_showcase_tour_roadmap', false);
+                                await prefs.setBool('has_seen_showcase_tour_play', false);
+                                await prefs.setBool('has_seen_showcase_tour_rewards', false);
+                                await prefs.setBool('has_seen_showcase_tour_minigame', false);
+
+                                if (ctx.mounted) {
+                                  Navigator.pop(ctx, true); // Pop with true to trigger tour
                                 }
                               },
                             ),
