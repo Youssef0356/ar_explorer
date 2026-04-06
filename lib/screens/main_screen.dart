@@ -53,7 +53,7 @@ class _MainScreenState extends State<MainScreen> {
       final hasSeenHomeTour = prefs.getBool('has_seen_showcase_tour_home_v2') ?? false;
       if (!hasSeenHomeTour) {
         await prefs.setBool('has_seen_showcase_tour_home_v2', true);
-        await Future.delayed(const Duration(milliseconds: 400));
+        await Future.delayed(const Duration(milliseconds: 250)); // User requested less delay
         if (mounted && context.read<NavigationService>().currentIndex == 0) {
           TourKeys.startHomeTour(context);
         }
@@ -62,7 +62,7 @@ class _MainScreenState extends State<MainScreen> {
       final hasSeenRoadmapTour = prefs.getBool('has_seen_showcase_tour_roadmap') ?? false;
       if (!hasSeenRoadmapTour) {
         await prefs.setBool('has_seen_showcase_tour_roadmap', true);
-        await Future.delayed(const Duration(milliseconds: 400));
+        await Future.delayed(const Duration(milliseconds: 250));
         if (mounted && context.read<NavigationService>().currentIndex == 1) {
           TourKeys.startRoadmapTour(context);
         }
@@ -71,7 +71,7 @@ class _MainScreenState extends State<MainScreen> {
       final hasSeenPlayTour = prefs.getBool('has_seen_showcase_tour_play') ?? false;
       if (!hasSeenPlayTour) {
         await prefs.setBool('has_seen_showcase_tour_play', true);
-        await Future.delayed(const Duration(milliseconds: 400));
+        await Future.delayed(const Duration(milliseconds: 250));
         if (mounted && context.read<NavigationService>().currentIndex == 2) {
           TourKeys.startPlayTour(context);
         }
@@ -80,7 +80,7 @@ class _MainScreenState extends State<MainScreen> {
       final hasSeenRewardsTour = prefs.getBool('has_seen_showcase_tour_rewards') ?? false;
       if (!hasSeenRewardsTour) {
         await prefs.setBool('has_seen_showcase_tour_rewards', true);
-        await Future.delayed(const Duration(milliseconds: 400));
+        await Future.delayed(const Duration(milliseconds: 250));
         if (mounted && context.read<NavigationService>().currentIndex == 3) {
           TourKeys.startRewardsTour(context);
         }
@@ -148,6 +148,8 @@ class _MainScreenState extends State<MainScreen> {
             child: BottomNavigationBar(
               currentIndex: currentIndex,
               onTap: (index) {
+                if (index == navigationService.currentIndex) return;
+                
                 soundService.playTap();
                 TourKeys.dismiss(); // Clean up active tours on tab switch
                 navigationService.setTab(index);

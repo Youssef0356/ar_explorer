@@ -2,6 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 class TourKeys {
+  static TutorialCoachMark? _currentMark;
+  static final Map<String, Future<void> Function()?> _onBeforeNextMap = {};
+
+  static void dismiss() {
+    _currentMark?.finish();
+    _currentMark = null;
+  }
+
+  static void _handleGlobalNextByIdentify(String identify) async {
+    if (_currentMark == null) return;
+    
+    final onBeforeNext = _onBeforeNextMap[identify];
+    
+    // Advance first so highlight disappears from current target immediately
+    _currentMark!.next(); 
+    if (onBeforeNext != null) {
+      // Small delay ensures the highlight transition has started/finished before scrolling
+      await onBeforeNext();
+    }
+  }
+
   // ── Existing ──
   static final GlobalKey homeXpKey      = GlobalKey();
   static final GlobalKey homeTabKey     = GlobalKey();
@@ -54,15 +75,9 @@ class TourKeys {
   static final GlobalKey codingCodeAreaKey     = GlobalKey();
   static final GlobalKey codingWorkAreaKey     = GlobalKey();
 
-  static TutorialCoachMark? _currentMark;
-
-  static void dismiss() {
-    _currentMark?.finish();
-    _currentMark = null;
-  }
-
   /// The main on-boarding tour triggered on first launch.
   static void startHomeTour(BuildContext context, {ScrollController? scrollController}) {
+    _onBeforeNextMap.clear();
     final targets = <TargetFocus>[];
 
     if (homeXpKey.currentContext != null) {
@@ -70,7 +85,7 @@ class TourKeys {
         key: homeXpKey,
         identify: 'xp_bar',
         title: 'Your XP Progress',
-        description: 'Level up by exploring modules, games, and daily challenges.',
+        description: 'Level up by exploring modules, succeeds in mini-games, completing daily challenges, and answering quiz questions correctly.',
         contentAlign: ContentAlign.bottom,
       ));
     }
@@ -129,7 +144,7 @@ class TourKeys {
           if (homeCertificatesKey.currentContext != null) {
             await Scrollable.ensureVisible(
               homeCertificatesKey.currentContext!,
-              duration: const Duration(milliseconds: 400),
+              duration: const Duration(milliseconds: 250),
               curve: Curves.easeInOut,
               alignment: 0.8,
             );
@@ -152,6 +167,7 @@ class TourKeys {
   }
 
   static void startRoadmapTour(BuildContext context) {
+    _onBeforeNextMap.clear();
     final targets = <TargetFocus>[
       _target(
         key: roadmapTitleKey,
@@ -165,6 +181,7 @@ class TourKeys {
   }
 
   static void startPlayTour(BuildContext context) {
+    _onBeforeNextMap.clear();
     final targets = <TargetFocus>[
       _target(
         key: playHeaderKey,
@@ -207,6 +224,7 @@ class TourKeys {
   }
 
   static void startRewardsTour(BuildContext context) {
+    _onBeforeNextMap.clear();
     final targets = <TargetFocus>[
       _target(
         key: rewardsDashboardKey,
@@ -218,7 +236,7 @@ class TourKeys {
           if (rewardsBadgesKey.currentContext != null) {
             await Scrollable.ensureVisible(
               rewardsBadgesKey.currentContext!,
-              duration: const Duration(milliseconds: 400),
+              duration: const Duration(milliseconds: 250),
               curve: Curves.easeInOut,
               alignment: 0.8,
             );
@@ -238,6 +256,7 @@ class TourKeys {
   }
 
   static void startInspectorTour(BuildContext context) {
+    _onBeforeNextMap.clear();
     final targets = <TargetFocus>[
       _target(
         key: inspectorObjectiveKey,
@@ -266,6 +285,7 @@ class TourKeys {
   }
 
   static void startPipelineTour(BuildContext context) {
+    _onBeforeNextMap.clear();
     final targets = <TargetFocus>[
       _target(
         key: pipelineObjectiveKey,
@@ -294,6 +314,7 @@ class TourKeys {
   }
 
   static void startDebuggerTour(BuildContext context) {
+    _onBeforeNextMap.clear();
     final targets = <TargetFocus>[
       _target(
         key: debuggerObjectiveKey,
@@ -322,6 +343,7 @@ class TourKeys {
   }
 
   static void startCodingGameTour(BuildContext context) {
+    _onBeforeNextMap.clear();
     final targets = <TargetFocus>[
       _target(
         key: codingObjectiveKey,
@@ -363,9 +385,17 @@ class TourKeys {
         _currentMark = null;
         return true;
       },
-      onClickTarget: (target) {},
+      onClickTarget: (target) {
+        _handleGlobalNextByIdentify(target.identify);
+      },
+      onClickOverlay: (target) {
+        _handleGlobalNextByIdentify(target.identify);
+      },
       alignSkip: Alignment.topRight,
       textSkip: "SKIP",
+      focusAnimationDuration: const Duration(milliseconds: 200),
+      unFocusAnimationDuration: const Duration(milliseconds: 200),
+      pulseAnimationDuration: const Duration(milliseconds: 200),
     )..show(context: context);
   }
 
@@ -378,6 +408,10 @@ class TourKeys {
     ShapeLightFocus shape = ShapeLightFocus.RRect,
     Future<void> Function()? onBeforeNext,
   }) {
+    if (onBeforeNext != null) {
+      _onBeforeNextMap[identify] = onBeforeNext;
+    }
+
     return TargetFocus(
       identify: identify,
       keyTarget: key,
@@ -390,12 +424,7 @@ class TourKeys {
             return _CoachContent(
               title: title,
               description: description,
-              onNext: () async {
-                if (onBeforeNext != null) {
-                  await onBeforeNext();
-                }
-                controller.next();
-              },
+              onNext: () => _handleGlobalNextByIdentify(identify),
             );
           },
         ),
