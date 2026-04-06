@@ -4,7 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class TourKeys {
   static TutorialCoachMark? _currentMark;
-  static final Map<String, Future<void> Function()?> _onBeforeNextMap = {};
+  static List<TargetFocus> _currentTargets = [];
+  static int _currentIndex = 0;
   
   /// Flag to prevent auto-triggering tours when manually triggered from settings
   static bool _justManuallyTriggered = false;
@@ -25,23 +26,39 @@ class TourKeys {
   static void dismiss() {
     _currentMark?.finish();
     _currentMark = null;
+    _currentTargets = [];
+    _currentIndex = 0;
   }
 
-  static void _handleGlobalNextByIdentify(String identify) async {
-    if (_currentMark == null) return;
-    
-    final onBeforeNext = _onBeforeNextMap[identify];
-    
-    if (onBeforeNext != null) {
-      // Scrolling case: Scroll first while the current highlight is still visible
-      // This looks much more natural as the old highlight moves with the content
-      await onBeforeNext();
-      // Small pause after scroll finishes to ensure UI is stable
-      await Future.delayed(const Duration(milliseconds: 150));
+  /// Global advancement logic. Scrolls to the next target BEFORE advancing the highlight.
+  static void _advance() {
+    _currentIndex++;
+    if (_currentIndex < _currentTargets.length) {
+      final nextTarget = _currentTargets[_currentIndex];
+      final nextContext = (nextTarget.keyTarget as GlobalKey).currentContext;
+      if (nextContext != null) {
+        // Instant scroll to the next target so it is in position before highlight calculates its rect.
+        Scrollable.ensureVisible(
+          nextContext,
+          duration: Duration.zero,
+          alignment: 0.5,
+        );
+      }
     }
+    _currentMark?.next();
+  }
+
+  /// Helper to add a target only if its widget is currently visible on screen
+  static void _addIfVisible(List<TargetFocus> targets, TargetFocus target) {
+    // If the widget isn't in the tree at all, skip it
+    final context = (target.keyTarget as GlobalKey).currentContext;
+    if (context == null) return;
     
-    // Now advance to the next target which is currently on screen
-    _currentMark!.next(); 
+    // If the widget is in the tree but has no size (e.g., inside a zero-height Visibility), skip it
+    final renderBox = context.findRenderObject() as RenderBox?;
+    if (renderBox != null && renderBox.hasSize && renderBox.size.height > 0) {
+      targets.add(target);
+    }
   }
 
   // ── Existing ──
@@ -98,97 +115,68 @@ class TourKeys {
 
   /// The main on-boarding tour triggered on first launch.
   static void startHomeTour(BuildContext context, {ScrollController? scrollController}) {
-    _onBeforeNextMap.clear();
     final targets = <TargetFocus>[];
 
-    if (homeXpKey.currentContext != null) {
-      targets.add(_target(
-        key: homeXpKey,
-        identify: 'xp_bar',
-        title: 'Your XP Progress',
-        description: 'You earn XP by exploring modules, succeeding in mini-games, completing daily challenges, and answering quiz questions correctly.',
-        contentAlign: ContentAlign.bottom,
-      ));
-    }
+    _addIfVisible(targets, _target(
+      key: homeXpKey,
+      identify: 'xp_bar',
+      title: 'Your XP Progress',
+      description: 'You earn XP by exploring modules, succeeding in mini-games, completing daily challenges, and answering quiz questions correctly.',
+      contentAlign: ContentAlign.bottom,
+    ));
 
-    if (homePracticeKey.currentContext != null) {
-      targets.add(_target(
-        key: homePracticeKey,
-        identify: 'practice_btn',
-        title: 'Daily Practice',
-        description: 'Review saved notes and answer daily questions here.',
-        contentAlign: ContentAlign.bottom,
-      ));
-    }
+    _addIfVisible(targets, _target(
+      key: homePracticeKey,
+      identify: 'practice_btn',
+      title: 'Daily Practice',
+      description: 'Review saved notes and answer daily questions here.',
+      contentAlign: ContentAlign.bottom,
+    ));
 
-    if (homeInterviewKey.currentContext != null) {
-      final renderBox = homeInterviewKey.currentContext?.findRenderObject() as RenderBox?;
-      if (renderBox != null && renderBox.hasSize && renderBox.size.height > 0) {
-        targets.add(_target(
-          key: homeInterviewKey,
-          identify: 'interview_banner',
-          title: 'Practice Interviews',
-          description: 'Prepare for real-world scenarios with our AI-powered interview practice.',
-          contentAlign: ContentAlign.bottom,
-        ));
-      }
-    }
+    _addIfVisible(targets, _target(
+      key: homeInterviewKey,
+      identify: 'interview_banner',
+      title: 'Practice Interviews',
+      description: 'Prepare for real-world scenarios with our AI-powered interview practice.',
+      contentAlign: ContentAlign.bottom,
+    ));
 
-    if (homeAnalyticsKey.currentContext != null) {
-      targets.add(_target(
-        key: homeAnalyticsKey,
-        identify: 'quiz_analytics',
-        title: 'Quiz Analytics',
-        description: 'Track your performance across all quizzes to identify areas for improvement.',
-        contentAlign: ContentAlign.bottom,
-      ));
-    }
+    _addIfVisible(targets, _target(
+      key: homeAnalyticsKey,
+      identify: 'quiz_analytics',
+      title: 'Quiz Analytics',
+      description: 'Track your performance across all quizzes to identify areas for improvement.',
+      contentAlign: ContentAlign.bottom,
+    ));
 
-    if (homeBookmarksKey.currentContext != null) {
-      targets.add(_target(
-        key: homeBookmarksKey,
-        identify: 'bookmarks',
-        title: 'Bookmarks',
-        description: 'Quickly access your saved notes and topics from any module.',
-        contentAlign: ContentAlign.bottom,
-      ));
-    }
+    _addIfVisible(targets, _target(
+      key: homeBookmarksKey,
+      identify: 'bookmarks',
+      title: 'Bookmarks',
+      description: 'Quickly access your saved notes and topics from any module.',
+      contentAlign: ContentAlign.bottom,
+    ));
 
-    if (homeModulesKey.currentContext != null) {
-      targets.add(_target(
-        key: homeModulesKey,
-        identify: 'modules_list',
-        title: 'Learning Path',
-        description: 'Interactive modules from AR Basics to Advanced Scene Understanding.',
-        contentAlign: ContentAlign.top,
-        onBeforeNext: () async {
-          if (homeCertificatesKey.currentContext != null) {
-            await Scrollable.ensureVisible(
-              homeCertificatesKey.currentContext!,
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeInOut,
-              alignment: 0.8,
-            );
-          }
-        },
-      ));
-    }
+    _addIfVisible(targets, _target(
+      key: homeModulesKey,
+      identify: 'modules_list',
+      title: 'Learning Path',
+      description: 'Interactive modules from AR Basics to Advanced Scene Understanding.',
+      contentAlign: ContentAlign.top,
+    ));
 
-    if (homeCertificatesKey.currentContext != null) {
-      targets.add(_target(
-        key: homeCertificatesKey,
-        identify: 'certificates',
-        title: 'Certificates',
-        description: 'Earn Bronze, Silver, Gold, and Platinum certificates by mastering units.',
-        contentAlign: ContentAlign.top,
-      ));
-    }
+    _addIfVisible(targets, _target(
+      key: homeCertificatesKey,
+      identify: 'certificates',
+      title: 'Certificates',
+      description: 'Earn Bronze, Silver, Gold, and Platinum certificates by mastering units.',
+      contentAlign: ContentAlign.top,
+    ));
 
     _show(context, targets, 'home_tour');
   }
 
   static void startRoadmapTour(BuildContext context) {
-    _onBeforeNextMap.clear();
     final targets = <TargetFocus>[
       _target(
         key: roadmapTitleKey,
@@ -202,7 +190,6 @@ class TourKeys {
   }
 
   static void startPlayTour(BuildContext context) {
-    _onBeforeNextMap.clear();
     final targets = <TargetFocus>[
       _target(
         key: playHeaderKey,
@@ -245,39 +232,28 @@ class TourKeys {
   }
 
   static void startRewardsTour(BuildContext context) {
-    _onBeforeNextMap.clear();
-    final targets = <TargetFocus>[
-      _target(
-        key: rewardsDashboardKey,
-        identify: 'rewards_dashboard',
-        title: 'XP Dashboard',
-        description: 'View your total progress, level title, and overall curriculum completion.',
-        contentAlign: ContentAlign.bottom,
-        onBeforeNext: () async {
-          if (rewardsBadgesKey.currentContext != null) {
-            await Scrollable.ensureVisible(
-              rewardsBadgesKey.currentContext!,
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeInOut,
-              alignment: 0.8,
-            );
-          }
-        },
-      ),
-      _target(
-        key: rewardsBadgesKey,
-        identify: 'badges_grid',
-        title: 'Earned Badges',
-        description: 'Unlock unique badges by completing challenges and mastering AR modules.',
-        contentAlign: ContentAlign.top,
-      ),
-    ];
+    final targets = <TargetFocus>[];
+    
+    _addIfVisible(targets, _target(
+      key: rewardsDashboardKey,
+      identify: 'rewards_dashboard',
+      title: 'XP Dashboard',
+      description: 'View your total progress, level title, and overall curriculum completion.',
+      contentAlign: ContentAlign.bottom,
+    ));
+
+    _addIfVisible(targets, _target(
+      key: rewardsBadgesKey,
+      identify: 'badges_grid',
+      title: 'Earned Badges',
+      description: 'Unlock unique badges by completing challenges and mastering AR modules.',
+      contentAlign: ContentAlign.top,
+    ));
 
     _show(context, targets, 'rewards_tour');
   }
 
   static void startInspectorTour(BuildContext context) {
-    _onBeforeNextMap.clear();
     final targets = <TargetFocus>[
       _target(
         key: inspectorObjectiveKey,
@@ -306,7 +282,6 @@ class TourKeys {
   }
 
   static void startPipelineTour(BuildContext context) {
-    _onBeforeNextMap.clear();
     final targets = <TargetFocus>[
       _target(
         key: pipelineObjectiveKey,
@@ -335,7 +310,6 @@ class TourKeys {
   }
 
   static void startDebuggerTour(BuildContext context) {
-    _onBeforeNextMap.clear();
     final targets = <TargetFocus>[
       _target(
         key: debuggerObjectiveKey,
@@ -364,7 +338,6 @@ class TourKeys {
   }
 
   static void startCodingGameTour(BuildContext context) {
-    _onBeforeNextMap.clear();
     final targets = <TargetFocus>[
       _target(
         key: codingObjectiveKey,
@@ -418,25 +391,30 @@ class TourKeys {
     }
 
     dismiss(); // Ensure no other tour is running
+    _currentTargets = targets;
+    _currentIndex = 0;
+
     _currentMark = TutorialCoachMark(
       targets: targets,
       colorShadow: Colors.black,
       paddingFocus: 10,
       opacityShadow: 0.85,
+      onClickTarget: (target) => _advance(),
+      onClickOverlay: (target) => _advance(),
       onFinish: () {
         _currentMark = null;
-        markTourAsSeen(); // Mark as seen when finished
+        _currentTargets = [];
+        _currentIndex = 0;
+        SharedPreferences.getInstance().then((prefs) {
+          prefs.setBool('has_seen_showcase_tour_home_v2', true);
+        });
       },
       onSkip: () {
         _currentMark = null;
+        _currentTargets = [];
+        _currentIndex = 0;
         markTourAsSeen(); // Mark as seen when skipped
         return true;
-      },
-      onClickTarget: (target) {
-        _handleGlobalNextByIdentify(target.identify);
-      },
-      onClickOverlay: (target) {
-        _handleGlobalNextByIdentify(target.identify);
       },
       alignSkip: Alignment.topRight,
       textSkip: "SKIP",
@@ -453,17 +431,16 @@ class TourKeys {
     required String description,
     required ContentAlign contentAlign,
     ShapeLightFocus shape = ShapeLightFocus.RRect,
-    Future<void> Function()? onBeforeNext,
   }) {
-    if (onBeforeNext != null) {
-      _onBeforeNextMap[identify] = onBeforeNext;
-    }
-
     return TargetFocus(
       identify: identify,
       keyTarget: key,
       shape: shape,
       radius: 12,
+      // CRITICAL: Disable internal library advancement handlers.
+      // We take full manual control via _advance() to ensure scrolls happen BEFORE highlight moves.
+      enableOverlayTab: false,
+      enableTargetTab: false,
       contents: [
         TargetContent(
           align: contentAlign,
@@ -471,7 +448,7 @@ class TourKeys {
             return _CoachContent(
               title: title,
               description: description,
-              onNext: () => _handleGlobalNextByIdentify(identify),
+              onAdvance: _advance,
             );
           },
         ),
@@ -483,12 +460,12 @@ class TourKeys {
 class _CoachContent extends StatelessWidget {
   final String title;
   final String description;
-  final VoidCallback onNext;
+  final VoidCallback onAdvance;
 
   const _CoachContent({
     required this.title,
     required this.description,
-    required this.onNext,
+    required this.onAdvance,
   });
 
   @override
@@ -512,14 +489,14 @@ class _CoachContent extends StatelessWidget {
           Text(
             description,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.75),
+              color: Colors.white.withOpacity(0.75),
               fontSize: 14,
               height: 1.5,
             ),
           ),
           const SizedBox(height: 20),
           GestureDetector(
-            onTap: onNext,
+            onTap: onAdvance,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
