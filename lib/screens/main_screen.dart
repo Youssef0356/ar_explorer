@@ -29,60 +29,48 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<NavigationService>().setTab(widget.initialIndex);
-      _checkAndStartTour();
+      _triggerTourForIndex(widget.initialIndex);
     });
   }
 
-  void _checkAndStartTour() async {
+  void _triggerTourForIndex(int index) async {
     final prefs = await SharedPreferences.getInstance();
-    final hasSeenHomeTour = prefs.getBool('has_seen_showcase_tour_home_v2') ?? false;
-    if (!hasSeenHomeTour) {
-      await prefs.setBool('has_seen_showcase_tour_home_v2', true);
-      // Small delay so all keys are rendered and attached
-      await Future.delayed(const Duration(milliseconds: 600));
-      if (mounted) {
-        TourKeys.startHomeTour(context);
-      }
+    String? flag;
+    VoidCallback? tourAction;
+
+    switch (index) {
+      case 0:
+        flag = 'has_seen_showcase_tour_home_v2';
+        tourAction = () => TourKeys.startHomeTour(context);
+        break;
+      case 1:
+        flag = 'has_seen_showcase_tour_roadmap';
+        tourAction = () => TourKeys.startRoadmapTour(context);
+        break;
+      case 2:
+        flag = 'has_seen_showcase_tour_play';
+        tourAction = () => TourKeys.startPlayTour(context);
+        break;
+      case 3:
+        flag = 'has_seen_showcase_tour_rewards';
+        tourAction = () => TourKeys.startRewardsTour(context);
+        break;
     }
-  }
 
-  void _checkTabTour(int index) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    if (index == 0) { // HOME
-      final hasSeenHomeTour = prefs.getBool('has_seen_showcase_tour_home_v2') ?? false;
-      if (!hasSeenHomeTour) {
-        await prefs.setBool('has_seen_showcase_tour_home_v2', true);
-        await Future.delayed(const Duration(milliseconds: 250)); // User requested less delay
-        if (mounted && context.read<NavigationService>().currentIndex == 0) {
-          TourKeys.startHomeTour(context);
-        }
+    if (flag != null && tourAction != null) {
+      // Skip if tour was just manually triggered from settings
+      if (TourKeys.wasJustManuallyTriggered) {
+        TourKeys.clearManualTrigger();
+        return;
       }
-    } else if (index == 1) { // ROADMAP
-      final hasSeenRoadmapTour = prefs.getBool('has_seen_showcase_tour_roadmap') ?? false;
-      if (!hasSeenRoadmapTour) {
-        await prefs.setBool('has_seen_showcase_tour_roadmap', true);
-        await Future.delayed(const Duration(milliseconds: 250));
-        if (mounted && context.read<NavigationService>().currentIndex == 1) {
-          TourKeys.startRoadmapTour(context);
-        }
-      }
-    } else if (index == 2) { // PLAY
-      final hasSeenPlayTour = prefs.getBool('has_seen_showcase_tour_play') ?? false;
-      if (!hasSeenPlayTour) {
-        await prefs.setBool('has_seen_showcase_tour_play', true);
-        await Future.delayed(const Duration(milliseconds: 250));
-        if (mounted && context.read<NavigationService>().currentIndex == 2) {
-          TourKeys.startPlayTour(context);
-        }
-      }
-    } else if (index == 3) { // REWARDS
-      final hasSeenRewardsTour = prefs.getBool('has_seen_showcase_tour_rewards') ?? false;
-      if (!hasSeenRewardsTour) {
-        await prefs.setBool('has_seen_showcase_tour_rewards', true);
-        await Future.delayed(const Duration(milliseconds: 250));
-        if (mounted && context.read<NavigationService>().currentIndex == 3) {
-          TourKeys.startRewardsTour(context);
+      
+      final hasSeen = prefs.getBool(flag) ?? false;
+      if (!hasSeen) {
+        await prefs.setBool(flag, true);
+        // Small delay to ensure the UI is stable and keys are attached
+        await Future.delayed(const Duration(milliseconds: 400));
+        if (mounted && context.read<NavigationService>().currentIndex == index) {
+          tourAction();
         }
       }
     }
@@ -153,7 +141,7 @@ class _MainScreenState extends State<MainScreen> {
                 soundService.playTap();
                 TourKeys.dismiss(); // Clean up active tours on tab switch
                 navigationService.setTab(index);
-                _checkTabTour(index);
+                _triggerTourForIndex(index);
               },
               backgroundColor: Colors.transparent,
               elevation: 0,

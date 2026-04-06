@@ -1,6 +1,6 @@
 import 'dart:io' show Platform, exit;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -449,8 +449,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               onTap: () async {
                                 if (!context.mounted) return;
                                 soundService.playTap();
-                                final shouldStart = await _showSettingsModal(context, isDark, themeService);
-                                if (shouldStart == true) {
+                                final shouldReset = await _showSettingsModal(context, isDark, themeService);
+                                if (shouldReset == true) {
                                   if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
@@ -458,6 +458,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       duration: Duration(seconds: 2),
                                     ),
                                   );
+                                  // Wait for the modal to fully close and UI to stabilize
                                   await Future.delayed(const Duration(milliseconds: 600));
                                   if (context.mounted) {
                                     TourKeys.startHomeTour(context);
@@ -1253,7 +1254,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── Header ──
+                    // ── Header Handle ──
                     Center(
                       child: Container(
                         width: 40, height: 4,
@@ -1275,108 +1276,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 24),
 
                     // ═══════════════════════════════════════════
-                    // ── PREMIUM SECTION ──
+                    // ── 1. USER PREFERENCES SECTION ──
                     // ═══════════════════════════════════════════
-                    _settingsSectionHeader('Premium', Icons.workspace_premium_rounded, AppTheme.accentAmber, isDark),
-                    const SizedBox(height: 8),
-                    Consumer<SubscriptionService>(
-                      builder: (context, subscription, _) {
-                        final isPremium = subscription.isPremium;
-                        return Column(
-                          children: [
-                            ListTile(
-                              leading: const Icon(Icons.star_rounded, color: AppTheme.accentAmber),
-                              title: Text(
-                                isPremium ? 'Premium Active' : 'Go Premium',
-                                style: AppTheme.bodyLarge.copyWith(
-                                  color: AppTheme.textPrimaryC(isDark),
-                                  fontWeight: isPremium ? FontWeight.bold : FontWeight.normal,
-                                ),
-                              ),
-                              subtitle: Text(
-                                isPremium 
-                                    ? 'Thank you for your support!' 
-                                    : 'Remove ads & unlock all content',
-                                style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-                              ),
-                              trailing: isPremium 
-                                  ? const Icon(Icons.check_circle_rounded, color: Colors.green)
-                                  : Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
-                              onTap: () {
-                                context.read<SoundService>().playTap();
-                                if (!isPremium) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => const PaywallScreen()),
-                                  );
-                                }
-                              },
-                            ),
-                            
-                            // ── APP TOUR ──
-                            ListTile(
-                              leading: const Icon(Icons.map_rounded, color: AppTheme.accentCyan),
-                              title: Text(
-                                'App Tour',
-                                style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
-                              ),
-                              subtitle: Text(
-                                'Re-watch the guided tour',
-                                style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-                              ),
-                              trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
-                              onTap: () async {
-                                context.read<SoundService>().playTap();
-                                
-                                final prefs = await SharedPreferences.getInstance();
-                                await prefs.setBool('has_seen_showcase_tour_home_v2', false);
-                                await prefs.setBool('has_seen_showcase_tour_roadmap', false);
-                                await prefs.setBool('has_seen_showcase_tour_play', false);
-                                await prefs.setBool('has_seen_showcase_tour_rewards', false);
-                                await prefs.setBool('has_seen_showcase_tour_inspector', false);
-                                await prefs.setBool('has_seen_showcase_tour_pipeline', false);
-                                await prefs.setBool('has_seen_showcase_tour_debugger', false);
-                                await prefs.setBool('has_seen_showcase_tour_minigame', false);
-                                await prefs.setBool('has_seen_showcase_tour_coding', false);
-
-                                if (context.mounted) {
-                                  context.read<NavigationService>().setTab(0);
-                                  Navigator.pop(ctx, true); // Pop with true to trigger tour
-                                }
-                              },
-                            ),
-
-                            if (!isPremium)
-                              ListTile(
-                                leading: const Icon(Icons.restore_rounded, color: AppTheme.accentCyan),
-                                title: Text(
-                                  'Restore Purchase',
-                                  style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
-                                ),
-                                trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
-                                onTap: () async {
-                                  context.read<SoundService>().playTap();
-                                  await subscription.restorePurchases();
-                                  if (subscription.isPremium && context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Premium access restored! 🎉')),
-                                    );
-                                  }
-                                },
-                              ),
-                          ],
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: 16),
-                    Divider(color: AppTheme.dividerC(isDark)),
-                    const SizedBox(height: 8),
-
-                    // ═══════════════════════════════════════════
-                    // ── GENERAL SECTION ──
-                    // ═══════════════════════════════════════════
-                    _settingsSectionHeader('General', Icons.tune_rounded, AppTheme.accentCyan, isDark),
+                    _settingsSectionHeader('User Preferences', Icons.tune_rounded, AppTheme.accentCyan, isDark),
                     const SizedBox(height: 8),
                     ListTile(
                       leading: const Icon(Icons.person_outline_rounded, color: AppTheme.accentCyan),
@@ -1460,48 +1362,71 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       ),
                     ),
-                    Consumer<ProgressService>(
-                      builder: (context, progress, _) => Column(
-                        children: [
-                          SwitchListTile(
-                            secondary: const Icon(Icons.bug_report_rounded, color: AppTheme.accentAmber),
-                            title: Text(
-                              'Show Testing Tools',
-                              style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+
+                    const SizedBox(height: 16),
+                    Divider(color: AppTheme.dividerC(isDark)),
+                    const SizedBox(height: 8),
+
+                    // ═══════════════════════════════════════════
+                    // ── 2. PREMIUM & BILLING SECTION ──
+                    // ═══════════════════════════════════════════
+                    _settingsSectionHeader('Premium & Billing', Icons.workspace_premium_rounded, AppTheme.accentAmber, isDark),
+                    const SizedBox(height: 8),
+                    Consumer<SubscriptionService>(
+                      builder: (context, subscription, _) {
+                        final isPremium = subscription.isPremium;
+                        return Column(
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.star_rounded, color: AppTheme.accentAmber),
+                              title: Text(
+                                isPremium ? 'Premium Active' : 'Go Premium',
+                                style: AppTheme.bodyLarge.copyWith(
+                                  color: AppTheme.textPrimaryC(isDark),
+                                  fontWeight: isPremium ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                              subtitle: Text(
+                                isPremium 
+                                    ? 'Thank you for your support!' 
+                                    : 'Remove ads & unlock all content',
+                                style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                              ),
+                              trailing: isPremium 
+                                  ? const Icon(Icons.check_circle_rounded, color: Colors.green)
+                                  : Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                              onTap: () {
+                                context.read<SoundService>().playTap();
+                                if (!isPremium) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const PaywallScreen()),
+                                  );
+                                }
+                              },
                             ),
-                            subtitle: Text(
-                              'Enable debug buttons for developers',
-                              style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-                            ),
-                            value: progress.showDebugTools,
-                            activeThumbColor: AppTheme.accentAmber,
-                            onChanged: (val) {
-                              progress.toggleShowDebugTools();
-                              context.read<SoundService>().playTap();
-                            },
-                          ),
-                          if (progress.showDebugTools)
-                            Consumer<SubscriptionService>(
-                              builder: (context, subscription, _) => SwitchListTile(
-                                secondary: const Icon(Icons.workspace_premium_rounded, color: AppTheme.accentAmber),
+                            
+                            if (!isPremium)
+                              ListTile(
+                                leading: const Icon(Icons.restore_rounded, color: AppTheme.accentCyan),
                                 title: Text(
-                                  'Debug: Premium Status',
+                                  'Restore Purchase',
                                   style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
                                 ),
-                                subtitle: Text(
-                                  'Override premium for testing purposes',
-                                  style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-                                ),
-                                value: subscription.debugPremiumOverride,
-                                activeThumbColor: AppTheme.accentAmber,
-                                onChanged: (val) {
-                                  subscription.toggleDebugPremiumOverride();
+                                trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                                onTap: () async {
                                   context.read<SoundService>().playTap();
+                                  await subscription.restorePurchases();
+                                  if (subscription.isPremium && context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Premium access restored! 🎉')),
+                                    );
+                                  }
                                 },
                               ),
-                            ),
-                        ],
-                      ),
+                          ],
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 16),
@@ -1509,9 +1434,50 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 8),
 
                     // ═══════════════════════════════════════════
-                    // ── APP SECTION ──
+                    // ── 3. GUIDANCE SECTION ──
                     // ═══════════════════════════════════════════
-                    _settingsSectionHeader('App', Icons.apps_rounded, AppTheme.accentBlue, isDark),
+                    _settingsSectionHeader('Guidance', Icons.help_outline_rounded, AppTheme.accentCyan, isDark),
+                    const SizedBox(height: 8),
+                    ListTile(
+                      leading: const Icon(Icons.map_rounded, color: AppTheme.accentCyan),
+                      title: Text(
+                        'App Tour',
+                        style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                      ),
+                      subtitle: Text(
+                        'Re-watch the guided tour',
+                        style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                      ),
+                      trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                      onTap: () async {
+                        context.read<SoundService>().playTap();
+                        
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setBool('has_seen_showcase_tour_home_v2', false);
+                        await prefs.setBool('has_seen_showcase_tour_roadmap', false);
+                        await prefs.setBool('has_seen_showcase_tour_play', false);
+                        await prefs.setBool('has_seen_showcase_tour_rewards', false);
+                        await prefs.setBool('has_seen_showcase_tour_inspector', false);
+                        await prefs.setBool('has_seen_showcase_tour_pipeline', false);
+                        await prefs.setBool('has_seen_showcase_tour_debugger', false);
+                        await prefs.setBool('has_seen_showcase_tour_minigame', false);
+                        await prefs.setBool('has_seen_showcase_tour_coding', false);
+
+                        if (context.mounted) {
+                          context.read<NavigationService>().setTab(0);
+                          Navigator.pop(ctx, true); // Pop with true to trigger tour
+                        }
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
+                    Divider(color: AppTheme.dividerC(isDark)),
+                    const SizedBox(height: 8),
+
+                    // ═══════════════════════════════════════════
+                    // ── 4. ABOUT SECTION ──
+                    // ═══════════════════════════════════════════
+                    _settingsSectionHeader('About', Icons.info_outline_rounded, AppTheme.accentBlue, isDark),
                     const SizedBox(height: 8),
                     ListTile(
                       leading: const Icon(Icons.star_rounded, color: AppTheme.accentAmber),
@@ -1569,13 +1535,31 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                     ),
+                    ListTile(
+                      leading: const Icon(Icons.info_outline_rounded, color: AppTheme.accentBlue),
+                      title: Text(
+                        'Credits',
+                        style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                      ),
+                      trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                      onTap: () {
+                        context.read<SoundService>().playTap();
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context2) => const CreditsScreen(),
+                          ),
+                        );
+                      },
+                    ),
 
                     const SizedBox(height: 16),
                     Divider(color: AppTheme.dividerC(isDark)),
                     const SizedBox(height: 8),
 
                     // ═══════════════════════════════════════════
-                    // ── DANGER ZONE ──
+                    // ── 5. DANGER ZONE ──
                     // ═══════════════════════════════════════════
                     _settingsSectionHeader('Danger Zone', Icons.warning_amber_rounded, AppTheme.errorRed, isDark),
                     const SizedBox(height: 8),
@@ -1609,153 +1593,167 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
 
-                    const SizedBox(height: 16),
-                    Divider(color: AppTheme.dividerC(isDark)),
-                    const SizedBox(height: 8),
-
                     // ═══════════════════════════════════════════
-                    // ── ABOUT SECTION ──
+                    // ── 6. DEVELOPER TOOLS (Debug Only) ──
                     // ═══════════════════════════════════════════
-                    _settingsSectionHeader('About', Icons.info_outline_rounded, AppTheme.accentCyan, isDark),
-                    const SizedBox(height: 8),
-                    ListTile(
-                      leading: const Icon(Icons.info_outline_rounded, color: AppTheme.accentBlue),
-                      title: Text(
-                        'Credits',
-                        style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
-                      ),
-                      trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
-                      onTap: () {
-                        context.read<SoundService>().playTap();
-                        Navigator.pop(ctx);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context2) => const CreditsScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    // ── Testing Section ──
-                    if (context.watch<ProgressService>().showDebugTools)
+                    if (kDebugMode) ...[
+                      const SizedBox(height: 16),
+                      Divider(color: AppTheme.dividerC(isDark)),
+                      const SizedBox(height: 8),
+                      _settingsSectionHeader('Developer Tools', Icons.bug_report_rounded, AppTheme.accentAmber, isDark),
+                      const SizedBox(height: 8),
                       Consumer<ProgressService>(
                         builder: (context, progress, _) => Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(height: 16),
-                            Divider(color: AppTheme.dividerC(isDark)),
-                            const SizedBox(height: 8),
-                            _settingsSectionHeader('Testing', Icons.bug_report_rounded, AppTheme.accentAmber, isDark),
-                            const SizedBox(height: 8),
-                            ListTile(
-                              leading: const Icon(Icons.notifications_active_rounded, color: AppTheme.accentAmber),
-                              title: Text(
-                                'Trigger Debug Notification',
-                                style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
-                              ),
-                              subtitle: Text(
-                                'Test notification pipeline immediately',
-                                style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-                              ),
-                              trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
-                              onTap: () {
-                                context.read<SoundService>().playTap();
-                                context.read<NotificationService>().triggerDebugNotification();
-                              },
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.timer_outlined, color: AppTheme.accentAmber),
-                              title: Text(
-                                'Schedule Test Alarm (60s)',
-                                style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
-                              ),
-                              subtitle: Text(
-                                'Verify background scheduling works',
-                                style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-                              ),
-                              trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
-                              onTap: () async {
-                                final messenger = ScaffoldMessenger.of(context);
-                                context.read<SoundService>().playTap();
-                                await context.read<NotificationService>().scheduleTestAlarm60s();
-                                messenger.showSnackBar(
-                                  const SnackBar(content: Text('Alarm scheduled for 60 seconds from now! 🕒')),
-                                );
-                              },
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.emoji_emotions_rounded, color: AppTheme.accentAmber),
-                              title: Text(
-                                'Trigger Funny Notification',
-                                style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
-                              ),
-                              subtitle: Text(
-                                'Test random funny engagement messages',
-                                style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-                              ),
-                              trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
-                              onTap: () {
-                                context.read<SoundService>().playTap();
-                                context.read<NotificationService>().triggerFunnyNotification();
-                              },
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.workspace_premium_rounded, color: AppTheme.successGreen),
-                              title: Text(
-                                'Unlock All Certificates',
-                                style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
-                              ),
-                              subtitle: Text(
-                                'Instantly earn Bronze to Platinum',
-                                style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-                              ),
-                              trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
-                              onTap: () async {
-                                final messenger = ScaffoldMessenger.of(context);
-                                context.read<SoundService>().playTap();
-                                await progress.unlockAllCertificates();
-                                messenger.showSnackBar(
-                                  const SnackBar(content: Text('All certificates unlocked! 🎓')),
-                                );
-                              },
-                            ),
                             SwitchListTile(
                               secondary: const Icon(Icons.bug_report_rounded, color: AppTheme.accentAmber),
                               title: Text(
-                                'Bypass All Locks',
+                                'Show Testing Tools',
                                 style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
                               ),
                               subtitle: Text(
-                                'For testing – unlocks all modules',
+                                'Enable debug buttons for developers',
                                 style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
                               ),
-                              value: progress.debugUnlockAll,
+                              value: progress.showDebugTools,
                               activeThumbColor: AppTheme.accentAmber,
-                              onChanged: (val) => progress.toggleDebugUnlock(),
-                            ),
-                            SwitchListTile(
-                              secondary: const Icon(Icons.check_circle_outline_rounded, color: AppTheme.successGreen),
-                              title: Text(
-                                'Complete All Modules',
-                                style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
-                              ),
-                              subtitle: Text(
-                                'For testing – marks everything as done',
-                                style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-                              ),
-                              value: progress.isCurriculumComplete(allModules.fold<int>(0, (sum, m) => sum + m.topics.length)),
-                              activeThumbColor: AppTheme.successGreen,
                               onChanged: (val) {
-                                if (val) {
-                                  progress.completeAllModules(allModules);
-                                } else {
-                                  progress.resetAll(gameProgress: context.read<GameProgressService>());
-                                }
+                                progress.toggleShowDebugTools();
+                                context.read<SoundService>().playTap();
                               },
                             ),
+                            if (progress.showDebugTools) ...[
+                              Consumer<SubscriptionService>(
+                                builder: (context, subscription, _) => SwitchListTile(
+                                  secondary: const Icon(Icons.workspace_premium_rounded, color: AppTheme.accentAmber),
+                                  title: Text(
+                                    'Debug: Premium Status',
+                                    style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                                  ),
+                                  subtitle: Text(
+                                    'Override premium for testing purposes',
+                                    style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                                  ),
+                                  value: subscription.debugPremiumOverride,
+                                  activeThumbColor: AppTheme.accentAmber,
+                                  onChanged: (val) {
+                                    subscription.toggleDebugPremiumOverride();
+                                    context.read<SoundService>().playTap();
+                                  },
+                                ),
+                              ),
+                              ListTile(
+                                leading: const Icon(Icons.notifications_active_rounded, color: AppTheme.accentAmber),
+                                title: Text(
+                                  'Trigger Debug Notification',
+                                  style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                                ),
+                                subtitle: Text(
+                                  'Test notification pipeline immediately',
+                                  style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                                ),
+                                trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                                onTap: () {
+                                  context.read<SoundService>().playTap();
+                                  context.read<NotificationService>().triggerDebugNotification();
+                                },
+                              ),
+                              ListTile(
+                                leading: const Icon(Icons.timer_outlined, color: AppTheme.accentAmber),
+                                title: Text(
+                                  'Schedule Test Alarm (60s)',
+                                  style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                                ),
+                                subtitle: Text(
+                                  'Verify background scheduling works',
+                                  style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                                ),
+                                trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                                onTap: () async {
+                                  final messenger = ScaffoldMessenger.of(context);
+                                  context.read<SoundService>().playTap();
+                                  await context.read<NotificationService>().scheduleTestAlarm60s();
+                                  messenger.showSnackBar(
+                                    const SnackBar(content: Text('Alarm scheduled for 60 seconds from now! 🕒')),
+                                  );
+                                },
+                              ),
+                              ListTile(
+                                leading: const Icon(Icons.emoji_emotions_rounded, color: AppTheme.accentAmber),
+                                title: Text(
+                                  'Trigger Funny Notification',
+                                  style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                                ),
+                                subtitle: Text(
+                                  'Test random funny engagement messages',
+                                  style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                                ),
+                                trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                                onTap: () {
+                                  context.read<SoundService>().playTap();
+                                  context.read<NotificationService>().triggerFunnyNotification();
+                                },
+                              ),
+                              ListTile(
+                                leading: const Icon(Icons.workspace_premium_rounded, color: AppTheme.successGreen),
+                                title: Text(
+                                  'Unlock All Certificates',
+                                  style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                                ),
+                                subtitle: Text(
+                                  'Instantly earn Bronze to Platinum',
+                                  style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                                ),
+                                trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
+                                onTap: () async {
+                                  final messenger = ScaffoldMessenger.of(context);
+                                  context.read<SoundService>().playTap();
+                                  await progress.unlockAllCertificates();
+                                  messenger.showSnackBar(
+                                    const SnackBar(content: Text('All certificates unlocked! 🎓')),
+                                  );
+                                },
+                              ),
+                              SwitchListTile(
+                                secondary: const Icon(Icons.bug_report_rounded, color: AppTheme.accentAmber),
+                                title: Text(
+                                  'Bypass All Locks',
+                                  style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                                ),
+                                subtitle: Text(
+                                  'For testing – unlocks all modules',
+                                  style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                                ),
+                                value: progress.debugUnlockAll,
+                                activeThumbColor: AppTheme.accentAmber,
+                                onChanged: (val) => progress.toggleDebugUnlock(),
+                              ),
+                              SwitchListTile(
+                                secondary: const Icon(Icons.check_circle_outline_rounded, color: AppTheme.successGreen),
+                                title: Text(
+                                  'Complete All Modules',
+                                  style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                                ),
+                                subtitle: Text(
+                                  'For testing – marks everything as done',
+                                  style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                                ),
+                                value: progress.isCurriculumComplete(allModules.fold<int>(0, (sum, m) => sum + m.topics.length)),
+                                activeThumbColor: AppTheme.successGreen,
+                                onChanged: (val) {
+                                  if (val) {
+                                    progress.completeAllModules(allModules);
+                                  } else {
+                                    progress.resetAll(gameProgress: context.read<GameProgressService>());
+                                  }
+                                },
+                              ),
+                            ],
                           ],
                         ),
                       ),
+                    ],
+
                     const SizedBox(height: 16),
                     // ── Version Label ──
                     FutureBuilder<PackageInfo>(

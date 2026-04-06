@@ -1,9 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TourKeys {
   static TutorialCoachMark? _currentMark;
   static final Map<String, Future<void> Function()?> _onBeforeNextMap = {};
+  
+  /// Flag to prevent auto-triggering tours when manually triggered from settings
+  static bool _justManuallyTriggered = false;
+  
+  /// Check if a tour was just manually triggered (for preventing double-trigger)
+  static bool get wasJustManuallyTriggered => _justManuallyTriggered;
+  
+  /// Mark that a tour is about to be manually triggered
+  static void markManualTrigger() {
+    _justManuallyTriggered = true;
+  }
+  
+  /// Clear the manual trigger flag (call after tour starts or after a delay)
+  static void clearManualTrigger() {
+    _justManuallyTriggered = false;
+  }
 
   static void dismiss() {
     _currentMark?.finish();
@@ -15,12 +32,16 @@ class TourKeys {
     
     final onBeforeNext = _onBeforeNextMap[identify];
     
-    // Advance first so highlight disappears from current target immediately
-    _currentMark!.next(); 
     if (onBeforeNext != null) {
-      // Small delay ensures the highlight transition has started/finished before scrolling
+      // Scrolling case: Scroll first while the current highlight is still visible
+      // This looks much more natural as the old highlight moves with the content
       await onBeforeNext();
+      // Small pause after scroll finishes to ensure UI is stable
+      await Future.delayed(const Duration(milliseconds: 150));
     }
+    
+    // Now advance to the next target which is currently on screen
+    _currentMark!.next(); 
   }
 
   // ── Existing ──
@@ -85,7 +106,7 @@ class TourKeys {
         key: homeXpKey,
         identify: 'xp_bar',
         title: 'Your XP Progress',
-        description: 'Level up by exploring modules, succeeds in mini-games, completing daily challenges, and answering quiz questions correctly.',
+        description: 'You earn XP by exploring modules, succeeding in mini-games, completing daily challenges, and answering quiz questions correctly.',
         contentAlign: ContentAlign.bottom,
       ));
     }
@@ -144,7 +165,7 @@ class TourKeys {
           if (homeCertificatesKey.currentContext != null) {
             await Scrollable.ensureVisible(
               homeCertificatesKey.currentContext!,
-              duration: const Duration(milliseconds: 250),
+              duration: const Duration(milliseconds: 400),
               curve: Curves.easeInOut,
               alignment: 0.8,
             );
@@ -236,7 +257,7 @@ class TourKeys {
           if (rewardsBadgesKey.currentContext != null) {
             await Scrollable.ensureVisible(
               rewardsBadgesKey.currentContext!,
-              duration: const Duration(milliseconds: 250),
+              duration: const Duration(milliseconds: 400),
               curve: Curves.easeInOut,
               alignment: 0.8,
             );
@@ -374,15 +395,41 @@ class TourKeys {
   static void _show(BuildContext context, List<TargetFocus> targets, String tag) {
     if (targets.isEmpty) return;
 
+    // Map tag to SharedPreferences flag
+    final flagMap = {
+      'home_tour': 'has_seen_showcase_tour_home_v2',
+      'roadmap_tour': 'has_seen_showcase_tour_roadmap',
+      'play_tour': 'has_seen_showcase_tour_play',
+      'rewards_tour': 'has_seen_showcase_tour_rewards',
+      'inspector_tour': 'has_seen_showcase_tour_inspector',
+      'pipeline_tour': 'has_seen_showcase_tour_pipeline',
+      'debugger_tour': 'has_seen_showcase_tour_debugger',
+      'coding_game_tour': 'has_seen_showcase_tour_coding',
+    };
+    final flag = flagMap[tag];
+
+    // Helper to mark tour as seen
+    void markTourAsSeen() {
+      if (flag != null) {
+        SharedPreferences.getInstance().then((prefs) {
+          prefs.setBool(flag, true);
+        });
+      }
+    }
+
     dismiss(); // Ensure no other tour is running
     _currentMark = TutorialCoachMark(
       targets: targets,
       colorShadow: Colors.black,
       paddingFocus: 10,
       opacityShadow: 0.85,
-      onFinish: () => _currentMark = null,
+      onFinish: () {
+        _currentMark = null;
+        markTourAsSeen(); // Mark as seen when finished
+      },
       onSkip: () {
         _currentMark = null;
+        markTourAsSeen(); // Mark as seen when skipped
         return true;
       },
       onClickTarget: (target) {
