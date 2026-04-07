@@ -277,6 +277,7 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
 
   @override
   Widget build(BuildContext context) {
+    final sound       = context.read<SoundService>(); // Added sound service
     final zone        = ig_data.inspectorGameZones.firstWhere((z) => z.id == widget.level.zoneId);
     final hasWrong    = _placedChips.values.any((correct) => !correct);
     final canRun      = _placedChips.isNotEmpty && !_showSuccess;
@@ -299,10 +300,10 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
           ])),
           KeyedSubtree(
             key: TourKeys.inspectorWorkAreaKey,
-            child: _buildScriptBank(),
+            child: _buildScriptBank(sound), // Pass sound
           ),
           _buildTerminal(),
-          _buildBottomBar(hasWrong, canRun),
+          _buildBottomBar(hasWrong, canRun, sound), // Pass sound
         ]),
       ),
       bottomNavigationBar: _showCodeSnippet ? _buildCodeSnippet() : null,
@@ -328,8 +329,8 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(widget.level.title, style: const TextStyle(color: Colors.white,
-                fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: .3)),
-            Text(zone.name, style: TextStyle(color: zone.accentColor, fontSize: 10)),
+                fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: .3)),
+            Text(zone.name, style: TextStyle(color: zone.accentColor, fontSize: 12)),
           ])),
         Row(children: List.generate(3, (i) => Icon(
             i < stars ? Icons.star_rounded : Icons.star_outline_rounded,
@@ -373,10 +374,10 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('OBJECTIVE', style: TextStyle(color: zone.accentColor,
-                fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1)),
-            const SizedBox(height: 2),
+                fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
+            const SizedBox(height: 4),
             Text(widget.level.objective, style: const TextStyle(
-                color: Colors.white70, fontSize: 10.5, height: 1.4)),
+                color: Colors.white, fontSize: 14, height: 1.5, fontWeight: FontWeight.w500)),
           ])),
       ]),
     );
@@ -593,40 +594,77 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
     );
   }
 
-  // ── Script Bank — height 155, Wrap ──────────────────────────────────────────
-  Widget _buildScriptBank() {
+  Widget _buildScriptBank(SoundService sound) {
     return Container(
-        constraints: const BoxConstraints(maxHeight: 155),
-      decoration: const BoxDecoration(
-        color: Color(0xFF0A1424),
-        border: Border(top: BorderSide(color: Color(0xFF1A2A4A))),
+        width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFF0D1626),
+        border: Border(top: BorderSide(color: const Color(0xFF00E5FF).withValues(alpha: 0.15), width: 1.5)),
       ),
-      padding: const EdgeInsets.fromLTRB(7, 5, 7, 7),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Add Script', style: TextStyle(
-            color: Colors.white24, fontSize: 8,
-            fontWeight: FontWeight.w700, letterSpacing: .5)),
-        const SizedBox(height: 4),
-        Flexible(child: SingleChildScrollView(
-          child: Wrap(spacing: 4, runSpacing: 4,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Row(
+              children: [
+                const Text('ADD SCRIPT', style: TextStyle(
+                    color: Color(0xFF00E5FF), fontSize: 11,
+                    fontWeight: FontWeight.w900, letterSpacing: 2)),
+                const SizedBox(width: 8),
+                Container(width: 6, height: 6,
+                  decoration: const BoxDecoration(color: Color(0xFF00E5FF), shape: BoxShape.circle),
+                ).animate(onPlay: (c) => c.repeat())
+                 .scale(begin: const Offset(0.5, 0.5), end: const Offset(1.5, 1.5), duration: 1200.ms, curve: Curves.easeInOut)
+                 .fadeOut(duration: 1200.ms),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {
+                    sound.playTap();
+                    _resetLevel();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.04),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(children: [
+                      const Icon(Icons.restart_alt_rounded, color: Colors.white38, size: 14),
+                      const SizedBox(width: 4),
+                      const Text('CLEAR ALL', style: TextStyle(color: Colors.white38, fontSize: 8, fontWeight: FontWeight.w700)),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: Row(
             children: _shuffledBank.map((chip) {
               final placed = _placedChips.containsKey(chip.id);
-              return _ScriptBankChip(
-                chip: chip, 
-                placed: placed,
-                validated: _hasRun, // Only highlight after Run Scene
-                onTap: placed ? null : () => _placeScript(chip));
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: _ScriptBankChip(
+                  chip: chip, 
+                  placed: placed,
+                  validated: _hasRun,
+                  onTap: placed ? null : () => _placeScript(chip)),
+              );
             }).toList()),
-        )),
+        ),
       ]),
-    );
+    ).animate(onPlay: (c) => c.repeat(reverse: true))
+     .shimmer(duration: 3.seconds, color: const Color(0xFF00E5FF).withValues(alpha: 0.05));
   }
 
   // ── Terminal — height 140, ListView, no overflow ──────────────────────────
   Widget _buildTerminal() {
     return Container(
-      height: 140,
+      height: 130, // Reduced from 180
       decoration: const BoxDecoration(
         color: Color(0xFF070C14),
         border: Border(
@@ -665,9 +703,10 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
           itemBuilder: (_, i) => Text(_termLog[i].message,
             style: TextStyle(
               fontFamily: 'Courier New',
-              fontSize: 9.5,
+              fontSize: 12.5, // Slightly smaller terminals
               color: _termColor(_termLog[i].type),
-              height: 1.55),
+              height: 1.3, // Tighter leading
+              fontWeight: FontWeight.w500),
             maxLines: 2,
             overflow: TextOverflow.ellipsis),
         )),
@@ -676,11 +715,11 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
   }
 
   Color _termColor(TerminalLineType t) => switch (t) {
-    TerminalLineType.success => const Color(0xFF00C853),
-    TerminalLineType.info    => const Color(0xFF00E5FF),
-    TerminalLineType.warning => const Color(0xFFFFC107),
-    TerminalLineType.error   => const Color(0xFFEF5350),
-    TerminalLineType.dim     => const Color(0xFF384858),
+    TerminalLineType.success => const Color(0xFF69F0AE), // Lighter green
+    TerminalLineType.info    => const Color(0xFF80FAFF), // Lighter cyan
+    TerminalLineType.warning => const Color(0xFFFFD54F), // Lighter amber
+    TerminalLineType.error   => const Color(0xFFFF8A80), // Lighter red
+    TerminalLineType.dim     => const Color(0xFFAABBCB), // Much lighter dim gray
   };
 
   // ── Code snippet drawer ───────────────────────────────────────────────────
@@ -775,12 +814,12 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
   }
 
   // ── Bottom Controls ────────────────────────────────────────────────────────
-  Widget _buildBottomBar(bool hasWrong, bool canRun) {
+  Widget _buildBottomBar(bool hasWrong, bool canRun, SoundService sound) {
     final total  = widget.level.correctIds.length;
     // Progress starts at 0 and only fills once validated
     final placed = _showSuccess ? total : 0;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       color: const Color(0xFF0A1020),
       child: Row(children: [
         Expanded(child: Wrap(spacing: 5,
@@ -790,7 +829,10 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
               color: i < placed ? const Color(0xFF00E5FF) : Colors.white12,
               borderRadius: BorderRadius.circular(2)))))),
         GestureDetector(
-          onTap: _showHint,
+          onTap: () {
+            sound.playTap();
+            _showHint();
+          },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
             decoration: BoxDecoration(
@@ -817,6 +859,18 @@ class _InspectorGameScreenState extends State<InspectorGameScreen>
                     ? const Color(0xFF060B14) : Colors.white24,
                 fontSize: 10, fontWeight: FontWeight.w800,
                 letterSpacing: .4)))),
+        GestureDetector(
+          onTap: () {
+            sound.playTap();
+            _showIntroPopup();
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.circular(5)),
+            child: const Icon(Icons.help_outline_rounded,
+                color: Colors.white38, size: 14))),
       ]),
     );
   }
@@ -851,33 +905,39 @@ class _ScriptBankChip extends StatelessWidget {
     final activated = placed && validated; // Only highlight after validation
     return GestureDetector(
       onTap: onTap,
-      child: Column(children: [
-        Container(
-          width: 34, height: 34,
-          decoration: BoxDecoration(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: activated
+              ? const Color(0xFF00E5FF).withValues(alpha: 0.15)
+              : (placed ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.03)),
+          borderRadius: BorderRadius.circular(20), // Pill shape
+          border: Border.all(
             color: activated
-                ? const Color(0xFF00E5FF).withValues(alpha: 0.10)
-                : Colors.white.withValues(alpha: 0.02),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(
-              color: activated
-                  ? const Color(0xFF00E5FF).withValues(alpha: 0.55)
-                  : Colors.white.withValues(alpha: 0.06),
-              width: activated ? 1.5 : 1),
-            boxShadow: activated ? [BoxShadow(
-              color: const Color(0xFF00E5FF).withValues(alpha: 0.30),
-              blurRadius: 10, spreadRadius: 1)] : null),
-          child: Center(child: Text('\u2699', // Gear icon as ScriptChip has no icon
-            style: TextStyle(
-              fontSize: 16,
-              color: activated ? null : const Color(0xFF3A4060))))),
-        const SizedBox(height: 2),
-        Text(chip.label,
-          style: TextStyle(
-            color: activated ? Colors.white54 : Colors.white24,
-            fontSize: 7),
-          overflow: TextOverflow.ellipsis, maxLines: 1),
-      ]),
+                ? const Color(0xFF00E5FF).withValues(alpha: 0.7)
+                : Colors.white.withValues(alpha: 0.1),
+            width: activated ? 1.5 : 1),
+          boxShadow: activated ? [BoxShadow(
+            color: const Color(0xFF00E5FF).withValues(alpha: 0.20),
+            blurRadius: 8, spreadRadius: 1)] : null),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('\u2699', 
+              style: TextStyle(
+                fontSize: 14,
+                color: activated ? const Color(0xFF00E5FF) : Colors.white30)),
+            const SizedBox(width: 8),
+            Text(chip.label,
+              style: TextStyle(
+                color: activated ? Colors.white : (placed ? Colors.white38 : Colors.white70),
+                fontSize: 11,
+                fontWeight: FontWeight.w700),
+              overflow: TextOverflow.ellipsis, maxLines: 1),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -940,8 +1000,8 @@ class _ComponentTileState extends State<_ComponentTile> {
                 style: TextStyle(
                   color: widget.isError
                       ? const Color(0xFFEF7070)
-                      : const Color(0xFFC0D8F0),
-                  fontSize: 9, fontWeight: FontWeight.w600),
+                      : Colors.white,
+                  fontSize: 11, fontWeight: FontWeight.w700),
                 overflow: TextOverflow.ellipsis)),
               if (widget.isError)
                 const Text(' ERR ', style: TextStyle(

@@ -197,7 +197,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
                           color: _timeRemaining <= 10
                               ? Colors.red
                               : Colors.white70,
-                          fontSize: 13,
+                          fontSize: 15,
                           fontWeight: FontWeight.w800)),
                 ],
               ),
@@ -213,9 +213,9 @@ class _CodeGameScreenState extends State<CodeGameScreen>
                 widget.challenge.language.toUpperCase(),
                 style: TextStyle(
                     color: widget.zoneColor,
-                    fontSize: 10,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
-                    letterSpacing: 1),
+                    letterSpacing: 1.5),
               ),
             ),
         ],
@@ -256,13 +256,13 @@ class _CodeGameScreenState extends State<CodeGameScreen>
                 Text(widget.challenge.title,
                     style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 16,
+                        fontSize: 18,
                         fontWeight: FontWeight.w700)),
                 if (widget.challenge.subtitle.isNotEmpty)
                   Text(widget.challenge.subtitle,
                       style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.5),
-                          fontSize: 12)),
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: 14)),
               ],
             ),
           ),
@@ -357,15 +357,15 @@ class _CodeGameScreenState extends State<CodeGameScreen>
                 title.substring(3),
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 13,
+                  fontSize: 16,
                   fontWeight: FontWeight.w700)),
-              const SizedBox(height: 2),
+              const SizedBox(height: 4),
               Text(
                 body,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
-                  fontSize: 12,
-                  height: 1.4)),
+                  color: Colors.white.withValues(alpha: 0.7),
+                  fontSize: 14,
+                  height: 1.5)),
             ],
           ),
         ),
@@ -410,9 +410,9 @@ class _CodeGameScreenState extends State<CodeGameScreen>
             text: TextSpan(
               style: const TextStyle(
                 fontFamily: 'monospace',
-                fontSize: 13,
-                height: 1.7,
-                color: Color(0xFFE0E0E0),
+                fontSize: 16,
+                height: 1.6,
+                color: Color(0xFFF5F5F5),
               ),
               children: segments.map((seg) {
                 if (seg.isBlank) {
@@ -489,8 +489,8 @@ class _CodeGameScreenState extends State<CodeGameScreen>
           filled ?? '______',
           style: TextStyle(
             fontFamily: 'monospace',
-            fontSize: 12,
-            fontWeight: filled != null ? FontWeight.w700 : FontWeight.w400,
+            fontSize: 15,
+            fontWeight: filled != null ? FontWeight.w700 : FontWeight.w500,
             color: filled != null
                 ? Colors.white
                 : Colors.white.withValues(alpha: 0.3),
@@ -505,75 +505,75 @@ class _CodeGameScreenState extends State<CodeGameScreen>
     if (_wordBank.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8), // Reduced padding
+      padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF111522),
+        color: const Color(0xFF111522).withValues(alpha: 0.8),
         border: Border(
-          top: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+          top: BorderSide(color: Colors.white.withValues(alpha: 0.04)),
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min, // Minimize height
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text('WORD BANK',
-              style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.35),
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.5)),
-          const SizedBox(height: 6), // Reduced spacing
-          Wrap(
-            spacing: 8,
-            runSpacing: 6, // Reduced run spacing
-            children: _wordBank.map((token) {
-              final isSelected = _selectedToken == token;
-              return GestureDetector(
-                onTap: () {
-                  sound.playTap();
-                  setState(() {
-                    _selectedToken = isSelected ? null : token;
-                  });
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6), // Reduced padding
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? widget.zoneColor.withValues(alpha: 0.15)
-                        : Colors.white.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(8), // Smaller radius
-                    border: Border.all(
-                      color: isSelected
-                          ? widget.zoneColor.withValues(alpha: 0.6)
-                          : Colors.white.withValues(alpha: 0.1),
-                      width: isSelected ? 2 : 1,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text('WORD BANK',
+                style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.2)),
+          ),
+          const SizedBox(height: 6),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: _wordBank.map((token) {
+                final isSelected = _selectedToken == token;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: GestureDetector(
+                    onTap: () {
+                      sound.playTap();
+                      setState(() {
+                        _selectedToken = isSelected ? null : token;
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6), // Back to standard height
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? widget.zoneColor.withValues(alpha: 0.2)
+                            : Colors.white.withValues(alpha: 0.04),
+                        borderRadius: BorderRadius.circular(20), // Pill shape
+                        border: Border.all(
+                          color: isSelected
+                              ? widget.zoneColor.withValues(alpha: 0.7)
+                              : Colors.white.withValues(alpha: 0.08),
+                          width: isSelected ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Text(
+                        token,
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 14,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w600,
+                          color: isSelected
+                              ? widget.zoneColor
+                              : Colors.white.withValues(alpha: 0.95),
+                        ),
+                      ),
                     ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                                color:
-                                    widget.zoneColor.withValues(alpha: 0.2),
-                                blurRadius: 8)
-                          ]
-                        : null,
                   ),
-                  child: Text(
-                    token,
-                    style: TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 11, // Smaller font
-                      fontWeight:
-                          isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected
-                          ? widget.zoneColor
-                          : Colors.white.withValues(alpha: 0.8),
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),
@@ -585,7 +585,7 @@ class _CodeGameScreenState extends State<CodeGameScreen>
     final allFilled = !_filledBlanks.containsValue(null);
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 12), // Reduced from (16, 8, 16, 16)
       child: Row(
         children: [
           // CHECK / CONTINUE button (PRIMARY - full width emphasis)
@@ -890,9 +890,9 @@ class _CodeGameScreenState extends State<CodeGameScreen>
     };
     final trimmed = text.trim();
     if (keywords.contains(trimmed)) {
-      return const Color(0xFFBB86FC); // purple for keywords
+      return const Color(0xFFD1A6FF); // Lighter purple for keywords
     }
-    return const Color(0xFFE0E0E0);
+    return const Color(0xFFF0F0F0); // Lighter grey for normal text
   }
 
   String _fileExtension(String language) {

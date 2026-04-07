@@ -10,7 +10,6 @@ import '../models/module_model.dart';
 import '../data/quiz_data.dart';
 import '../services/progress_service.dart';
 import '../services/theme_service.dart';
-import '../services/subscription_service.dart';
 import 'module_detail_screen.dart';
 
 class RoadmapScreen extends StatelessWidget {
@@ -328,7 +327,6 @@ class _RoadmapNode extends StatelessWidget {
   }
 
   Widget _buildCard(BuildContext context) {
-    final subscriptionService = context.read<SubscriptionService>();
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -465,7 +463,7 @@ class _RoadmapNode extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               isPremiumModule
-                  ? '👑 Premium — Unlock for ${subscriptionService.localizedPrice}'
+                  ? '👑 Premium'
                   : '🔒 Pass previous quiz (70%+) to unlock',
               style: AppTheme.bodySmall.copyWith(
                 color: isPremiumModule
