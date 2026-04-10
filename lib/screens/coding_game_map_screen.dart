@@ -309,7 +309,29 @@ class _PlatformLevelCard extends StatelessWidget {
               ),
             ),
             if (isLocked)
-              const Icon(Icons.lock_rounded, color: Colors.white24, size: 18)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.stars_rounded, color: Colors.amber, size: 12),
+                        SizedBox(width: 4),
+                        Text('20 XP', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.lock_outline_rounded, color: Colors.white38, size: 18),
+                ],
+              )
             else
               Row(
                 children: List.generate(

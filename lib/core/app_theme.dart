@@ -207,6 +207,10 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: isDark ? Brightness.dark : Brightness.light,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      hoverColor: Colors.transparent,
+      splashFactory: NoSplash.splashFactory,
       scaffoldBackgroundColor: scaffold,
       colorScheme: isNeon
           ? const ColorScheme.dark(

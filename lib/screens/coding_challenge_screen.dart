@@ -504,16 +504,18 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
                 itemCount: _wordBank.length,
                 itemBuilder: (context, index) {
                 final chip = _wordBank[index];
-                return Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: Draggable<WordChip>(
-                    data: chip,
-                    feedback: Material(
-                      color: Colors.transparent,
-                      child: _buildChipUI(chip, isDragging: true),
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: Draggable<WordChip>(
+                      data: chip,
+                      feedback: Material(
+                        color: Colors.transparent,
+                        child: _buildChipUI(chip, isDragging: true),
+                      ),
+                      childWhenDragging: Opacity(opacity: 0.3, child: _buildChipUI(chip)),
+                      child: _buildChipUI(chip),
                     ),
-                    childWhenDragging: Opacity(opacity: 0.3, child: _buildChipUI(chip)),
-                    child: _buildChipUI(chip),
                   ),
                 );
               },
@@ -596,46 +598,47 @@ class _CodingChallengeScreenState extends State<CodingChallengeScreen> {
                 backgroundColor: _checked 
                   ? (allCorrect ? AppTheme.accentBlue : Colors.red) 
                   : widget.accentColor,
-                padding: const EdgeInsets.symmetric(vertical: 18),
+                padding: const EdgeInsets.symmetric(vertical: 20),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
               child: Text(
                 _checked ? (allCorrect ? 'CONTINUE' : 'TRY AGAIN') : 'CHECK',
-                style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Colors.black),
+                style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Colors.black, fontSize: 16),
               ),
             ),
           ),
-          SizedBox(height: _checked ? 12 : 0),
-          if (!_checked)
+          if (!_checked) ...[
+            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: _isHintAdLoading ? null : _showHintWithAd,
                 icon: _isHintAdLoading
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.orange, strokeWidth: 2))
-                    : const Icon(Icons.lightbulb_outline_rounded, color: Colors.orange),
-                label: Text(_isHintAdLoading ? 'WAIT...' : (isPremium ? 'GET HINT' : 'GET HINT (WATCH AD)'), style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(color: Colors.orange, strokeWidth: 2))
+                    : const Icon(Icons.lightbulb_outline_rounded, color: Colors.orange, size: 20),
+                label: Text(_isHintAdLoading ? 'WAIT...' : (isPremium ? 'GET HINT' : 'GET HINT (WATCH AD)'), style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, letterSpacing: 1.0, fontSize: 12)),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.orange),
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  side: const BorderSide(color: Colors.orange, width: 1),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ),
+          ],
           if (_checked && !allCorrect) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                  onPressed: _isHintAdLoading ? null : _showHintWithAd,
                  icon: _isHintAdLoading
-                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
-                     : const Icon(Icons.play_circle_filled_rounded, color: Colors.black),
-                 label: Text(_isHintAdLoading ? 'WAIT...' : (isPremium ? 'GET HINT' : 'WATCH AD FOR HINT'), style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Colors.black)),
+                     ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
+                     : const Icon(Icons.play_circle_filled_rounded, color: Colors.black, size: 20),
+                 label: Text(_isHintAdLoading ? 'WAIT...' : (isPremium ? 'GET HINT' : 'WATCH AD FOR HINT'), style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.0, color: Colors.black, fontSize: 12)),
                  style: ElevatedButton.styleFrom(
                    backgroundColor: Colors.amber,
-                   padding: const EdgeInsets.symmetric(vertical: 18),
-                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                   padding: const EdgeInsets.symmetric(vertical: 12),
+                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                  ),
               ),
             ),
