@@ -409,6 +409,9 @@ final List<DebugLevel> debugLevels = [
   ),
 ];
 
+final List<String> debugLevelOrder = debugLevels.map((l) => l.id).toList();
+
+
 // ═══════════════════════════════════════════════════════════════════
 //  MAP SCREEN
 // ═══════════════════════════════════════════════════════════════════
