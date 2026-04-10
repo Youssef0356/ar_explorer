@@ -3,15 +3,15 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:collection/collection.dart';
 
-import '../core/app_theme.dart';
-import '../models/topic_model.dart';
-import '../services/progress_service.dart';
-import '../services/theme_service.dart';
-import '../services/sound_service.dart';
-import '../services/ad_service.dart';
-import '../widgets/content_renderer.dart';
-import '../data/quiz_data.dart';
-import 'quiz_screen.dart';
+import '../../core/app_theme.dart';
+import '../../models/topic_model.dart';
+import '../../services/progress_service.dart';
+import '../../services/theme_service.dart';
+import '../../services/sound_service.dart';
+import '../../services/ad_service.dart';
+import '../../widgets/content_renderer.dart';
+import '../../data/learning/quiz_data.dart';
+import '../practice/quiz_screen.dart';
 class TopicScreen extends StatefulWidget {
   final Topic topic;
   final String moduleId;

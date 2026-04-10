@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/inspector_game_models.dart';
+import '../../models/inspector_game_models.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  INSPECTOR GAME — Level Content

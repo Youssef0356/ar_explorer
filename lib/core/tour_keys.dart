@@ -97,6 +97,7 @@ class TourKeys {
   static final GlobalKey pipelineObjectiveKey = GlobalKey();
   static final GlobalKey pipelineSceneKey     = GlobalKey();
   static final GlobalKey pipelineWorkAreaKey  = GlobalKey();
+  static final GlobalKey pipelineSubmitKey    = GlobalKey();
 
   // AR Debugger
   static final GlobalKey debuggerObjectiveKey  = GlobalKey();
@@ -286,22 +287,29 @@ class TourKeys {
       _target(
         key: pipelineObjectiveKey,
         identify: 'pipeline_objective',
-        title: 'Mission Objective',
-        description: 'Understand the AR configuration required for this engineering task.',
+        title: 'Welcome, AR Architect! 🏗️',
+        description: 'You\'ve been hired by Spatial Dreams Inc. to build the logic pipelines of the future. This is your "Client Brief"—read it carefully to understand the problem you need to solve.',
         contentAlign: ContentAlign.bottom,
       ),
       _target(
         key: pipelineSceneKey,
         identify: 'pipeline_flow',
-        title: 'The Logic (The Code)',
-        description: 'This is your AR Processing Pipeline. It works like a code sequence—order is critical!',
+        title: 'The Assembly Line ⚙️',
+        description: 'This is your processing pipeline. Like a real-world factory, data flows from left to right. If you miss a step or swap the order, the system will crash!',
         contentAlign: ContentAlign.bottom,
       ),
       _target(
         key: pipelineWorkAreaKey,
         identify: 'pipeline_pool',
-        title: 'Component Toolkit',
-        description: 'Tap components here to build your logic flow in the correct engineering order.',
+        title: 'The Component Toolkit 🧰',
+        description: 'These are your sensors and algorithms. Tap them to add them to your assembly line in the correct engineering order.',
+        contentAlign: ContentAlign.top,
+      ),
+      _target(
+        key: pipelineSubmitKey,
+        identify: 'pipeline_submit',
+        title: 'Run Diagnostics ▶️',
+        description: 'Once your pipeline is built, hit this button to test it on the device and see if it meets the client\'s requirements!',
         contentAlign: ContentAlign.top,
       ),
     ];

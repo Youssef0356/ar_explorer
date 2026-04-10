@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../core/app_theme.dart';
-import '../services/subscription_service.dart';
-import '../services/theme_service.dart';
-import '../widgets/animated_google_background.dart';
+import '../../core/app_theme.dart';
+import '../../services/subscription_service.dart';
+import '../../services/theme_service.dart';
+import '../../widgets/animated_google_background.dart';
 
 class PaywallScreen extends StatelessWidget {
   final Future<void> Function()? onUnlockAd;

@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
-import '../core/app_theme.dart';
-import '../models/quiz_model.dart';
-import '../services/progress_service.dart';
-import '../services/theme_service.dart';
-import '../services/ad_service.dart';
-import '../services/sound_service.dart';
-import '../data/modules_data.dart';
-import '../widgets/shareable_achievement_card.dart';
-import 'main_screen.dart';
-import 'paywall_screen.dart';
+import '../../core/app_theme.dart';
+import '../../models/quiz_model.dart';
+import '../../services/progress_service.dart';
+import '../../services/theme_service.dart';
+import '../../services/ad_service.dart';
+import '../../services/sound_service.dart';
+import '../../data/learning/modules_data.dart';
+import '../../widgets/shareable_achievement_card.dart';
+import '../app_shell/main_screen.dart';
+import '../settings/paywall_screen.dart';
 import 'practice_screen.dart';
 
 class QuizResultsScreen extends StatefulWidget {

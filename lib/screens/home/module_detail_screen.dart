@@ -3,16 +3,16 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:collection/collection.dart';
 
-import '../core/app_theme.dart';
-import '../data/quiz_data.dart';
-import '../data/modules_data.dart';
-import '../models/module_model.dart';
-import '../services/progress_service.dart';
-import '../services/theme_service.dart';
-import '../services/ad_service.dart';
-import 'bookmarks_screen.dart';
-import 'flashcard_screen.dart';
-import 'quiz_screen.dart';
+import '../../core/app_theme.dart';
+import '../../data/learning/quiz_data.dart';
+import '../../data/learning/modules_data.dart';
+import '../../models/module_model.dart';
+import '../../services/progress_service.dart';
+import '../../services/theme_service.dart';
+import '../../services/ad_service.dart';
+import '../profile/bookmarks_screen.dart';
+import '../practice/flashcard_screen.dart';
+import '../practice/quiz_screen.dart';
 import 'topic_screen.dart';
 
 class ModuleDetailScreen extends StatefulWidget {

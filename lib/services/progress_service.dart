@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/module_model.dart';
-import '../data/modules_data.dart';
-import '../data/quiz_data.dart';
+import '../data/learning/modules_data.dart';
+import '../data/learning/quiz_data.dart';
 import 'subscription_service.dart';
 import 'game_progress_service.dart';
 

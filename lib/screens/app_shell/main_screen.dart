@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../core/app_theme.dart';
-import '../core/tour_keys.dart';
+import '../../core/app_theme.dart';
+import '../../core/tour_keys.dart';
 
-import '../services/theme_service.dart';
-import '../services/sound_service.dart';
-import '../services/subscription_service.dart';
-import '../services/game_progress_service.dart';
-import 'home_screen.dart';
-import 'roadmap_screen.dart';
+import '../../services/theme_service.dart';
+import '../../services/sound_service.dart';
+import '../../services/subscription_service.dart';
+import '../../services/game_progress_service.dart';
+import '../home/home_screen.dart';
+import '../home/roadmap_screen.dart';
 
-import 'achievements_screen.dart';
-import 'play_screen.dart';
-import '../services/navigation_service.dart';
+import '../profile/achievements_screen.dart';
+import '../games/play_screen.dart';
+import '../../services/navigation_service.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;

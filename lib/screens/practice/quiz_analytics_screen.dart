@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../core/app_theme.dart';
-import '../data/modules_data.dart';
-import '../models/module_model.dart';
-import '../services/progress_service.dart';
-import '../services/theme_service.dart';
-import '../services/sound_service.dart';
-import '../widgets/animated_google_background.dart';
+import '../../core/app_theme.dart';
+import '../../data/learning/modules_data.dart';
+import '../../models/module_model.dart';
+import '../../services/progress_service.dart';
+import '../../services/theme_service.dart';
+import '../../services/sound_service.dart';
+import '../../widgets/animated_google_background.dart';
 
 class QuizAnalyticsScreen extends StatefulWidget {
   const QuizAnalyticsScreen({super.key});

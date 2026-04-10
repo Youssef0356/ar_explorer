@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/coding_game_models.dart';
+import '../../models/coding_game_models.dart';
 
 final List<CodingZone> codingGameZones = [
   // ── ZONE 1: VUFORIA (Unity/C#) ─────────────────────────────────────────────

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
-import '../core/app_theme.dart';
-import '../services/progress_service.dart';
+import '../../core/app_theme.dart';
+import '../../services/progress_service.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   final bool showConfirmButton;

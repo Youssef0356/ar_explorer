@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/app_theme.dart';
-import '../models/game_models.dart';
+import '../../core/app_theme.dart';
+import '../../models/game_models.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  CODE FILL-IN CHALLENGES — organized by AR platform

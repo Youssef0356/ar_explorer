@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../core/app_theme.dart';
-import '../services/theme_service.dart';
-import '../services/sound_service.dart';
-import '../services/progress_service.dart';
+import '../../core/app_theme.dart';
+import '../../services/theme_service.dart';
+import '../../services/sound_service.dart';
+import '../../services/progress_service.dart';
 
 
 class GameScreen extends StatefulWidget {

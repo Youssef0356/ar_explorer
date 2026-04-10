@@ -1,4 +1,4 @@
-import '../models/quiz_model.dart';
+import '../../models/quiz_model.dart';
 
 // ═══════════════════════════════════════════════════════════════════
 //  QUIZ DATA — Interview Time Assessments

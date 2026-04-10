@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
-import '../core/app_theme.dart';
-import '../data/flashcard_data.dart';
-import '../data/quiz_data.dart';
-import '../models/flashcard_model.dart';
-import '../services/progress_service.dart';
-import '../services/theme_service.dart';
-import 'paywall_screen.dart';
+import '../../core/app_theme.dart';
+import '../../data/learning/flashcard_data.dart';
+import '../../data/learning/quiz_data.dart';
+import '../../models/flashcard_model.dart';
+import '../../services/progress_service.dart';
+import '../../services/theme_service.dart';
+import '../settings/paywall_screen.dart';
 
 class FlashcardScreen extends StatefulWidget {
   final String moduleId;

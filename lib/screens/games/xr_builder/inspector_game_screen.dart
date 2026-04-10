@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
-import '../data/inspector_game_data.dart' as ig_data;
-import '../models/inspector_game_models.dart';
-import '../services/game_progress_service.dart';
-import '../services/sound_service.dart';
-import '../core/tour_keys.dart';
+import '../../../data/games/inspector_game_data.dart' as ig_data;
+import '../../../models/inspector_game_models.dart';
+import '../../../services/game_progress_service.dart';
+import '../../../services/sound_service.dart';
+import '../../../core/tour_keys.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════

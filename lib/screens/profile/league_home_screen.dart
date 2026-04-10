@@ -2,11 +2,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
-import '../services/game_progress_service.dart';
-import '../services/sound_service.dart';
+import '../../services/game_progress_service.dart';
+import '../../services/sound_service.dart';
 
-import 'game_map_screen.dart';
-import 'coding_game_map_screen.dart';
+import '../games/pipeline_challenge/game_map_screen.dart';
+import '../games/systems_engineer/coding_game_map_screen.dart';
 
 // ── Fake leaderboard data ─────────────────────────────────────────────────────
 class _LeaderboardEntry {

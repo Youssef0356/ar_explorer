@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../core/app_theme.dart';
-import '../data/inspector_game_data.dart' as ig_data;
-import '../data/xr_builder_config.dart';
-import '../models/inspector_game_models.dart';
-import '../services/game_progress_service.dart';
-import '../services/theme_service.dart';
-import '../services/sound_service.dart';
-import '../widgets/animated_google_background.dart';
+import '../../../core/app_theme.dart';
+import '../../../data/games/inspector_game_data.dart' as ig_data;
+import '../../../data/games/xr_builder_config.dart';
+import '../../../models/inspector_game_models.dart';
+import '../../../services/game_progress_service.dart';
+import '../../../services/theme_service.dart';
+import '../../../services/sound_service.dart';
+import '../../../widgets/animated_google_background.dart';
 import 'inspector_game_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════

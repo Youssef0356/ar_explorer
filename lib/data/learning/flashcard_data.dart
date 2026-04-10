@@ -1,4 +1,4 @@
-import '../models/flashcard_model.dart';
+import '../../models/flashcard_model.dart';
 
 final Map<String, List<Flashcard>> allFlashcards = {
   'intro_ar_basics': [

@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
-import '../core/app_theme.dart';
-import '../data/modules_data.dart';
-import '../models/quiz_model.dart';
-import '../services/progress_service.dart';
-import '../services/theme_service.dart';
-import '../services/sound_service.dart';
-import '../widgets/quiz_option_button.dart';
+import '../../core/app_theme.dart';
+import '../../data/learning/modules_data.dart';
+import '../../models/quiz_model.dart';
+import '../../services/progress_service.dart';
+import '../../services/theme_service.dart';
+import '../../services/sound_service.dart';
+import '../../widgets/quiz_option_button.dart';
 import 'quiz_results_screen.dart';
-import 'topic_screen.dart';
+import '../home/topic_screen.dart';
 
 class QuizScreen extends StatefulWidget {
   final Quiz quiz;

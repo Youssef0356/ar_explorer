@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../core/app_theme.dart';
-import '../services/theme_service.dart';
+import '../../core/app_theme.dart';
+import '../../services/theme_service.dart';
 import 'package:provider/provider.dart';
-import '../services/sound_service.dart';
+import '../../services/sound_service.dart';
 
 class CreditsScreen extends StatelessWidget {
   const CreditsScreen({super.key});

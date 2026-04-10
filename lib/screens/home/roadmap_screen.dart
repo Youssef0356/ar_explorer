@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
-import '../widgets/animated_google_background.dart';
-import '../core/tour_keys.dart';
-import '../core/app_theme.dart';
-import '../data/modules_data.dart';
-import '../models/module_model.dart';
-import '../data/quiz_data.dart';
-import '../services/progress_service.dart';
-import '../services/theme_service.dart';
+import '../../widgets/animated_google_background.dart';
+import '../../core/tour_keys.dart';
+import '../../core/app_theme.dart';
+import '../../data/learning/modules_data.dart';
+import '../../models/module_model.dart';
+import '../../data/learning/quiz_data.dart';
+import '../../services/progress_service.dart';
+import '../../services/theme_service.dart';
 import 'module_detail_screen.dart';
 
 class RoadmapScreen extends StatelessWidget {

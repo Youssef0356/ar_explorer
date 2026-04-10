@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
-import '../models/game_models.dart';
-import '../services/game_progress_service.dart';
-import '../services/sound_service.dart';
-import '../widgets/shareable_achievement_card.dart';
+import '../../../models/game_models.dart';
+import '../../../services/game_progress_service.dart';
+import '../../../services/sound_service.dart';
+import '../../../widgets/shareable_achievement_card.dart';
 
 class CodeGameScreen extends StatefulWidget {
   final CodeChallenge challenge;

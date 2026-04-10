@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
-import '../core/app_theme.dart';
-import '../services/progress_service.dart';
+import '../../core/app_theme.dart';
+import '../../services/progress_service.dart';
 import 'main_screen.dart';
 import 'onboarding_screen.dart';
-import 'privacy_policy_screen.dart';
+import '../settings/privacy_policy_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

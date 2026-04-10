@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../models/module_model.dart';
-import '../models/topic_model.dart';
+import '../../models/module_model.dart';
+import '../../models/topic_model.dart';
 
 // ═══════════════════════════════════════════════════════════════════
 //  ALL LEARNING MODULES — Content Data

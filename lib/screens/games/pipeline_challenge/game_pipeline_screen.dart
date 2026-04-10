@@ -3,18 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../core/tour_keys.dart';
+import '../../../services/ad_service.dart';
+import '../../../core/tour_keys.dart';
 
-import '../core/app_theme.dart';
-import '../data/game_data.dart';
-import '../data/modules_data.dart';
-import '../models/game_models.dart';
-import '../services/game_progress_service.dart';
-import '../services/sound_service.dart';
-import '../services/subscription_service.dart';
-import 'module_detail_screen.dart';
-import 'paywall_screen.dart';
-import '../widgets/animated_google_background.dart';
+import '../../../core/app_theme.dart';
+import '../../../data/games/game_data.dart';
+import '../../../data/learning/modules_data.dart';
+import '../../../models/game_models.dart';
+import '../../../services/game_progress_service.dart';
+import '../../../services/sound_service.dart';
+import '../../../services/subscription_service.dart';
+import '../../home/module_detail_screen.dart';
+import '../../settings/paywall_screen.dart';
+import '../../../widgets/animated_google_background.dart';
 
 class GamePipelineScreen extends StatefulWidget {
   final ARLevel level;
@@ -243,6 +244,22 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
     });
   }
 
+  Future<void> _getHint() async {
+    final adService = context.read<AdService>();
+    final success = await adService.showRewardedAd();
+    
+    if (success && mounted) {
+      // Find first empty slot
+      final emptyIdx = _slots.indexOf(null);
+      if (emptyIdx == -1) return;
+      
+      final correctNodeId = widget.level.correctSequence[emptyIdx];
+      final correctNode = widget.level.availableNodes.firstWhere((n) => n.id == correctNodeId);
+      
+      _tapNode(correctNode);
+    }
+  }
+
   // ── "Learn This" — navigate to module most relevant to this level ─────────
   void _openLearnModule(BuildContext context, Color accentColor) {
     // Map zone → module id (best-effort mapping)
@@ -389,18 +406,20 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                   child: Icon(node.icon, color: accentColor, size: 22),
                 ),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(node.name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16, fontWeight: FontWeight.w800)),
-                    Text(node.description,
-                      style: TextStyle(
-                        color: accentColor.withValues(alpha: 0.8),
-                        fontSize: 12)),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(node.name,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16, fontWeight: FontWeight.w800)),
+                      Text(node.description,
+                        style: TextStyle(
+                          color: accentColor.withValues(alpha: 0.8),
+                          fontSize: 12)),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -456,9 +475,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                   key: TourKeys.pipelineObjectiveKey,
                   child: _buildGoalBanner(zone),
                 ),
-                _buildHowToPlay(zone.accentColor),
-                _buildContextSection(zone.accentColor),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 // ── Pipeline slots (The Visuals/Scene for this game) ──
                 KeyedSubtree(
                   key: TourKeys.pipelineSceneKey,
@@ -487,7 +504,10 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                   ),
                 ),
                 // ── Submit button ──
-                _buildSubmitBar(zone.accentColor),
+                KeyedSubtree(
+                  key: TourKeys.pipelineSubmitKey,
+                  child: _buildSubmitBar(zone.accentColor),
+                ),
               ],
             ),
           ),
@@ -564,6 +584,38 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                   ? Colors.amber
                   : Colors.white.withValues(alpha: 0.12))),
           ),
+          const SizedBox(width: 8),
+          // Hint Button
+          GestureDetector(
+            onTap: _showSuccess || _isValidating ? null : _getHint,
+            child: Opacity(
+              opacity: _showSuccess || _isValidating ? 0.3 : 1.0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.ads_click_rounded, color: Colors.amber, size: 14),
+                    SizedBox(width: 6),
+                    Text(
+                      'GET HINT',
+                      style: TextStyle(
+                        color: Colors.amber,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -571,109 +623,51 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
 
   Widget _buildGoalBanner(ARZone zone) {
     return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: zone.accentColor.withValues(alpha: 0.07),
-          borderRadius: BorderRadius.circular(12),
+          color: zone.accentColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: zone.accentColor.withValues(alpha: 0.2))),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Project Task - the concrete scenario
-            if (widget.level.projectTask.isNotEmpty)
-              Text(widget.level.projectTask,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.95),
-                  fontSize: 13, fontWeight: FontWeight.w600, height: 1.4)),
-            if (widget.level.projectTask.isNotEmpty && widget.level.goal.isNotEmpty)
-              const SizedBox(height: 6),
-            // Goal - the short directive
-            if (widget.level.goal.isNotEmpty)
+            Text(
+              widget.level.projectTask.isNotEmpty 
+                  ? widget.level.projectTask 
+                  : widget.level.goal,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14, 
+                fontWeight: FontWeight.w700, 
+                height: 1.4,
+              ),
+            ),
+            if (widget.level.projectTask.isNotEmpty && widget.level.goal.isNotEmpty) ...[
+              const SizedBox(height: 10),
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(Icons.flag_rounded, color: zone.accentColor, size: 14),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   Expanded(
-                    child: Text(widget.level.goal,
+                    child: Text(
+                      widget.level.goal,
                       style: TextStyle(
-                        color: zone.accentColor.withValues(alpha: 0.9),
-                        fontSize: 11, fontWeight: FontWeight.w500, height: 1.4))),
+                        color: zone.accentColor.withValues(alpha: 0.8),
+                        fontSize: 11, 
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ],
               ),
+            ],
           ],
         ),
       );
   }
 
-  // ── How-to-play strip ─────────────────────────────────────────────────────
-  Widget _buildHowToPlay(Color accentColor) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06))),
-      child: Row(
-        children: [
-          Icon(Icons.touch_app_rounded,
-            color: accentColor.withValues(alpha: 0.7), size: 14),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              'Tap nodes below to build the pipeline. Long-press any node for an explanation.',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.45),
-                fontSize: 11, height: 1.4))),
-        ],
-      ),
-    );
-  }
-
-  // ── Build Context expandable section ────────────────────────────────────
-  Widget _buildContextSection(Color accentColor) {
-    if (widget.level.buildContext.isEmpty) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        collapsedBackgroundColor: Colors.white.withValues(alpha: 0.03),
-        backgroundColor: Colors.white.withValues(alpha: 0.05),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-        ),
-        collapsedShape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-        ),
-        iconColor: accentColor,
-        collapsedIconColor: Colors.white.withValues(alpha: 0.4),
-        title: Text(
-          'About this build step',
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.6),
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        children: [
-          Text(
-            widget.level.buildContext,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.75),
-              fontSize: 12,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Removed _buildHowToPlay and _buildContextSection for cleaner UI
 
   // ── Pipeline slots row ────────────────────────────────────────────────────
   Widget _buildPipelineRow(Color accentColor) {
@@ -906,106 +900,67 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
 
     return GestureDetector(
       onTap: () => _tapNode(node),
-      // Long press → show explanation sheet
       onLongPress: () => _showNodeInfo(context, node, accentColor),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: isPlaced
               ? Colors.white.withValues(alpha: 0.02)
               : isHint
-                  ? accentColor.withValues(alpha: 0.1)
-                  : Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(14),
+                  ? accentColor.withValues(alpha: 0.08)
+                  : Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isPlaced
-                ? Colors.white.withValues(alpha: 0.06)
+                ? Colors.white.withValues(alpha: 0.05)
                 : isHint
-                    ? accentColor.withValues(alpha: 0.6)
-                    : Colors.white.withValues(alpha: 0.1),
+                    ? accentColor.withValues(alpha: 0.5)
+                    : Colors.white.withValues(alpha: 0.08),
             width: isHint ? 1.5 : 1)),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: isPlaced
                     ? Colors.white.withValues(alpha: 0.03)
                     : accentColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(12)),
               child: Icon(node.icon,
                 color: isPlaced
                     ? Colors.white.withValues(alpha: 0.2)
                     : accentColor,
-                size: 20),
+                size: 22),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Text(node.name,
-                        style: TextStyle(
-                          color: isPlaced
-                              ? Colors.white.withValues(alpha: 0.25)
-                              : Colors.white.withValues(alpha: 0.9),
-                          fontSize: 13, fontWeight: FontWeight.w700)),
-                      if (isHint) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: accentColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6)),
-                          child: Text('START HERE',
-                            style: TextStyle(
-                              color: accentColor,
-                              fontSize: 8, fontWeight: FontWeight.w800,
-                              letterSpacing: 0.8))),
-                      ],
-                    ],
-                  ),
-                  Text(node.description,
+                  Text(node.name,
                     style: TextStyle(
                       color: isPlaced
-                          ? Colors.white.withValues(alpha: 0.15)
-                          : Colors.white.withValues(alpha: 0.45),
-                      fontSize: 11)),
-                  if (node.hint.isNotEmpty && !isPlaced)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        node.hint,
-                        style: TextStyle(
-                          color: accentColor.withValues(alpha: 0.55),
-                          fontSize: 10,
-                          fontStyle: FontStyle.italic,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
+                          ? Colors.white.withValues(alpha: 0.25)
+                          : Colors.white.withValues(alpha: 0.9),
+                      fontSize: 14, fontWeight: FontWeight.w700)),
+                  if (isHint) ...[
+                    const SizedBox(height: 4),
+                    Text('TAP TO START',
+                      style: TextStyle(
+                        color: accentColor,
+                        fontSize: 9, fontWeight: FontWeight.w800,
+                        letterSpacing: 1)),
+                  ],
                 ],
               ),
             ),
             if (isPlaced)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8)),
-                child: Text('SLOT ${slotIndex + 1}',
-                  style: TextStyle(
-                    color: accentColor,
-                    fontSize: 9, fontWeight: FontWeight.w800)))
+              Icon(Icons.check_circle_rounded, color: accentColor, size: 20)
             else
               Icon(Icons.info_outline_rounded,
-                color: Colors.white.withValues(alpha: 0.15), size: 14),
+                color: Colors.white.withValues(alpha: 0.1), size: 18),
           ],
         ),
       ),

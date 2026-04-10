@@ -5,13 +5,14 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../services/game_progress_service.dart';
-import '../services/sound_service.dart';
-import '../services/subscription_service.dart';
-import '../core/app_theme.dart';
-import '../widgets/animated_google_background.dart';
-import '../core/tour_keys.dart';
-import 'paywall_screen.dart';
+import '../../../services/game_progress_service.dart';
+import '../../../services/sound_service.dart';
+import '../../../services/subscription_service.dart';
+import '../../../core/app_theme.dart';
+import '../../../widgets/animated_google_background.dart';
+import '../../../core/tour_keys.dart';
+import '../../../services/ad_service.dart';
+import '../../settings/paywall_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════════
 //  AR SCENE DEBUGGER — Data Models
@@ -65,6 +66,7 @@ class DebugLevel {
   final String successMessage;
   final bool isBoss;
   final bool isFree;
+  final int cost;
 
   const DebugLevel({
     required this.id,
@@ -78,6 +80,7 @@ class DebugLevel {
     required this.successMessage,
     this.isBoss = false,
     this.isFree = false,
+    this.cost = 20,
   });
 }
 
@@ -155,6 +158,7 @@ final List<DebugLevel> debugLevels = [
     screenshotEmoji: '🛋️',
     accentColor: const Color(0xFF2979FF),
     isFree: true,
+    cost: 0,
     symptoms: [
       const DebugSymptom(
         id: 's1',
@@ -215,6 +219,7 @@ final List<DebugLevel> debugLevels = [
     screenshotDesc: 'Box floating in mid-air above a detected table',
     screenshotEmoji: '📦',
     accentColor: const Color(0xFFD1C4E9),
+    cost: 20,
     symptoms: [
       const DebugSymptom(
         id: 's1',
@@ -275,6 +280,7 @@ final List<DebugLevel> debugLevels = [
     screenshotDesc: 'Scanning animation loops forever — no planes detected',
     screenshotEmoji: '🔍',
     accentColor: const Color(0xFFFFC107),
+    cost: 30,
     symptoms: [
       const DebugSymptom(
         id: 's1',
@@ -334,6 +340,7 @@ final List<DebugLevel> debugLevels = [
     screenshotEmoji: '🕶️',
     accentColor: const Color(0xFFFF4081),
     isBoss: true,
+    cost: 50,
     symptoms: [
       const DebugSymptom(
         id: 's1',
@@ -425,7 +432,7 @@ class ARDebuggerMapScreen extends StatelessWidget {
                 SliverAppBar(
                   floating: true,
                   pinned: true,
-                  backgroundColor: const Color(0xFF060B14).withOpacity(0.95),
+                  backgroundColor: Colors.transparent,
                   expandedHeight: 120,
                   elevation: 0,
                   leading: IconButton(
@@ -470,6 +477,8 @@ class ARDebuggerMapScreen extends StatelessWidget {
                          final isLocked = progress.isLevelLocked(level.id);
                          final isCompleted = progress.isLevelCompleted(level.id);
                          final stars = progress.getStars(level.id);
+                          final debugLevelOrder = debugLevels.map((l) => l.id).toList();
+                          final isReadyToUnlock = progress.isLevelReadyToUnlock(level.id, debugLevelOrder);
 
                          return Padding(
                            padding: const EdgeInsets.only(bottom: 12),
@@ -477,7 +486,8 @@ class ARDebuggerMapScreen extends StatelessWidget {
                              level: level,
                              index: i,
                              isLocked: isLocked,
-                             isCompleted: isCompleted,
+                             isReadyToUnlock: isReadyToUnlock,
+                              isCompleted: isCompleted,
                              stars: stars,
                              onTap: isLocked
                                  ? () => _showUnlockLevelDialog(ctx, level, progress)
@@ -504,7 +514,7 @@ class ARDebuggerMapScreen extends StatelessWidget {
   }
 
   void _showUnlockLevelDialog(BuildContext context, DebugLevel level, GameProgressService progress) {
-    const int cost = 20;
+    final int cost = level.cost;
     final canAfford = progress.unifiedXP >= cost;
 
     showDialog(
@@ -523,7 +533,7 @@ class ARDebuggerMapScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Unlock "${level.title}" for $cost XP?', style: const TextStyle(color: Colors.white70)),
+            Text('Unlock "${level.title}" for ${level.cost} XP?', style: const TextStyle(color: Colors.white70)),
             const SizedBox(height: 12),
             Text(
               'Your Balance: ${progress.unifiedXP} XP',
@@ -542,7 +552,7 @@ class ARDebuggerMapScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: canAfford
                 ? () async {
-                    final success = await progress.unlockLevel(level.id, cost);
+                    final success = await progress.unlockLevel(level.id, level.cost);
                     if (success && context.mounted) {
                       Navigator.pop(ctx);
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -587,6 +597,7 @@ class _LevelCard extends StatelessWidget {
   final DebugLevel level;
   final int index;
   final bool isLocked;
+  final bool isReadyToUnlock;
   final bool isCompleted;
   final int stars;
   final VoidCallback? onTap;
@@ -595,6 +606,7 @@ class _LevelCard extends StatelessWidget {
     required this.level,
     required this.index,
     required this.isLocked,
+    required this.isReadyToUnlock,
     required this.isCompleted,
     required this.stars,
     this.onTap,
@@ -754,7 +766,33 @@ class _LevelCard extends StatelessWidget {
               )
             else if (!isLocked)
               Icon(Icons.chevron_right_rounded,
-                  color: level.accentColor.withOpacity(0.5), size: 20),
+                  color: level.accentColor.withOpacity(0.5), size: 20)
+            else if (isReadyToUnlock)
+              // Unlock Chip
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentPurple.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppTheme.accentPurple.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.lock_open_rounded, color: AppTheme.accentPurple, size: 14),
+                    const SizedBox(width: 6),
+                    Text(
+                      'UNLOCK ${level.cost} XP',
+                      style: const TextStyle(
+                        color: AppTheme.accentPurple,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
@@ -930,6 +968,30 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
     return 1;
   }
 
+  Future<void> _showHint() async {
+    final adService = context.read<AdService>();
+    final success = await adService.showRewardedAd();
+
+    if (success && mounted) {
+      // Find first symptom not yet correctly assigned
+      for (final s in widget.level.symptoms) {
+        final currentFixId = _assignments[s.id];
+        final correctFix = widget.level.fixCards.firstWhere((f) => f.correctSymptomId == s.id);
+        
+        if (currentFixId != correctFix.id) {
+          _assignFix(s.id, correctFix.id);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Hint applied: ${correctFix.label} assigned to ${s.label}'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          break;
+        }
+      }
+    }
+  }
+
   void _checkDebuggerTour() async {
     final prefs = await SharedPreferences.getInstance();
     final hasSeenTour = prefs.getBool('has_seen_showcase_tour_debugger') ?? false;
@@ -1031,6 +1093,15 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
                           color: i < stars ? Colors.amber : Colors.white12,
                       size: 16,
                     )),
+          ),
+          const SizedBox(width: 8),
+          // Hint Button
+          IconButton(
+            onPressed: _showSuccess || _isChecking ? null : _showHint,
+            icon: const Icon(Icons.ads_click_rounded, color: Colors.amber, size: 20),
+            tooltip: 'Get Hint',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
           ),
         ],
       ),
@@ -1568,16 +1639,27 @@ class _ARDebuggerGameScreenState extends State<ARDebuggerGameScreen>
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Instructions
-                _buildInstructionStep('1', 'Review the scenario and symptoms', Icons.visibility_rounded),
-                const SizedBox(height: 12),
-                _buildInstructionStep('2', 'Drag fix cards from the toolkit', Icons.touch_app_rounded),
-                const SizedBox(height: 12),
-                _buildInstructionStep('3', 'Drop them onto matching symptoms', Icons.drag_indicator_rounded),
-                const SizedBox(height: 12),
-                _buildInstructionStep('4', 'Tap fix cards to read explanations', Icons.info_outline_rounded),
-                const SizedBox(height: 28),
-                _buildToolboxSection(),
+                // Instructions + Toolbox (Scrollable)
+                Flexible(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildInstructionStep('1', 'Review the scenario and symptoms', Icons.visibility_rounded),
+                        const SizedBox(height: 12),
+                        _buildInstructionStep('2', 'Drag fix cards from the toolkit', Icons.touch_app_rounded),
+                        const SizedBox(height: 12),
+                        _buildInstructionStep('3', 'Drop them onto matching symptoms', Icons.drag_indicator_rounded),
+                        const SizedBox(height: 12),
+                        _buildInstructionStep('4', 'Tap fix cards to read explanations', Icons.info_outline_rounded),
+                        const SizedBox(height: 28),
+                        _buildToolboxSection(),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(

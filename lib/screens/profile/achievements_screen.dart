@@ -3,17 +3,17 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../core/app_theme.dart';
-import '../core/tour_keys.dart';
-import '../data/modules_data.dart';
-import '../services/game_progress_service.dart';
-import '../services/progress_service.dart';
-import '../services/theme_service.dart';
-import '../services/subscription_service.dart';
-import '../services/ad_service.dart';
-import '../widgets/achievement_badge.dart';
-import '../widgets/shareable_achievement_card.dart';
-import '../widgets/animated_google_background.dart';
+import '../../core/app_theme.dart';
+import '../../core/tour_keys.dart';
+import '../../data/learning/modules_data.dart';
+import '../../services/game_progress_service.dart';
+import '../../services/progress_service.dart';
+import '../../services/theme_service.dart';
+import '../../services/subscription_service.dart';
+import '../../services/ad_service.dart';
+import '../../widgets/achievement_badge.dart';
+import '../../widgets/shareable_achievement_card.dart';
+import '../../widgets/animated_google_background.dart';
 
 class AchievementsScreen extends StatefulWidget {
   const AchievementsScreen({super.key});
@@ -102,19 +102,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
             children: [
               // ── Header ──
               Padding(
-                padding: const EdgeInsets.fromLTRB(8, 8, 24, 0),
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
                 child: Row(
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_rounded),
-                      color: AppTheme.textPrimaryC(isDark),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    const SizedBox(width: 4),
                     Text(
                       'Your Achievements',
                       style: AppTheme.headingMedium.copyWith(
                         color: AppTheme.textPrimaryC(isDark),
+                        fontSize: 28,
                       ),
                     ),
                   ],

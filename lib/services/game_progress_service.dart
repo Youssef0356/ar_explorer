@@ -135,7 +135,12 @@ class GameProgressService extends ChangeNotifier {
     _codingStreak = _prefs?.getInt(_codingStreakKey) ?? 0;
 
     // Load Unified XP & Inspector Zones
-    _unifiedXP = _prefs?.getInt(_unifiedXPKey) ?? 0;
+    if (_prefs != null && !_prefs!.containsKey(_unifiedXPKey)) {
+      _unifiedXP = 30; // Welcome gift
+      _prefs!.setInt(_unifiedXPKey, 30);
+    } else {
+      _unifiedXP = _prefs?.getInt(_unifiedXPKey) ?? 0;
+    }
     final unlockedZonesJson = _prefs?.getStringList(_unlockedInspectorKey);
     if (unlockedZonesJson != null && unlockedZonesJson.isNotEmpty) {
       _unlockedInspectorZones = unlockedZonesJson.toSet();

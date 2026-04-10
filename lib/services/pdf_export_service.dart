@@ -4,7 +4,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
 
-import '../data/modules_data.dart';
+import '../data/learning/modules_data.dart';
 import '../models/module_model.dart';
 
 class PdfExportService {

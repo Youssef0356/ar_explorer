@@ -10,14 +10,14 @@ import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../core/app_theme.dart';
-import '../data/modules_data.dart';
-import '../data/quiz_data.dart';
-import '../services/game_progress_service.dart';
-import '../services/progress_service.dart';
-import '../services/sound_service.dart';
-import '../services/subscription_service.dart';
-import '../services/theme_service.dart';
+import '../../core/app_theme.dart';
+import '../../data/learning/modules_data.dart';
+import '../../data/learning/quiz_data.dart';
+import '../../services/game_progress_service.dart';
+import '../../services/progress_service.dart';
+import '../../services/sound_service.dart';
+import '../../services/subscription_service.dart';
+import '../../services/theme_service.dart';
 
 // ═══════════════════════════════════════════════════════════════════
 //  TIER MODEL

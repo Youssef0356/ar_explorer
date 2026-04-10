@@ -5,11 +5,11 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'core/app_theme.dart';
-import 'screens/main_screen.dart';
-import 'screens/onboarding_screen.dart';
-import 'screens/certificate_progression_screen.dart';
-import 'screens/paywall_screen.dart';
-import 'screens/splash_screen.dart';
+import 'screens/app_shell/main_screen.dart';
+import 'screens/app_shell/onboarding_screen.dart';
+import 'screens/profile/certificate_progression_screen.dart';
+import 'screens/settings/paywall_screen.dart';
+import 'screens/app_shell/splash_screen.dart';
 import 'services/progress_service.dart';
 import 'services/theme_service.dart';
 import 'services/sound_service.dart';

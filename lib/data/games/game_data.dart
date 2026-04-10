@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/app_theme.dart';
-import '../models/game_models.dart';
+import '../../core/app_theme.dart';
+import '../../models/game_models.dart';
 
 // --- Shared Nodes Pool ---
 const nodeCamera = ARNode(
@@ -130,28 +130,28 @@ final List<ARZone> arGameZones = [
   // ═══════════════════════════════════════════════════════════
   ARZone(
     id: 'zone_1',
-    name: 'Zone 1 — See the World',
+    name: 'Zone 1 — The Foundations',
     accentColor: AppTheme.accentPurple,
     levels: [
       // Level 1: Open the camera
       ARLevel(
         id: 'z1_l1',
-        title: 'Initialize Passthrough',
-        projectTask: 'Initialize the base AR Session and establish a continuous camera feed to the rendering pipeline.',
-        goal: 'Configure a viable AR Session capable of rendering spatial content.',
-        buildContext: 'The foundational setup for any AR application. The system requires camera access to process passthrough video, IMU data for preliminary orientation tracking, and a rendering context to display spatial objects. No environmental tracking is performed at this stage.',
+        title: 'The Magic Window',
+        projectTask: 'Our client wants a phone that acts like a piece of glass! Build a "Magic Window" that shows the real world on the screen.',
+        goal: 'Connect the camera (Eyes) to the renderer (Brain) so the app can see what\'s happening.',
+        buildContext: 'This is the most basic AR setup. You need to turn on the camera sensors and pipe that video feed directly to your display renderer. Without this, the world is just a black void!',
         correctSequence: ['camera', 'imu', 'renderer'],
         availableNodes: [nodeCamera, nodeIMU, nodeRenderer, nodeSLAM],
         zoneId: 'zone_1',
         isFree: true,
       ),
-      // Level 2: Find the battlefield floor
+      // Level 2: Find the floor
       ARLevel(
         id: 'z1_l2',
-        title: 'Establish Spatial Mesh',
-        projectTask: 'Enable spatial awareness by detecting and tracking horizontal planar surfaces within the physical environment.',
-        goal: 'Establish an environmental mesh for stable spatial anchoring.',
-        buildContext: 'Surface detection algorithms analyze visual feature points from the camera feed and fuse them with IMU data to estimate the position and extent of flat surfaces like floors and tables, essential for anchoring virtual objects stably.',
+        title: 'The Invisible Floor',
+        projectTask: 'The client is complaining that their virtual pet keeps falling through the ground! We need to help the phone find the floor.',
+        goal: 'Teach the app to recognize flat surfaces (planes) so we have somewhere to stand.',
+        buildContext: 'To put objects on a table or floor, the app must "detect" those planes first. This requires analyzing the camera feed for flat horizontal surfaces.',
         correctSequence: ['camera', 'plane_detection', 'renderer'],
         availableNodes: [nodeCamera, nodePlaneDetection, nodeRenderer, nodeHitTest],
         zoneId: 'zone_1',
@@ -160,10 +160,10 @@ final List<ARZone> arGameZones = [
       // Boss 1: First prototype — tap to place your HQ
       ARLevel(
         id: 'z1_boss',
-        title: 'Boss: Deploy Anchor',
-        projectTask: 'Instantiate a virtual asset securely attached to the spatial mesh. It must remain stable against 6DoF camera movement.',
-        goal: 'Place your first stable spatial anchor on a physical surface.',
-        buildContext: 'This sequence demands a complete sensor fusion pipeline. The system performs a hit test against the detected spatial mesh, instantiates an anchor at the intersection coordinate, and attaches the rendered asset payload to ensure positional stability against device movement.',
+        title: 'Boss: Plant the Flag',
+        projectTask: 'It\'s time for our first real demo. The client wants to tap on the floor and "plant a flag" that stays exactly where they put it.',
+        goal: 'Build a full pipeline that detects a floor and anchors an object to it.',
+        buildContext: 'This is a complete engineering cycle: See the world, track your position (SLAM), find a surface, and use a "Hit Test" to turn a screen tap into a physical location.',
         isBoss: true,
         mode: GameMode.boss,
         timeLimit: 60,
@@ -175,31 +175,31 @@ final List<ARZone> arGameZones = [
   ),
 
   // ═══════════════════════════════════════════════════════════
-  // ZONE 2 — Track Your Position (like CSS)
+  // ZONE 2 — Spatial Awareness
   // ═══════════════════════════════════════════════════════════
   ARZone(
     id: 'zone_2',
-    name: 'Zone 2 — Track Your Position',
+    name: 'Zone 2 — Spatial Awareness',
     accentColor: AppTheme.accentBlue,
     levels: [
       // Level 3: Give ARena a 6DOF compass
       ARLevel(
         id: 'z2_l1',
-        title: 'Establish 6DoF Coordinates',
-        projectTask: 'Ensure virtual assets resolve consistent world-space rotations independent of camera pose.',
-        goal: 'Establish stable 6DoF world coordinates for spatial consistency.',
-        buildContext: 'Spatial assets require directional vectors locked to world space, not local device space. This setup ensures that as the camera operator rotates around the asset, its rotation matrix remains stable relative to the physical environment constraint.',
+        title: 'The Spatial Compass',
+        projectTask: 'The client noticed their virtual statues spin around when they walk. We need a "Spatial Compass" to lock them in place.',
+        goal: 'Establish true 6-Degrees-of-Freedom (6DoF) so objects know which way is North.',
+        buildContext: 'SLAM (Simultaneous Localization and Mapping) is the secret sauce. It uses the camera and IMU to build a map. Without it, the app has no memory of where it is.',
         correctSequence: ['camera', 'imu', 'slam'],
         availableNodes: [nodeCamera, nodeIMU, nodeSLAM, nodeRelocalization],
         zoneId: 'zone_2',
       ),
-      // Level 4: Keep the lights on
+      // Level 4: Universal Translator
       ARLevel(
         id: 'z2_l2',
-        title: 'Cross-Platform Render',
-        projectTask: 'Architect a standardized rendering pipeline capable of operating gracefully across distinct AR APIs.',
-        goal: 'Initialize a cross-platform AR session.',
-        buildContext: 'The abstraction layer requires a common denominator pipeline. This sequence represents the minimum viable architecture to process SLAM coordinates into a standard rendering context, ignoring specialized, platform-exclusive environmental data.',
+        title: 'The Universal Translator',
+        projectTask: 'We need this app to work on both Android and iPhone without rewriting the whole engine! Build a bridge between them.',
+        goal: 'Use a cross-platform pipeline that works across different AR hardware.',
+        buildContext: 'By focusing on core tracking (SLAM) and standard rendering, we can build a "platform-agnostic" engine that doesn\'t care what phone the user is holding.',
         correctSequence: ['camera', 'slam', 'renderer'],
         availableNodes: [nodeCamera, nodeSLAM, nodeRenderer, nodeLightEstimation],
         zoneId: 'zone_2',
@@ -207,10 +207,10 @@ final List<ARZone> arGameZones = [
       // Boss 2: Survive a mid-game phone drop
       ARLevel(
         id: 'z2_boss',
-        title: 'Boss: Interruption Recovery',
-        projectTask: 'The AR pipeline must successfully reacquire world-space coordinates following a catastrophic SLAM tracking failure.',
-        goal: 'Build a robust AR tracking state machine that survives sensor interruption.',
-        buildContext: 'Production applications experience frequent tracking degradation (e.g., lens obstruction or sudden acceleration). A robust pipeline implements a Relocalization node directly after the SLAM state to smoothly recover the spatial map from localized feature data.',
+        title: 'Boss: The Memory Reset',
+        projectTask: 'Oh no! The user dropped their phone and the AR "broke". We need a way to remember the room and recover the position.',
+        goal: 'Build a robust pipeline that can "Relocalize" (recognize the room) after a crash.',
+        buildContext: 'When tracking is lost, "Relocalization" compares the current camera view with the map it built earlier to find its place again. It\'s like waking up in a room and recognizing the furniture.',
         isBoss: true,
         mode: GameMode.boss,
         timeLimit: 60,
@@ -226,38 +226,38 @@ final List<ARZone> arGameZones = [
   // ═══════════════════════════════════════════════════════════
   ARZone(
     id: 'zone_3',
-    name: 'Zone 3 — Build on Surfaces',
-    accentColor: const Color(0xFFD1C4E9), // accentPurple
+    name: 'Zone 3 — Interactive Logic',
+    accentColor: const Color(0xFFD1C4E9),
     levels: [
-      // Level 5: Port ARena to both platforms
+      // Level 5: Open Bridge
       ARLevel(
         id: 'z3_l1',
-        title: 'Abstract Hardware Interfaces',
-        projectTask: 'Design a unified architecture capable of deploying identical executables to ARKit and ARCore runtimes.',
-        goal: 'Build a cross-platform foundation session.',
-        buildContext: 'By injecting an abstraction layer, the specific heuristics of plane detection and rendering are handed off to the native API underlying the OpenXR runtime. The developer builds against unified interfaces, ensuring deployment parity.',
+        title: 'The Open Bridge',
+        projectTask: 'A new headset just hit the market! We need to make sure our code works there too, without changing a single line of our sensor logic.',
+        goal: 'Use the OpenXR "Bridge" to translate our custom sensors into a universal language.',
+        buildContext: 'OpenXR is a universal adapter. It sits between the hardware and your code, so you don\'t have to worry about whether the user has an Android, iPhone, or AR Headset.',
         correctSequence: ['camera', 'slam', 'plane_detection', 'renderer'],
         availableNodes: [nodeCamera, nodeSLAM, nodePlaneDetection, nodeRenderer, nodeOpenXR],
         zoneId: 'zone_3',
       ),
-      // Level 6: Add the game box — marker-based tutorial
+      // Level 6: Secret Portal
       ARLevel(
         id: 'z3_l2',
-        title: 'Implement Image Tracking',
-        projectTask: 'Bypass environmental SLAM by establishing a spatial coordinate origin directly from a 2D optical marker.',
-        goal: 'Use image tracking for accelerated spatial referencing.',
-        buildContext: 'Fiducial markers or tracked images bypass the need for plane scanning by providing explicit transformation matrices. The marker\'s centroid explicitly defines the world origin (0,0,0), providing the shortest path to a valid render context.',
+        title: 'The Secret Portal',
+        projectTask: 'The client wants a "Magic Card" that opens a portal when you point your phone at it. No scanning needed—just tracking the image!',
+        goal: 'Bypass environmental scanning and use image tracking to establish a world origin.',
+        buildContext: 'Sometimes we don\'t need to scan the whole room. Pointing at a specific "Tracker" or "Image" lets the app know exactly where (0,0,0) is instantly.',
         correctSequence: ['camera', 'renderer'],
         availableNodes: [nodeCamera, nodeRenderer, nodeSLAM],
         zoneId: 'zone_3',
       ),
-      // Boss 3: Full playable map
+      // Boss 3: Holographic Table
       ARLevel(
         id: 'z3_boss',
-        title: 'Boss: Instantiate Spatial Context',
-        projectTask: 'Two distinct device clients must resolve identical planar coordinates for a shared spatial volume.',
-        goal: 'Establish a shared, synchronized coordinate space.',
-        buildContext: 'This requires strict adherence to tracking fundamentals. The architecture must reject device-specific data injections (like OpenXR or lighting overrides) that might desynchronize the shared spatial assumptions across diverse client hardware.',
+        title: 'Boss: The Holographic Table',
+        projectTask: 'Two players want to see the same virtual game board on the same table at the same time. We need a perfectly synced coordinate space.',
+        goal: 'Establish a shared, rock-solid coordinate system that stays synced for everyone.',
+        buildContext: 'For multiplayer AR, sync is everything. You need to strip away any device-specific lighting or hardware overrides and focus on the raw sensory data (SLAM + Planes) that everyone shares.',
         isBoss: true,
         mode: GameMode.boss,
         timeLimit: 60,
@@ -269,42 +269,42 @@ final List<ARZone> arGameZones = [
   ),
 
   // ═══════════════════════════════════════════════════════════
-  // ZONE 4 — Make It Look Real (like Backend)
+  // ZONE 4 — Visual Realism
   // ═══════════════════════════════════════════════════════════
   ARZone(
     id: 'zone_4',
-    name: 'Zone 4 — Make It Look Real',
-    accentColor: const Color(0xFFFFC107), // accentAmber
+    name: 'Zone 4 — Visual Realism',
+    accentColor: const Color(0xFFFFC107),
     levels: [
-      // Level 7: HQ ports to HoloLens
+      // Level 7: Helmet View
       ARLevel(
         id: 'z4_l1',
-        title: 'HMD Integration Requirements',
-        projectTask: 'Update the pipeline configuration to accept stereoscopic displays and Head-Mounted Display (HMD) coordinate spaces.',
-        goal: 'Add OpenXR runtime bindings for headset compatibility.',
-        buildContext: 'Head-Mounted displays require the OpenXR abstraction to sit fundamentally between the input sensors and the output renderer, acting as a translator for specialized stereoscopic pipelines without altering the core SLAM logic.',
+        title: 'The Helmet View',
+        projectTask: 'The project is moving to AR glasses! We need to update our pipeline to handle "double-vision" (stereoscopic) rendering.',
+        goal: 'Update the pipeline to support Head-Mounted Displays (HMDs) through OpenXR.',
+        buildContext: 'Wearing a headset changes everything. Instead of one screen, we have two. OpenXR manages this complex stereoscopic view so we can focus on the AR experience.',
         correctSequence: ['camera', 'openxr', 'renderer'],
         availableNodes: [nodeCamera, nodeOpenXR, nodeRenderer, nodeOcclusion],
         zoneId: 'zone_4',
       ),
-      // Level 8: Units hide behind real chairs
+      // Level 8: Behind the Scenes
       ARLevel(
         id: 'z4_l2',
-        title: 'Implement Depth Masking',
-        projectTask: 'Integrate real-time depth mapping to compute accurate Z-buffering against physical foreground objects.',
-        goal: 'Enable realistic depth layering and spatial occlusion.',
-        buildContext: 'Occlusion processing relies fundamentally on the dense point cloud or depth map generated by the SLAM node. It uses this spatial data to construct a depth mask, discarding rendered fragments that exist spatially behind physical geometry.',
+        title: 'Behind the Scenes',
+        projectTask: 'Our virtual trees are appearing IN FRONT of real chairs! It looks like an X-ray. We need to hide virtual objects behind real ones.',
+        goal: 'Use "Occlusion" to make virtual objects hide behind real-world geometry.',
+        buildContext: 'Occlusion uses depth data from the camera and SLAM to hide virtual pixels that are "behind" real objects. It\'s the key to making digital objects feel solid.',
         correctSequence: ['camera', 'slam', 'occlusion', 'renderer'],
         availableNodes: [nodeCamera, nodeSLAM, nodeOcclusion, nodeRenderer, nodePlaneDetection],
         zoneId: 'zone_4',
       ),
-      // Boss 4: HoloLens launch
+      // Boss 4: Solid Structure
       ARLevel(
         id: 'z4_boss',
-        title: 'Boss: Enterprise Asset Deployment',
-        projectTask: 'Deploy stereoscopically rendered assets that accurately composite against physical environments utilizing edge-aware depth testing.',
-        goal: 'Pass the physical tangibility rendering validation for enterprise demos.',
-        buildContext: 'This architecture represents peak standalone complexity: standardizing sensor input via OpenXR telemetry, passing coordinated matrices to an occlusion processor to generate depth buffers, and finalizing via the renderer to ensure physical tangibility.',
+        title: 'Boss: The Solid Structure',
+        projectTask: 'It\'s the final presentation to the CEO. The AR must look absolutely real—no drifting, no "X-ray" artifacts, and full headset support.',
+        goal: 'Build the ultimate enterprise-grade pipeline with occlusion and stereoscopic support.',
+        buildContext: 'This is the most complex single-user setup: Universal input (OpenXR), spatial awareness (SLAM), and realistic depth compositing (Occlusion) all running at once.',
         isBoss: true,
         mode: GameMode.boss,
         timeLimit: 60,
@@ -316,31 +316,31 @@ final List<ARZone> arGameZones = [
   ),
 
   // ═══════════════════════════════════════════════════════════
-  // ZONE 5 — Ship Multiplayer (like Production)
+  // ZONE 5 — Professional Shipping
   // ═══════════════════════════════════════════════════════════
   ARZone(
     id: 'zone_5',
-    name: 'Zone 5 — Ship Multiplayer',
-    accentColor: const Color(0xFFFF4081), // accentPink
+    name: 'Zone 5 — Professional Shipping',
+    accentColor: const Color(0xFFFF4081),
     levels: [
-      // Level 9: HQ casts shadows
+      // Level 9: The Real Shadow
       ARLevel(
         id: 'z5_l1',
-        title: 'Environmental Lighting Fusion',
-        projectTask: 'Extract directional color and intensity coefficients from the camera feed to dynamically update PBR materials.',
-        goal: 'Match virtual radiometry to the real-world luminous environment.',
-        buildContext: 'Providing realistic shading requires tapping the camera\'s exposure and color temperature data via the Light Estimation node, which then feeds real-time spherical harmonics into the rendering pipeline prior to the final composition.',
+        title: 'The Real Shadow',
+        projectTask: 'The client wants the virtual lamp to cast a shadow on their real table. We need to "steal" the lighting from the room!',
+        goal: 'Capture the real room lighting to make virtual objects cast realistic shadows.',
+        buildContext: 'Light Estimation analyzes the camera feed to guess the sun\'s direction and brightness. We then feed this to the renderer to make virtual lighting match the real world.',
         correctSequence: ['camera', 'light_estimation', 'renderer'],
         availableNodes: [nodeCamera, nodeLightEstimation, nodeRenderer, nodeSpatialAnchor],
         zoneId: 'zone_5',
       ),
-      // Level 10: Your base is still there tomorrow
+      // Level 10: The Time Capsule
       ARLevel(
         id: 'z5_l2',
-        title: 'Implement Spatial Persistence',
-        projectTask: 'Serialize spatial coordinates and local feature maps to a cloud database to survive application termination.',
-        goal: 'Enable asynchronous spatial anchor persistence.',
-        buildContext: 'Spatial persistence decouples AR content from the immediate session lifecycle. The system caches the visual feature signature around the anchor point, uploads it, and relies on future relocalization sweeps to reinstantiate the tracked node upon subsequent launches.',
+        title: 'The Time Capsule',
+        projectTask: 'The user wants their virtual base to still be there when they come back tomorrow—even if they close the app entirely.',
+        goal: 'Use Cloud-Spatial-Anchors to save the object\'s location to the internet.',
+        buildContext: 'Persistence is hard. By saving the "visual signature" of a room to the cloud, we can re-place the same object exactly where it was in a future session.',
         correctSequence: ['camera', 'slam', 'spatial_anchor'],
         availableNodes: [nodeCamera, nodeSLAM, nodeSpatialAnchor, nodeOcclusion],
         zoneId: 'zone_5',
@@ -348,10 +348,10 @@ final List<ARZone> arGameZones = [
       // Final Boss: SHIP IT
       ARLevel(
         id: 'z5_boss',
-        title: 'Final Boss: Release Candidate Validation',
-        projectTask: 'Implement a comprehensive AR pipeline featuring environment sensing, depth mapping, dynamic global illumination, and cross-session persistence.',
-        goal: 'Compile a complete, enterprise-grade augmented reality application pipeline.',
-        buildContext: 'The culmination of complete Systems Engineering. This architecture seamlessly integrates sensor fusion, spatial awareness, radiometric estimation, depth compositing, external session persistence, and final rendering into a robust, concurrent pipeline module.',
+        title: 'Final Boss: The Masterpiece',
+        projectTask: 'This is it. Build the "Perfect AR App". It must see, track, detect, light, hide, and save. The entire engineering pipeline in one.',
+        goal: 'Synthesize everything you\'ve learned into a complete, professional AR engine.',
+        buildContext: 'The absolute peak of AR Systems Engineering. High-performance sensor fusion, environmental lighting, depth occlusion, and cloud persistence. Ship it, Architect!',
         isBoss: true,
         mode: GameMode.boss,
         timeLimit: 60,

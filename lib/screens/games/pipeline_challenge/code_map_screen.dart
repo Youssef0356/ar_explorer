@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
-import '../core/app_theme.dart';
+import '../../../core/app_theme.dart';
 
-import '../data/code_challenges_data.dart';
-import '../models/game_models.dart';
-import '../services/game_progress_service.dart';
-import '../services/sound_service.dart';
-import '../services/subscription_service.dart';
+import '../../../data/games/code_challenges_data.dart';
+import '../../../models/game_models.dart';
+import '../../../services/game_progress_service.dart';
+import '../../../services/sound_service.dart';
+import '../../../services/subscription_service.dart';
 import 'code_game_screen.dart';
 
 class CodeMapScreen extends StatelessWidget {

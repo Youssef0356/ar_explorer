@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
-import '../core/app_theme.dart';
-import '../services/sound_service.dart';
-import '../services/theme_service.dart';
-import '../widgets/animated_google_background.dart';
+import '../../core/app_theme.dart';
+import '../../services/sound_service.dart';
+import '../../services/theme_service.dart';
+import '../../widgets/animated_google_background.dart';
 class AboutAppScreen extends StatelessWidget {
   const AboutAppScreen({super.key});
 

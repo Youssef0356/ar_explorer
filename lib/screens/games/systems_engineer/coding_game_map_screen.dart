@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../core/app_theme.dart';
-import '../data/coding_game_data.dart';
-import '../services/game_progress_service.dart';
-import '../models/coding_game_models.dart';
-import '../widgets/animated_google_background.dart';
+import '../../../core/app_theme.dart';
+import '../../../data/games/coding_game_data.dart';
+import '../../../services/game_progress_service.dart';
+import '../../../models/coding_game_models.dart';
+import '../../../widgets/animated_google_background.dart';
 import 'coding_challenge_screen.dart';
 
 class CodingGameMapScreen extends StatefulWidget {

@@ -4,17 +4,17 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../core/app_theme.dart';
-import '../core/tour_keys.dart';
-import '../models/coding_game_models.dart';
-import '../services/game_progress_service.dart';
-import '../services/sound_service.dart';
-import '../services/ad_service.dart';
-import '../services/subscription_service.dart';
-import '../services/progress_service.dart';
-import '../data/coding_game_data.dart';
-import '../widgets/shareable_achievement_card.dart';
-import 'paywall_screen.dart';
+import '../../../core/app_theme.dart';
+import '../../../core/tour_keys.dart';
+import '../../../models/coding_game_models.dart';
+import '../../../services/game_progress_service.dart';
+import '../../../services/sound_service.dart';
+import '../../../services/ad_service.dart';
+import '../../../services/subscription_service.dart';
+import '../../../services/progress_service.dart';
+import '../../../data/games/coding_game_data.dart';
+import '../../../widgets/shareable_achievement_card.dart';
+import '../../settings/paywall_screen.dart';
 
 class CodingChallengeScreen extends StatefulWidget {
   final CodingLevel level;

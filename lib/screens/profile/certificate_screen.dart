@@ -4,9 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:gal/gal.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../core/app_theme.dart';
-import '../services/progress_service.dart';
-import '../services/sound_service.dart';
+import '../../core/app_theme.dart';
+import '../../services/progress_service.dart';
+import '../../services/sound_service.dart';
 
 class CertificateScreen extends StatefulWidget {
   const CertificateScreen({super.key});
