@@ -477,7 +477,6 @@ class ARDebuggerMapScreen extends StatelessWidget {
                          final isLocked = progress.isLevelLocked(level.id);
                          final isCompleted = progress.isLevelCompleted(level.id);
                          final stars = progress.getStars(level.id);
-                          final debugLevelOrder = debugLevels.map((l) => l.id).toList();
                           final isReadyToUnlock = progress.isLevelReadyToUnlock(level.id, debugLevelOrder);
 
                          return Padding(
