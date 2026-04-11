@@ -57,15 +57,17 @@ class _QuizScreenState extends State<QuizScreen> {
 
   void _submitAnswer() {
     if (_selectedOption == null) return;
-    context.read<SoundService>().playTap();
+    final soundService = context.read<SoundService>();
     setState(() {
       _showResult = true;
       _answers[_currentIndex] = _selectedOption;
       if (_selectedOption == _currentQuestion.correctIndex) {
         _correctCount++;
         context.read<ProgressService>().removeWrongAnswer(_currentQuestion.id);
+        soundService.playSuccess();
       } else {
         context.read<ProgressService>().saveWrongAnswer(_currentQuestion.id);
+        soundService.playFailure();
       }
     });
   }

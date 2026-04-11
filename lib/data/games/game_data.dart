@@ -144,6 +144,22 @@ final List<ARZone> arGameZones = [
         availableNodes: [nodeCamera, nodeIMU, nodeRenderer, nodeSLAM],
         zoneId: 'zone_1',
         isFree: true,
+        variations: [
+          ARLevelVariation(
+            projectTask: 'A drone company needs a live camera feed on the pilot\'s tablet! Build the "Drone Eye" system so the pilot can see everything the drone sees.',
+            goal: 'Stream the drone\'s camera and motion data to a live display renderer.',
+            buildContext: 'Just like a phone AR app, a drone needs its camera feed piped to a screen. The IMU tells the pilot which way the drone is tilting.',
+            correctSequence: ['camera', 'imu', 'renderer'],
+            availableNodes: [nodeCamera, nodeIMU, nodeRenderer, nodeSLAM],
+          ),
+          ARLevelVariation(
+            projectTask: 'A delivery robot needs eyes! Build the "Robot Vision" pipeline so it can see the sidewalk ahead and react to obstacles.',
+            goal: 'Give the robot a live visual feed with motion awareness for navigation.',
+            buildContext: 'Robots use the same camera + IMU combo as AR phones. The camera sees the world, the IMU tracks tilt and acceleration, and the renderer displays it all.',
+            correctSequence: ['camera', 'imu', 'renderer'],
+            availableNodes: [nodeCamera, nodeIMU, nodeRenderer, nodePlaneDetection],
+          ),
+        ],
       ),
       // Level 2: Find the floor
       ARLevel(
@@ -156,6 +172,22 @@ final List<ARZone> arGameZones = [
         availableNodes: [nodeCamera, nodePlaneDetection, nodeRenderer, nodeHitTest],
         zoneId: 'zone_1',
         isFree: true,
+        variations: [
+          ARLevelVariation(
+            projectTask: 'An interior design app needs to measure rooms! Build the "AR Tape Measure" that detects the floor and walls to calculate distances.',
+            goal: 'Detect flat surfaces so the app can measure real-world dimensions.',
+            buildContext: 'Room measurement apps work by detecting planes (floor, walls) with the camera. Once surfaces are found, the app can calculate distances between points.',
+            correctSequence: ['camera', 'plane_detection', 'renderer'],
+            availableNodes: [nodeCamera, nodePlaneDetection, nodeRenderer, nodeSLAM],
+          ),
+          ARLevelVariation(
+            projectTask: 'A gardening app wants users to place virtual flowers on their real lawn! First, the app needs to find the grass surface.',
+            goal: 'Detect the ground plane so virtual plants can be placed on real grass.',
+            buildContext: 'Before placing any virtual object outdoors, the app must detect the ground plane. The camera feed is analyzed to find flat horizontal surfaces like lawns and patios.',
+            correctSequence: ['camera', 'plane_detection', 'renderer'],
+            availableNodes: [nodeCamera, nodePlaneDetection, nodeRenderer, nodeAnchor],
+          ),
+        ],
       ),
       // Boss 1: First prototype — tap to place your HQ
       ARLevel(
@@ -192,6 +224,23 @@ final List<ARZone> arGameZones = [
         correctSequence: ['camera', 'imu', 'slam'],
         availableNodes: [nodeCamera, nodeIMU, nodeSLAM, nodeRelocalization],
         zoneId: 'zone_2',
+        isFree: true, // First level of zone is free
+        variations: [
+          ARLevelVariation(
+            projectTask: 'A hospital needs indoor navigation! Patients get lost in long corridors. Build an "AR Wayfinder" that always knows where you are inside the building.',
+            goal: 'Use SLAM to create a live indoor position tracker — like GPS but indoors.',
+            buildContext: 'Indoors, GPS doesn\'t work. SLAM replaces it by using the camera and IMU to build a local map and track your position within it in real time.',
+            correctSequence: ['camera', 'imu', 'slam'],
+            availableNodes: [nodeCamera, nodeIMU, nodeSLAM, nodePlaneDetection],
+          ),
+          ARLevelVariation(
+            projectTask: 'A museum wants AR audio guides that trigger automatically when you stand in front of an exhibit. Build the "Exhibit Tracker" positioning system.',
+            goal: 'Track the visitor\'s exact position in the museum so content triggers at the right spot.',
+            buildContext: 'The museum app needs to know exactly where the visitor is standing. SLAM builds a 3D map of the gallery and tracks the phone\'s position within it.',
+            correctSequence: ['camera', 'imu', 'slam'],
+            availableNodes: [nodeCamera, nodeIMU, nodeSLAM, nodeRenderer],
+          ),
+        ],
       ),
       // Level 4: Universal Translator
       ARLevel(
@@ -203,6 +252,22 @@ final List<ARZone> arGameZones = [
         correctSequence: ['camera', 'slam', 'renderer'],
         availableNodes: [nodeCamera, nodeSLAM, nodeRenderer, nodeLightEstimation],
         zoneId: 'zone_2',
+        variations: [
+          ARLevelVariation(
+            projectTask: 'A remote support company wants technicians to guide repairs through AR — drawing arrows on the real machine. It must work on any phone the field worker has!',
+            goal: 'Build a minimal, cross-device AR pipeline that tracks space and renders overlays.',
+            buildContext: 'Remote assistance AR must run everywhere. By sticking to camera → SLAM → renderer, the pipeline stays lean and compatible across Android and iOS.',
+            correctSequence: ['camera', 'slam', 'renderer'],
+            availableNodes: [nodeCamera, nodeSLAM, nodeRenderer, nodeHitTest],
+          ),
+          ARLevelVariation(
+            projectTask: 'A car dealership wants customers to preview vehicles in AR — in the showroom, at home, anywhere! Build a "Virtual Showroom" that runs on every smartphone.',
+            goal: 'Create a universal AR viewer that renders 3D cars with spatial tracking on all devices.',
+            buildContext: 'Customers use all kinds of phones. A cross-platform pipeline using camera, SLAM, and renderer ensures every customer gets the same premium AR experience.',
+            correctSequence: ['camera', 'slam', 'renderer'],
+            availableNodes: [nodeCamera, nodeSLAM, nodeRenderer, nodeOpenXR],
+          ),
+        ],
       ),
       // Boss 2: Survive a mid-game phone drop
       ARLevel(
@@ -239,6 +304,23 @@ final List<ARZone> arGameZones = [
         correctSequence: ['camera', 'slam', 'plane_detection', 'renderer'],
         availableNodes: [nodeCamera, nodeSLAM, nodePlaneDetection, nodeRenderer, nodeOpenXR],
         zoneId: 'zone_3',
+        isFree: true, // First level of zone is free
+        variations: [
+          ARLevelVariation(
+            projectTask: 'A school wants their AR science app to work on classroom tablets AND the new VR headsets in the lab. Build a pipeline that runs on both!',
+            goal: 'Create a multi-device AR pipeline with surface detection for placing 3D models.',
+            buildContext: 'Educational AR must support cheap tablets and expensive headsets. Using camera, SLAM, and plane detection in a standard pipeline makes the app hardware-agnostic.',
+            correctSequence: ['camera', 'slam', 'plane_detection', 'renderer'],
+            availableNodes: [nodeCamera, nodeSLAM, nodePlaneDetection, nodeRenderer, nodeIMU],
+          ),
+          ARLevelVariation(
+            projectTask: 'A factory needs an AR repair manual that works with safety glasses, tablets, and phones. Build a "Universal AR Manual" that adapts to any device!',
+            goal: 'Build a device-agnostic pipeline that detects work surfaces and overlays repair instructions.',
+            buildContext: 'Industrial AR must be flexible. The same pipeline (camera → SLAM → plane detection → renderer) works whether the technician wears AR glasses or holds a tablet.',
+            correctSequence: ['camera', 'slam', 'plane_detection', 'renderer'],
+            availableNodes: [nodeCamera, nodeSLAM, nodePlaneDetection, nodeRenderer, nodeLightEstimation],
+          ),
+        ],
       ),
       // Level 6: Secret Portal
       ARLevel(
@@ -250,6 +332,22 @@ final List<ARZone> arGameZones = [
         correctSequence: ['camera', 'renderer'],
         availableNodes: [nodeCamera, nodeRenderer, nodeSLAM],
         zoneId: 'zone_3',
+        variations: [
+          ARLevelVariation(
+            projectTask: 'A restaurant wants their paper menu to come alive! Point your phone at a dish photo and a 3D version of the food appears. Build the "AR Menu" pipeline.',
+            goal: 'Use image-based tracking to overlay 3D content directly — no room scanning needed.',
+            buildContext: 'The menu itself acts as the tracking target. The camera recognizes the printed image and immediately knows where to place the 3D food model — no SLAM required.',
+            correctSequence: ['camera', 'renderer'],
+            availableNodes: [nodeCamera, nodeRenderer, nodePlaneDetection],
+          ),
+          ARLevelVariation(
+            projectTask: 'A movie studio wants their posters to play the film trailer when you point your phone at them. Build the "Living Poster" image tracker!',
+            goal: 'Trigger AR content from a flat printed image without environmental scanning.',
+            buildContext: 'The poster is the marker. Camera recognizes the unique image pattern, locks onto it, and the renderer overlays a video or 3D animation right on top. Simple and magical.',
+            correctSequence: ['camera', 'renderer'],
+            availableNodes: [nodeCamera, nodeRenderer, nodeIMU],
+          ),
+        ],
       ),
       // Boss 3: Holographic Table
       ARLevel(
@@ -286,6 +384,23 @@ final List<ARZone> arGameZones = [
         correctSequence: ['camera', 'openxr', 'renderer'],
         availableNodes: [nodeCamera, nodeOpenXR, nodeRenderer, nodeOcclusion],
         zoneId: 'zone_4',
+        isFree: true, // First level of zone is free
+        variations: [
+          ARLevelVariation(
+            projectTask: 'A factory needs VR safety training! Workers wear headsets to practice dangerous tasks safely. Build the "VR Training Simulator" display pipeline.',
+            goal: 'Route the camera feed through OpenXR to render stereoscopic views in a training headset.',
+            buildContext: 'Safety training in VR requires the same stereoscopic rendering pipeline. OpenXR handles the two-eye display so workers see depth correctly through their headset.',
+            correctSequence: ['camera', 'openxr', 'renderer'],
+            availableNodes: [nodeCamera, nodeOpenXR, nodeRenderer, nodeSLAM],
+          ),
+          ARLevelVariation(
+            projectTask: 'A surgeon needs a heads-up display during operations! Build the "AR Surgery Assist" so vital patient data floats in the doctor\'s field of vision.',
+            goal: 'Create a headset-compatible pipeline using OpenXR for medical AR overlays.',
+            buildContext: 'Medical AR glasses use OpenXR to manage stereoscopic rendering. The camera captures the operating field, and the renderer overlays patient vitals and guidance.',
+            correctSequence: ['camera', 'openxr', 'renderer'],
+            availableNodes: [nodeCamera, nodeOpenXR, nodeRenderer, nodeLightEstimation],
+          ),
+        ],
       ),
       // Level 8: Behind the Scenes
       ARLevel(
@@ -297,6 +412,22 @@ final List<ARZone> arGameZones = [
         correctSequence: ['camera', 'slam', 'occlusion', 'renderer'],
         availableNodes: [nodeCamera, nodeSLAM, nodeOcclusion, nodeRenderer, nodePlaneDetection],
         zoneId: 'zone_4',
+        variations: [
+          ARLevelVariation(
+            projectTask: 'A pet simulator needs a virtual cat that hides behind real furniture! When the cat walks behind the couch, it should disappear naturally.',
+            goal: 'Use depth-based occlusion so the virtual pet is hidden behind real-world objects.',
+            buildContext: 'For believable virtual pets, the app uses SLAM to understand room depth, then occlusion hides the pet\'s pixels when real furniture is in front of it.',
+            correctSequence: ['camera', 'slam', 'occlusion', 'renderer'],
+            availableNodes: [nodeCamera, nodeSLAM, nodeOcclusion, nodeRenderer, nodeIMU],
+          ),
+          ARLevelVariation(
+            projectTask: 'An AR treasure hunt hides gold coins around the room! But players can see coins through walls — that\'s cheating! Fix the depth rendering.',
+            goal: 'Enable occlusion so hidden treasure stays hidden behind real walls and furniture.',
+            buildContext: 'Treasure should only be visible when there\'s a clear line of sight. SLAM maps the room\'s geometry, and occlusion ensures coins behind real objects stay invisible.',
+            correctSequence: ['camera', 'slam', 'occlusion', 'renderer'],
+            availableNodes: [nodeCamera, nodeSLAM, nodeOcclusion, nodeRenderer, nodeAnchor],
+          ),
+        ],
       ),
       // Boss 4: Solid Structure
       ARLevel(
@@ -333,6 +464,23 @@ final List<ARZone> arGameZones = [
         correctSequence: ['camera', 'light_estimation', 'renderer'],
         availableNodes: [nodeCamera, nodeLightEstimation, nodeRenderer, nodeSpatialAnchor],
         zoneId: 'zone_5',
+        isFree: true, // First level of zone is free
+        variations: [
+          ARLevelVariation(
+            projectTask: 'An interior design app lets users preview furniture in their room. But the virtual sofa looks "flat" and fake! Match it to the room\'s real lighting.',
+            goal: 'Use light estimation so virtual furniture has the same shadows and highlights as the real room.',
+            buildContext: 'Shoppers won\'t buy furniture that looks fake on screen. Light estimation reads the room\'s light direction and color from the camera, then applies it to the 3D models.',
+            correctSequence: ['camera', 'light_estimation', 'renderer'],
+            availableNodes: [nodeCamera, nodeLightEstimation, nodeRenderer, nodeOcclusion],
+          ),
+          ARLevelVariation(
+            projectTask: 'A jewelry brand wants customers to "try on" virtual rings. But the diamonds look dull in dim rooms and washed-out in sunlight! Fix the lighting match.',
+            goal: 'Capture ambient lighting so virtual jewelry sparkles naturally in any environment.',
+            buildContext: 'Jewelry AR must match ambient light perfectly. Light estimation detects brightness and color temperature from the camera feed, then the renderer applies realistic reflections.',
+            correctSequence: ['camera', 'light_estimation', 'renderer'],
+            availableNodes: [nodeCamera, nodeLightEstimation, nodeRenderer, nodeSLAM],
+          ),
+        ],
       ),
       // Level 10: The Time Capsule
       ARLevel(
@@ -344,6 +492,22 @@ final List<ARZone> arGameZones = [
         correctSequence: ['camera', 'slam', 'spatial_anchor'],
         availableNodes: [nodeCamera, nodeSLAM, nodeSpatialAnchor, nodeOcclusion],
         zoneId: 'zone_5',
+        variations: [
+          ARLevelVariation(
+            projectTask: 'Street artists want to paint virtual graffiti on real walls that stays forever! Anyone walking by should see the same art. Build the "AR Graffiti Wall".',
+            goal: 'Save virtual artwork to the cloud so it persists across sessions and devices.',
+            buildContext: 'Cloud spatial anchors save the visual fingerprint of the wall location. Any user who visits later can download the anchor and see the graffiti in the exact same spot.',
+            correctSequence: ['camera', 'slam', 'spatial_anchor'],
+            availableNodes: [nodeCamera, nodeSLAM, nodeSpatialAnchor, nodeRenderer],
+          ),
+          ARLevelVariation(
+            projectTask: 'A memorial park wants visitors to leave virtual flowers at a monument. The flowers must still be there weeks later for other visitors to see.',
+            goal: 'Use cloud-based spatial anchors to persist virtual objects at a real-world location permanently.',
+            buildContext: 'Memorial AR uses spatial anchors stored in the cloud. SLAM maps the monument, the anchor saves its position, and future visitors resolve the same anchor to see all the flowers.',
+            correctSequence: ['camera', 'slam', 'spatial_anchor'],
+            availableNodes: [nodeCamera, nodeSLAM, nodeSpatialAnchor, nodeLightEstimation],
+          ),
+        ],
       ),
       // Final Boss: SHIP IT
       ARLevel(

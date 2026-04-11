@@ -1329,18 +1329,35 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     Consumer<SoundService>(
-                      builder: (context, sound, _) => SwitchListTile(
-                        secondary: const Icon(Icons.vibration_rounded, color: AppTheme.accentCyan),
-                        title: Text(
-                          'Vibration',
-                          style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
-                        ),
-                        value: sound.isVibrationEnabled,
-                        activeThumbColor: AppTheme.accentCyan,
-                        onChanged: (val) {
-                          sound.toggleVibration();
-                          sound.playTap();
-                        },
+                      builder: (context, sound, _) => Column(
+                        children: [
+                          SwitchListTile(
+                            secondary: const Icon(Icons.volume_up_rounded, color: AppTheme.accentCyan),
+                            title: Text(
+                              'Sound Effects',
+                              style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                            ),
+                            value: sound.isSoundEnabled,
+                            activeThumbColor: AppTheme.accentCyan,
+                            onChanged: (val) {
+                              sound.toggleSound();
+                              sound.playTap();
+                            },
+                          ),
+                          SwitchListTile(
+                            secondary: const Icon(Icons.vibration_rounded, color: AppTheme.accentCyan),
+                            title: Text(
+                              'Vibration',
+                              style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
+                            ),
+                            value: sound.isVibrationEnabled,
+                            activeThumbColor: AppTheme.accentCyan,
+                            onChanged: (val) {
+                              sound.toggleVibration();
+                              sound.playTap();
+                            },
+                          ),
+                        ],
                       ),
                     ),
                     Consumer<NotificationService>(

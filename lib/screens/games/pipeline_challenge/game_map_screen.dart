@@ -76,10 +76,8 @@ class _GameMapScreenState extends State<GameMapScreen> {
       padding: EdgeInsets.fromLTRB(
           isCompact ? 8 : 12, 12, isCompact ? 12 : 16, 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF060B14).withValues(alpha: 0.98),
-        border: Border(
-            bottom: BorderSide(
-                color: AppTheme.accentPurple.withValues(alpha: 0.15))),
+        color: Colors.black.withValues(alpha: 0.2),
+        border: const Border(bottom: BorderSide(color: Colors.white10)),
       ),
       child: Row(
         children: [
@@ -265,16 +263,37 @@ class _GameMapScreenState extends State<GameMapScreen> {
                     ],
                   ),
                 ),
-                // Premium Badge
+                // Premium Badge — prominent gold PRO chip
                 if (index >= 3 && !isPremium)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     margin: const EdgeInsets.only(right: 8),
                     decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFFB300), Color(0xFFFF8F00)],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.amber.withValues(alpha: 0.5),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        )
+                      ],
                     ),
-                    child: const Icon(Icons.workspace_premium_rounded, color: Colors.amber, size: 16),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 13),
+                        SizedBox(width: 4),
+                        Text('PRO', style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                        )),
+                      ],
+                    ),
                   ),
                 // Zone Mastery Badge
                 Container(
@@ -424,7 +443,36 @@ class _GameMapScreenState extends State<GameMapScreen> {
                     ),
                     const SizedBox(width: 8),
                     // Action / Status
-                    if (isCompleted)
+                    if (isPremiumLocked)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFFB300), Color(0xFFFF8F00)],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.amber.withValues(alpha: 0.4),
+                              blurRadius: 6,
+                            )
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 13),
+                            SizedBox(width: 4),
+                            Text('PRO', style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.0,
+                            )),
+                          ],
+                        ),
+                      )
+                    else if (isCompleted)
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: List.generate(3, (i) {

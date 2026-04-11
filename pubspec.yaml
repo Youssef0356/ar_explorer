@@ -31,6 +31,7 @@ dependencies:
   home_widget: ^0.9.0
   workmanager: ^0.9.0+3
   tutorial_coach_mark: ^1.2.11
+  audioplayers: ^6.1.0
 
 dev_dependencies:
   flutter_test:
@@ -47,6 +48,7 @@ flutter:
     - assets/images/Real World Examples vs Common Misconceptions/
     - assets/images/evolution of spatial computing in augmented reality/
     - assets/images/Why coordinate systems in AR/
+    - assets/sound effects/
 
 flutter_launcher_icons:
   android: true

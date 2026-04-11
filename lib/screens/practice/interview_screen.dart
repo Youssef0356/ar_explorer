@@ -11,8 +11,93 @@ import '../../data/learning/quiz_data.dart';
 import '../../models/quiz_model.dart';
 import '../../services/progress_service.dart';
 import '../../services/theme_service.dart';
+import '../../services/sound_service.dart';
 import '../../widgets/quiz_option_button.dart';
 import '../settings/paywall_screen.dart';
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  INTERVIEWER MOOD SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════════
+
+enum InterviewerMood {
+  greeting,    // 👋  Intro screen welcome
+  idle,        // 🤔  Waiting for answer
+  curious,     // 🧐  Timer 30-60s
+  impatient,   // 😤  Timer < 15s
+  angry,       // 😡  Timer < 5s
+  suspicious,  // 🤨  User selected an option (pre-reveal)
+  happy,       // 😄  Correct answer
+  celebrating, // 🥳  Streak 3+
+  disappointed,// 😞  Wrong answer
+  shocked,     // 😱  Time ran out
+  impressed,   // 🤩  Great score result
+  mindBlown,   // 🤯  Perfect score
+  sad,         // 😢  Poor score
+  cool,        // 😎  Good score result
+}
+
+extension InterviewerMoodEmoji on InterviewerMood {
+  String get emoji {
+    switch (this) {
+      case InterviewerMood.greeting:     return '👋';
+      case InterviewerMood.idle:         return '🤔';
+      case InterviewerMood.curious:      return '🧐';
+      case InterviewerMood.impatient:    return '😤';
+      case InterviewerMood.angry:        return '😡';
+      case InterviewerMood.suspicious:   return '🤨';
+      case InterviewerMood.happy:        return '😄';
+      case InterviewerMood.celebrating:  return '🥳';
+      case InterviewerMood.disappointed: return '😞';
+      case InterviewerMood.shocked:      return '😱';
+      case InterviewerMood.impressed:    return '🤩';
+      case InterviewerMood.mindBlown:    return '🤯';
+      case InterviewerMood.sad:          return '😢';
+      case InterviewerMood.cool:         return '😎';
+    }
+  }
+
+  Color get glowColor {
+    switch (this) {
+      case InterviewerMood.greeting:     return const Color(0xFF64B5F6);
+      case InterviewerMood.idle:         return const Color(0xFF90CAF9);
+      case InterviewerMood.curious:      return const Color(0xFFFFD54F);
+      case InterviewerMood.impatient:    return const Color(0xFFFF8A65);
+      case InterviewerMood.angry:        return const Color(0xFFEF5350);
+      case InterviewerMood.suspicious:   return const Color(0xFFFFB74D);
+      case InterviewerMood.happy:        return const Color(0xFF66BB6A);
+      case InterviewerMood.celebrating:  return const Color(0xFFFFD700);
+      case InterviewerMood.disappointed: return const Color(0xFF78909C);
+      case InterviewerMood.shocked:      return const Color(0xFFE040FB);
+      case InterviewerMood.impressed:    return const Color(0xFFFFD700);
+      case InterviewerMood.mindBlown:    return const Color(0xFFFF6E40);
+      case InterviewerMood.sad:          return const Color(0xFF42A5F5);
+      case InterviewerMood.cool:         return const Color(0xFF26C6DA);
+    }
+  }
+
+  String get comment {
+    switch (this) {
+      case InterviewerMood.greeting:     return "Ready for your interview? Let's go! 🎤";
+      case InterviewerMood.idle:         return 'Hmm, take your time...';
+      case InterviewerMood.curious:      return 'Interesting... what do you think?';
+      case InterviewerMood.impatient:    return 'Tick tock! Time is running out!';
+      case InterviewerMood.angry:        return 'HURRY UP!! ⏰';
+      case InterviewerMood.suspicious:   return 'Are you sure about that? 🤨';
+      case InterviewerMood.happy:        return 'Nailed it! Great answer! ✅';
+      case InterviewerMood.celebrating:  return "You're on FIRE! 🔥🔥🔥";
+      case InterviewerMood.disappointed: return 'Oops, not quite right...';
+      case InterviewerMood.shocked:      return "Time's up! Oh no! ⏰";
+      case InterviewerMood.impressed:    return 'Outstanding performance! 🌟';
+      case InterviewerMood.mindBlown:    return 'PERFECT?! You absolute legend!! 🏆';
+      case InterviewerMood.sad:          return 'Keep studying, you got this! 💪';
+      case InterviewerMood.cool:         return 'Solid work! Well done! 😎';
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  INTERVIEW SCREEN
+// ═══════════════════════════════════════════════════════════════════════════════
 
 class InterviewScreen extends StatefulWidget {
   const InterviewScreen({super.key});
@@ -22,8 +107,8 @@ class InterviewScreen extends StatefulWidget {
 }
 
 class _InterviewScreenState extends State<InterviewScreen>
-    with WidgetsBindingObserver {
-  static const _secondsPerQuestion = 90;
+    with WidgetsBindingObserver, TickerProviderStateMixin {
+  static const _totalInterviewSeconds = 900; // 15 mins total
   static const _totalQuestions = 10;
 
   bool _started = false;
@@ -33,13 +118,18 @@ class _InterviewScreenState extends State<InterviewScreen>
   int? _selectedOption;
   bool _showResult = false;
   int _correctCount = 0;
-  int _secondsRemaining = _secondsPerQuestion;
+  int _secondsRemaining = _totalInterviewSeconds;
   Timer? _timer;
   final Stopwatch _totalStopwatch = Stopwatch();
   String? _selectedCategory;
 
-  // Map of module title → quiz IDs that belong to that module
-  // Built once so the dropdown and filtering are always in sync
+  // ── New: Mood & streak ────────────────────────────────────────────────────
+  InterviewerMood _currentMood = InterviewerMood.greeting;
+  int _streak = 0;
+  bool _showConfetti = false;
+  late AnimationController _emojiAnimController;
+  late AnimationController _pulseController;
+
   late final Map<String, List<String>> _moduleTitleToQuizIds;
 
   @override
@@ -47,9 +137,16 @@ class _InterviewScreenState extends State<InterviewScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _buildModuleQuizMap();
+    _emojiAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
   }
 
-  /// Build a lookup: moduleTitle → [quizId, ...] using allQuizzes.moduleId
   void _buildModuleQuizMap() {
     final map = <String, List<String>>{};
     for (final module in allModules) {
@@ -68,6 +165,8 @@ class _InterviewScreenState extends State<InterviewScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
+    _emojiAnimController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -87,14 +186,39 @@ class _InterviewScreenState extends State<InterviewScreen>
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
-      setState(() => _secondsRemaining--);
+      setState(() {
+        _secondsRemaining--;
+        _updateMoodFromTimer();
+      });
       if (_secondsRemaining <= 0) _timeUp();
     });
   }
 
+  // ── Mood updates ──────────────────────────────────────────────────────────
+  void _updateMoodFromTimer() {
+    if (_showResult) return;
+    if (_secondsRemaining <= 5) {
+      _setMood(InterviewerMood.angry);
+    } else if (_secondsRemaining <= 15) {
+      _setMood(InterviewerMood.impatient);
+    } else if (_secondsRemaining <= 45) {
+      _setMood(InterviewerMood.curious);
+    } else {
+      _setMood(InterviewerMood.idle);
+    }
+  }
+
+  void _setMood(InterviewerMood mood) {
+    if (_currentMood != mood) {
+      setState(() => _currentMood = mood);
+      _emojiAnimController.forward(from: 0);
+    }
+  }
+
+  // ── Start ─────────────────────────────────────────────────────────────────
   void _startInterview() async {
     final progress = context.read<ProgressService>();
-    
+
     if (!progress.isPremium) {
       if (progress.interviewAttemptsLeft <= 0) {
         if (progress.xp >= 50) {
@@ -118,23 +242,18 @@ class _InterviewScreenState extends State<InterviewScreen>
     List<QuizQuestion> pool = [];
 
     if (_selectedCategory == null) {
-      // All topics — draw from every quiz
       pool = allQuizzes.values.expand((q) => q.questions).toList();
     } else {
-      // Filter by the selected module: use the pre-built quiz ID map
       final quizIds = _moduleTitleToQuizIds[_selectedCategory] ?? [];
       for (final id in quizIds) {
         final quiz = allQuizzes[id];
         if (quiz != null) pool.addAll(quiz.questions);
       }
-
-      // Safety: if module has no mapped quizzes, fall back gracefully
       if (pool.isEmpty) {
         pool = allQuizzes.values.expand((q) => q.questions).toList();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(
-                'No quiz questions found for "$_selectedCategory" — showing mixed questions.'),
+            content: Text('No quiz questions found for "$_selectedCategory" — showing mixed questions.'),
             backgroundColor: AppTheme.warningAmber,
           ));
         }
@@ -143,8 +262,6 @@ class _InterviewScreenState extends State<InterviewScreen>
 
     pool.shuffle(Random());
 
-    // Shuffle the OPTIONS within each question so the correct answer
-    // doesn't always sit at the same index (the raw data is biased to index 1).
     final rng = Random();
     final shuffled = pool.take(min(_totalQuestions, pool.length)).map((q) {
       final indices = List<int>.generate(q.options.length, (i) => i);
@@ -170,7 +287,9 @@ class _InterviewScreenState extends State<InterviewScreen>
       _selectedOption = null;
       _showResult = false;
       _correctCount = 0;
-      _secondsRemaining = _secondsPerQuestion;
+      _streak = 0;
+      _secondsRemaining = _totalInterviewSeconds;
+      _currentMood = InterviewerMood.idle;
     });
 
     _totalStopwatch
@@ -181,10 +300,12 @@ class _InterviewScreenState extends State<InterviewScreen>
 
   void _startTimer() {
     _timer?.cancel();
-    _secondsRemaining = _secondsPerQuestion;
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
-      setState(() => _secondsRemaining--);
+      setState(() {
+        _secondsRemaining--;
+        _updateMoodFromTimer();
+      });
       if (_secondsRemaining <= 0) _timeUp();
     });
   }
@@ -192,6 +313,9 @@ class _InterviewScreenState extends State<InterviewScreen>
   void _timeUp() {
     _timer?.cancel();
     if (!_showResult) {
+      _streak = 0;
+      _setMood(InterviewerMood.shocked);
+      context.read<SoundService>().playFailure();
       setState(() {
         _showResult = true;
         _selectedOption = -1;
@@ -204,7 +328,23 @@ class _InterviewScreenState extends State<InterviewScreen>
     if (_showResult) return;
     _timer?.cancel();
     final q = _questions[_currentIndex];
-    if (index == q.correctIndex) _correctCount++;
+    final isCorrect = index == q.correctIndex;
+
+    if (isCorrect) {
+      _correctCount++;
+      _streak++;
+      if (_streak >= 3) {
+        _setMood(InterviewerMood.celebrating);
+      } else {
+        _setMood(InterviewerMood.happy);
+      }
+      context.read<SoundService>().playSuccess();
+    } else {
+      _streak = 0;
+      _setMood(InterviewerMood.disappointed);
+      context.read<SoundService>().playFailure();
+    }
+
     setState(() {
       _selectedOption = index;
       _showResult = true;
@@ -218,6 +358,7 @@ class _InterviewScreenState extends State<InterviewScreen>
         _currentIndex++;
         _selectedOption = null;
         _showResult = false;
+        _currentMood = InterviewerMood.idle;
       });
       _startTimer();
     } else {
@@ -228,18 +369,30 @@ class _InterviewScreenState extends State<InterviewScreen>
   void _finishInterview() {
     _timer?.cancel();
     _totalStopwatch.stop();
-    final scorePercent =
-        ((_correctCount / _questions.length) * 100).round();
+    final scorePercent = ((_correctCount / _questions.length) * 100).round();
     context.read<ProgressService>().saveInterviewScore(scorePercent);
+    context.read<SoundService>().playAchievement();
+
+    // Set result mood
+    if (scorePercent == 100) {
+      _currentMood = InterviewerMood.mindBlown;
+      _showConfetti = true;
+    } else if (scorePercent >= 80) {
+      _currentMood = InterviewerMood.impressed;
+      _showConfetti = true;
+    } else if (scorePercent >= 60) {
+      _currentMood = InterviewerMood.cool;
+    } else {
+      _currentMood = InterviewerMood.sad;
+    }
+
     setState(() => _finished = true);
   }
 
-  // ── Back navigation — always cancel timer ────────────────────────────────
   void _handleBack() {
     _timer?.cancel();
     _totalStopwatch.stop();
     if (_started && !_finished) {
-      // Confirm exit mid-interview
       _showExitConfirm();
     } else {
       Navigator.pop(context);
@@ -251,21 +404,26 @@ class _InterviewScreenState extends State<InterviewScreen>
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.cardC(isDark),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Exit Interview?',
-            style: AppTheme.headingSmall
-                .copyWith(color: AppTheme.textPrimaryC(isDark))),
+        backgroundColor: isDark ? const Color(0xFF1A1A2E) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            const Text('😰', style: TextStyle(fontSize: 28)),
+            const SizedBox(width: 12),
+            Text('Leaving already?',
+                style: AppTheme.headingSmall
+                    .copyWith(color: AppTheme.textPrimaryC(isDark))),
+          ],
+        ),
         content: Text(
-            'Your current session will be lost. Exit anyway?',
+            'Your interviewer will be sad... Session will be lost!',
             style: AppTheme.bodyMedium
                 .copyWith(color: AppTheme.textSecondaryC(isDark))),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Keep Going',
-                style:
-                    AppTheme.bodyMedium.copyWith(color: AppTheme.accentCyan)),
+            child: Text('Stay 💪',
+                style: AppTheme.bodyMedium.copyWith(color: AppTheme.successGreen)),
           ),
           TextButton(
             onPressed: () {
@@ -276,9 +434,8 @@ class _InterviewScreenState extends State<InterviewScreen>
               });
               Navigator.pop(context);
             },
-            child: Text('Exit',
-                style:
-                    AppTheme.bodyMedium.copyWith(color: AppTheme.errorRed)),
+            child: Text('Leave 👋',
+                style: AppTheme.bodyMedium.copyWith(color: AppTheme.errorRed)),
           ),
         ],
       ),
@@ -290,23 +447,27 @@ class _InterviewScreenState extends State<InterviewScreen>
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.cardC(isDark),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: isDark ? const Color(0xFF1A1A2E) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Row(
           children: [
-            const Icon(Icons.lock_open_rounded, color: AppTheme.accentCyan),
+            const Text('🎟️', style: TextStyle(fontSize: 28)),
             const SizedBox(width: 8),
-            Text('Unlock Attempt', style: AppTheme.headingSmall.copyWith(color: AppTheme.textPrimaryC(isDark))),
+            Expanded(child: Text('Unlock Attempt', style: AppTheme.headingSmall.copyWith(color: AppTheme.textPrimaryC(isDark)))),
           ],
         ),
-        content: Text('You are out of free attempts. Unlock a new mock interview attempt for 50 XP?', style: AppTheme.bodyMedium.copyWith(color: AppTheme.textSecondaryC(isDark))),
+        content: Text('No free attempts left. Spend 50 XP to enter?',
+            style: AppTheme.bodyMedium.copyWith(color: AppTheme.textSecondaryC(isDark))),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Cancel', style: AppTheme.bodyMedium.copyWith(color: AppTheme.textMutedC(isDark))),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accentCyan),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.accentCyan,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             onPressed: () async {
               final ok = await progress.spendXP(50);
               Navigator.pop(ctx, ok);
@@ -329,12 +490,16 @@ class _InterviewScreenState extends State<InterviewScreen>
 
   Color get _tierColor {
     final pct = ((_correctCount / _questions.length) * 100).round();
-    if (pct >= 91) return AppTheme.accentAmber;
+    if (pct >= 91) return const Color(0xFFFFD700);
     if (pct >= 71) return AppTheme.accentCyan;
     if (pct >= 51) return AppTheme.accentBlue;
     if (pct >= 31) return AppTheme.accentOrange;
     return AppTheme.accentPink;
   }
+
+  // ═════════════════════════════════════════════════════════════════════════
+  //  BUILD
+  // ═════════════════════════════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
@@ -347,8 +512,15 @@ class _InterviewScreenState extends State<InterviewScreen>
       },
       child: Scaffold(
         body: Container(
-          decoration:
-              BoxDecoration(gradient: AppTheme.backgroundGradient(isDark)),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark
+                  ? [const Color(0xFF0D0D1A), const Color(0xFF1A0A2E), const Color(0xFF0D0D1A)]
+                  : [const Color(0xFFF0F4FF), const Color(0xFFE8E0F0), const Color(0xFFF5F0FF)],
+            ),
+          ),
           child: SafeArea(
             child: _finished
                 ? _buildResults(isDark)
@@ -361,185 +533,399 @@ class _InterviewScreenState extends State<InterviewScreen>
     );
   }
 
-  // ── Intro ─────────────────────────────────────────────────────────────────
-  Widget _buildIntro(bool isDark) {
-    final bestScore = context.watch<ProgressService>().interviewBestScore;
-    final isPremium = context.watch<ProgressService>().isPremium;
+  // ═════════════════════════════════════════════════════════════════════════
+  //  INTERVIEWER FACE WIDGET
+  // ═════════════════════════════════════════════════════════════════════════
 
-    // Only show modules that actually have quizzes
-    final availableCategories = _moduleTitleToQuizIds.keys.toList();
+  Widget _buildInterviewerFace({
+    double size = 80,
+    bool showTimer = false,
+    bool large = false,
+  }) {
+    final glowColor = _currentMood.glowColor;
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          IconButton(
-            icon: Icon(Icons.arrow_back_ios_rounded,
-                color: AppTheme.textPrimaryC(isDark)),
-            onPressed: () => Navigator.pop(context),
-          ),
-          const Spacer(),
-          Center(
-            child: Column(
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: AppTheme.accentAmber.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Icon(Icons.work_rounded,
-                      color: AppTheme.accentAmber, size: 40),
-                ),
-                const SizedBox(height: 24),
-                Text('Mock Interview',
-                    style: AppTheme.headingLarge.copyWith(
-                        color: AppTheme.textPrimaryC(isDark))),
-                const SizedBox(height: 12),
-                Text(
-                  '10 questions • 90 seconds each\nNo hints • Timed • Scored',
-                  style: AppTheme.bodyMedium.copyWith(
-                      color: AppTheme.textSecondaryC(isDark)),
-                  textAlign: TextAlign.center,
-                ),
-                if (bestScore > 0) ...[
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.accentCyan.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text('Best: $bestScore%',
-                        style: AppTheme.bodyMedium.copyWith(
-                            color: AppTheme.accentCyan,
-                            fontWeight: FontWeight.w600)),
-                  ),
-                ],
-                const SizedBox(height: 12),
-                Consumer<ProgressService>(
-                  builder: (context, progress, _) {
-                    if (progress.isPremium) {
-                      return Container(
-                        margin: const EdgeInsets.only(top: 8),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppTheme.successGreen.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.all_inclusive_rounded,
-                                color: AppTheme.successGreen, size: 16),
-                            const SizedBox(width: 8),
-                            Text('Unlimited Premium Attempts',
-                                style: AppTheme.labelMedium
-                                    .copyWith(color: AppTheme.successGreen)),
-                          ],
-                        ),
-                      );
-                    }
-                    final left = progress.interviewAttemptsLeft;
-                    final hasFree = left > 0;
-                    return Column(
-                      children: [
-                        Text(
-                          'Free Attempts: $left / 2',
-                          style: AppTheme.bodySmall.copyWith(
-                            color: hasFree ? AppTheme.accentCyan : AppTheme.textMutedC(isDark),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        if (!hasFree) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            'Costs 50 XP per attempt',
-                            style: AppTheme.bodySmall.copyWith(
-                              color: progress.xp >= 50 ? AppTheme.accentCyan : AppTheme.errorRed,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ]
-                      ],
-                    );
-                  },
-                ),
+    Widget face = AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      transitionBuilder: (child, anim) => ScaleTransition(
+        scale: anim,
+        child: child,
+      ),
+      child: Text(
+        _currentMood.emoji,
+        key: ValueKey(_currentMood),
+        style: TextStyle(fontSize: large ? size * 0.55 : size * 0.5),
+      ),
+    );
 
-                // ── Category selector (Premium only) ──────────────────────
-                if (isPremium) ...[
-                  const SizedBox(height: 24),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('Topic Focus',
-                        style: AppTheme.labelMedium.copyWith(
-                            color: AppTheme.textSecondaryC(isDark))),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: AppTheme.glassCard(isDark),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _selectedCategory,
-                        isExpanded: true,
-                        hint: Text('All Modules (Mixed)',
-                            style: AppTheme.bodySmall.copyWith(
-                                color: AppTheme.textPrimaryC(isDark))),
-                        dropdownColor: AppTheme.cardC(isDark),
-                        style: AppTheme.bodySmall
-                            .copyWith(color: AppTheme.textPrimaryC(isDark)),
-                        icon: Icon(Icons.arrow_drop_down_rounded,
-                            color: AppTheme.textMutedC(isDark)),
-                        items: [
-                          const DropdownMenuItem<String>(
-                            value: null,
-                            child: Text('All Modules (Mixed)'),
-                          ),
-                          ...availableCategories.map((title) =>
-                              DropdownMenuItem<String>(
-                                value: title,
-                                child: Text(
-                                  title,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              )),
-                        ],
-                        onChanged: (val) =>
-                            setState(() => _selectedCategory = val),
-                      ),
-                    ),
-                  ),
-                  if (_selectedCategory != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: _buildCategoryPreview(isDark),
-                    ),
-                ],
+    // Add mood-specific animations
+    if (_currentMood == InterviewerMood.angry || _currentMood == InterviewerMood.impatient) {
+      face = face.animate(onPlay: (c) => c.repeat())
+          .shimmer(duration: 800.ms, color: glowColor.withValues(alpha: 0.3))
+          .shake(hz: _currentMood == InterviewerMood.angry ? 6 : 3, offset: const Offset(2, 0));
+    } else if (_currentMood == InterviewerMood.celebrating || _currentMood == InterviewerMood.mindBlown) {
+      face = face.animate(onPlay: (c) => c.repeat(reverse: true))
+          .scale(begin: const Offset(1.0, 1.0), end: const Offset(1.15, 1.15), duration: 400.ms);
+    } else if (_currentMood == InterviewerMood.shocked) {
+      face = face.animate()
+          .scale(begin: const Offset(0.5, 0.5), end: const Offset(1.0, 1.0), duration: 300.ms, curve: Curves.elasticOut);
+    } else if (_currentMood == InterviewerMood.disappointed || _currentMood == InterviewerMood.sad) {
+      face = face.animate()
+          .slideY(begin: 0, end: 0.05, duration: 600.ms, curve: Curves.easeInOut);
+    }
 
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: 200,
-                  child: ElevatedButton(
-                    onPressed: _startInterview,
-                    child: const Text('Start Interview'),
-                  ),
-                ),
+    Widget faceContainer = AnimatedBuilder(
+      animation: _pulseController,
+      builder: (context, child) {
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                glowColor.withValues(alpha: 0.2 + _pulseController.value * 0.1),
+                glowColor.withValues(alpha: 0.05),
+                Colors.transparent,
               ],
+              stops: const [0.3, 0.7, 1.0],
             ),
-          ).animate().fadeIn(duration: const Duration(milliseconds: 500)),
-          const Spacer(),
+            border: Border.all(
+              color: glowColor.withValues(alpha: 0.4 + _pulseController.value * 0.2),
+              width: 2.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: glowColor.withValues(alpha: 0.2 + _pulseController.value * 0.15),
+                blurRadius: 20 + _pulseController.value * 10,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Center(child: face),
+        );
+      },
+    );
+
+    if (!showTimer) return faceContainer;
+
+    // Wrap with circular timer ring
+    final timerFraction = _secondsRemaining / _totalInterviewSeconds;
+    final timerColor = _secondsRemaining <= 60
+        ? AppTheme.errorRed
+        : _secondsRemaining <= 180
+            ? AppTheme.warningAmber
+            : AppTheme.accentCyan;
+
+    return SizedBox(
+      width: size + 16,
+      height: size + 16,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Timer ring
+          SizedBox(
+            width: size + 14,
+            height: size + 14,
+            child: CircularProgressIndicator(
+              value: timerFraction,
+              strokeWidth: 4,
+              backgroundColor: timerColor.withValues(alpha: 0.1),
+              valueColor: AlwaysStoppedAnimation(timerColor),
+              strokeCap: StrokeCap.round,
+            ),
+          ),
+          faceContainer,
         ],
       ),
     );
   }
 
-  /// Small preview showing how many questions are available for chosen category
+  // ── Speech bubble ─────────────────────────────────────────────────────────
+  Widget _buildSpeechBubble(String text, bool isDark, {bool isComment = false}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: isComment ? 0.04 : 0.06)
+            : Colors.black.withValues(alpha: isComment ? 0.03 : 0.05),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+          bottomRight: Radius.circular(20),
+          bottomLeft: Radius.circular(4),
+        ),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: isComment ? 0.06 : 0.08)
+              : Colors.black.withValues(alpha: isComment ? 0.06 : 0.08),
+        ),
+      ),
+      child: Text(
+        text,
+        style: isComment
+            ? AppTheme.bodySmall.copyWith(
+                color: _currentMood.glowColor.withValues(alpha: 0.9),
+                fontStyle: FontStyle.italic,
+                fontSize: 12,
+              )
+            : AppTheme.bodyMedium.copyWith(
+                color: AppTheme.textPrimaryC(isDark),
+                height: 1.5,
+                fontSize: 15,
+              ),
+      ),
+    );
+  }
+
+  // ═════════════════════════════════════════════════════════════════════════
+  //  INTRO SCREEN
+  // ═════════════════════════════════════════════════════════════════════════
+
+  Widget _buildIntro(bool isDark) {
+    final bestScore = context.watch<ProgressService>().interviewBestScore;
+    final isPremium = context.watch<ProgressService>().isPremium;
+    final availableCategories = _moduleTitleToQuizIds.keys.toList();
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          // Back button
+          Align(
+            alignment: Alignment.centerLeft,
+            child: IconButton(
+              icon: Icon(Icons.arrow_back_ios_rounded,
+                  color: AppTheme.textPrimaryC(isDark)),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Greeting emoji
+          _buildInterviewerFace(size: 100, large: true)
+              .animate()
+              .fadeIn(duration: 600.ms)
+              .scale(begin: const Offset(0.7, 0.7), end: const Offset(1, 1), curve: Curves.elasticOut, duration: 800.ms),
+
+          const SizedBox(height: 20),
+
+          // Speech bubble greeting
+          _buildSpeechBubble(_currentMood.comment, isDark, isComment: true)
+              .animate()
+              .fadeIn(delay: 300.ms, duration: 400.ms)
+              .slideY(begin: 0.3, end: 0, curve: Curves.easeOut),
+
+          const SizedBox(height: 28),
+
+          // Title
+          Text(
+            'Mock Interview',
+            style: AppTheme.headingLarge.copyWith(
+              color: AppTheme.textPrimaryC(isDark),
+              fontSize: 28,
+            ),
+          ).animate().fadeIn(delay: 400.ms),
+
+          const SizedBox(height: 12),
+
+          // Info chips
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: [
+              _buildInfoChip('📝 10 Questions', isDark),
+              _buildInfoChip('⏱️ 15m Total', isDark),
+              _buildInfoChip('🚫 No Hints', isDark),
+            ],
+          ).animate().fadeIn(delay: 500.ms),
+
+          const SizedBox(height: 20),
+
+          // Best score
+          if (bestScore > 0)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppTheme.accentCyan.withValues(alpha: 0.12),
+                    AppTheme.accentPurple.withValues(alpha: 0.08),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.accentCyan.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('🏅', style: TextStyle(fontSize: 18)),
+                  const SizedBox(width: 8),
+                  Text('Personal Best: $bestScore%',
+                      style: AppTheme.bodyMedium.copyWith(
+                          color: AppTheme.accentCyan,
+                          fontWeight: FontWeight.w700)),
+                ],
+              ),
+            ).animate().fadeIn(delay: 600.ms),
+
+          const SizedBox(height: 16),
+
+          // Attempts / Premium status
+          Consumer<ProgressService>(
+            builder: (context, progress, _) {
+              if (progress.isPremium) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppTheme.successGreen.withValues(alpha: 0.12),
+                        AppTheme.successGreen.withValues(alpha: 0.06),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.all_inclusive_rounded,
+                          color: AppTheme.successGreen, size: 16),
+                      const SizedBox(width: 8),
+                      Text('Unlimited PRO Attempts',
+                          style: AppTheme.labelMedium
+                              .copyWith(color: AppTheme.successGreen)),
+                    ],
+                  ),
+                );
+              }
+              final left = progress.interviewAttemptsLeft;
+              final hasFree = left > 0;
+              return Column(
+                children: [
+                  Text(
+                    'Free Attempts: $left / 2',
+                    style: AppTheme.bodySmall.copyWith(
+                      color: hasFree ? AppTheme.accentCyan : AppTheme.textMutedC(isDark),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (!hasFree) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Costs 50 XP per attempt',
+                      style: AppTheme.bodySmall.copyWith(
+                        color: progress.xp >= 50 ? AppTheme.accentCyan : AppTheme.errorRed,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ]
+                ],
+              );
+            },
+          ),
+
+          // ── Category selector (Premium only) ──────────────────────
+          if (isPremium) ...[
+            const SizedBox(height: 24),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text('🎯 Topic Focus',
+                  style: AppTheme.labelMedium.copyWith(
+                      color: AppTheme.textSecondaryC(isDark))),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.04)
+                    : Colors.black.withValues(alpha: 0.03),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.08),
+                ),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedCategory,
+                  isExpanded: true,
+                  hint: Text('All Modules (Mixed)',
+                      style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.textPrimaryC(isDark))),
+                  dropdownColor: isDark ? const Color(0xFF1A1A2E) : Colors.white,
+                  style: AppTheme.bodySmall
+                      .copyWith(color: AppTheme.textPrimaryC(isDark)),
+                  icon: Icon(Icons.arrow_drop_down_rounded,
+                      color: AppTheme.textMutedC(isDark)),
+                  items: [
+                    const DropdownMenuItem<String>(
+                      value: null,
+                      child: Text('All Modules (Mixed)'),
+                    ),
+                    ...availableCategories.map((title) =>
+                        DropdownMenuItem<String>(
+                          value: title,
+                          child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        )),
+                  ],
+                  onChanged: (val) => setState(() => _selectedCategory = val),
+                ),
+              ),
+            ),
+            if (_selectedCategory != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: _buildCategoryPreview(isDark),
+              ),
+          ],
+
+          const SizedBox(height: 32),
+
+          // Start button
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: _startInterview,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accentCyan,
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                elevation: 0,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.play_arrow_rounded, size: 24),
+                  const SizedBox(width: 8),
+                  Text('Start Interview',
+                      style: AppTheme.headingSmall.copyWith(color: Colors.black, fontSize: 16)),
+                ],
+              ),
+            ),
+          ).animate(onPlay: (c) => c.repeat(reverse: true))
+              .shimmer(delay: 1000.ms, duration: 2000.ms, color: Colors.white.withValues(alpha: 0.15)),
+
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoChip(String text, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06)),
+      ),
+      child: Text(text, style: AppTheme.bodySmall.copyWith(color: AppTheme.textSecondaryC(isDark), fontWeight: FontWeight.w600)),
+    );
+  }
+
   Widget _buildCategoryPreview(bool isDark) {
     final quizIds = _moduleTitleToQuizIds[_selectedCategory] ?? [];
     final count =
@@ -548,240 +934,427 @@ class _InterviewScreenState extends State<InterviewScreen>
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(Icons.info_outline_rounded,
-            size: 13, color: AppTheme.accentCyan.withOpacity(0.7)),
+            size: 13, color: AppTheme.accentCyan.withValues(alpha: 0.7)),
         const SizedBox(width: 5),
         Text(
           '$count questions available in this topic',
           style: AppTheme.bodySmall.copyWith(
-              color: AppTheme.accentCyan.withOpacity(0.8), fontSize: 11),
+              color: AppTheme.accentCyan.withValues(alpha: 0.8), fontSize: 11),
         ),
       ],
     );
   }
 
-  // ── Quiz ──────────────────────────────────────────────────────────────────
+  // ═════════════════════════════════════════════════════════════════════════
+  //  QUIZ SCREEN
+  // ═════════════════════════════════════════════════════════════════════════
+
   Widget _buildQuiz(bool isDark) {
     final q = _questions[_currentIndex];
-    final timerFraction = _secondsRemaining / _secondsPerQuestion;
-    final timerColor = _secondsRemaining <= 15
-        ? AppTheme.errorRed
-        : _secondsRemaining <= 30
-            ? AppTheme.warningAmber
-            : AppTheme.accentCyan;
 
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── Top bar: Back + Progress + Timer text ──────────────────────
           Row(
             children: [
-              IconButton(
-                icon: Icon(Icons.arrow_back_ios_rounded,
-                    color: AppTheme.textPrimaryC(isDark)),
-                onPressed: _handleBack,
-              ),
-              Text(
-                'Question ${_currentIndex + 1} / ${_questions.length}',
-                style: AppTheme.headingSmall.copyWith(
-                    color: AppTheme.textPrimaryC(isDark)),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: timerColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(10),
+              GestureDetector(
+                onTap: _handleBack,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.04),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.arrow_back_ios_rounded,
+                      color: AppTheme.textPrimaryC(isDark), size: 18),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.timer_rounded, color: timerColor, size: 18),
-                    const SizedBox(width: 4),
-                    Text('${_secondsRemaining}s',
-                        style: AppTheme.labelMedium.copyWith(
-                            color: timerColor, fontWeight: FontWeight.w700)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: timerFraction,
-              backgroundColor: isDark
-                  ? Colors.white.withOpacity(0.05)
-                  : Colors.grey.withOpacity(0.12),
-              valueColor: AlwaysStoppedAnimation(timerColor),
-              minHeight: 4,
-            ),
-          ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 32, height: 32,
-                decoration: BoxDecoration(
-                  color: AppTheme.accentCyan.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppTheme.accentCyan.withValues(alpha: 0.2)),
-                ),
-                child: const Center(child: Text('🤖', style: TextStyle(fontSize: 16))),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.03),
-                    borderRadius: const BorderRadius.only(
-                      topRight: Radius.circular(16),
-                      bottomRight: Radius.circular(16),
-                      bottomLeft: Radius.circular(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Question ${_currentIndex + 1} / ${_questions.length}',
+                      style: AppTheme.labelMedium.copyWith(
+                          color: AppTheme.textPrimaryC(isDark),
+                          fontWeight: FontWeight.w700),
                     ),
-                    border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
-                  ),
-                  child: Text(
-                    q.question,
-                    style: AppTheme.headingSmall.copyWith(
-                        color: AppTheme.textPrimaryC(isDark), fontSize: 16, height: 1.4),
-                  ),
+                    const SizedBox(height: 4),
+                    // Mini progress bar
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: (_currentIndex + 1) / _questions.length,
+                        backgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+                        valueColor: AlwaysStoppedAnimation(AppTheme.accentCyan.withValues(alpha: 0.6)),
+                        minHeight: 3,
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+              const SizedBox(width: 12),
+              // Streak badge
+              if (_streak >= 2)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFFB300), Color(0xFFFF8F00)],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('🔥', style: TextStyle(fontSize: 12)),
+                      const SizedBox(width: 4),
+                      Text('$_streak', style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      )),
+                    ],
+                  ),
+                ).animate().scale(
+                    begin: const Offset(0.5, 0.5),
+                    end: const Offset(1, 1),
+                    curve: Curves.elasticOut,
+                    duration: 400.ms),
+              // Timer text
+              Container(
+                margin: const EdgeInsets.only(left: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _timerColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text('${(_secondsRemaining ~/ 60).toString().padLeft(2, '0')}:${(_secondsRemaining % 60).toString().padLeft(2, '0')}',
+                    style: AppTheme.labelMedium.copyWith(
+                        color: _timerColor, fontWeight: FontWeight.w800)),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          ...List.generate(q.options.length, (i) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: QuizOptionButton(
-                text: q.options[i],
-                index: i,
-                isSelected: _selectedOption == i,
-                isCorrect: i == q.correctIndex,
-                showResult: _showResult,
-                isDark: isDark,
-                onTap: () => _selectOption(i),
+
+          const SizedBox(height: 16),
+
+          // ── Interviewer face with circular timer ───────────────────────
+          _buildInterviewerFace(size: 72, showTimer: true)
+              .animate(target: _showResult ? 1 : 0)
+              .scale(
+                  begin: const Offset(1, 1),
+                  end: const Offset(1.05, 1.05),
+                  duration: 300.ms),
+
+          const SizedBox(height: 8),
+
+          // ── Mood comment ──────────────────────────────────────────────
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            child: Text(
+              _currentMood.comment,
+              key: ValueKey(_currentMood),
+              style: AppTheme.bodySmall.copyWith(
+                color: _currentMood.glowColor.withValues(alpha: 0.9),
+                fontWeight: FontWeight.w600,
+                fontSize: 11,
               ),
-            );
-          }),
-          if (_showResult) ...[
-            const Spacer(),
+              textAlign: TextAlign.center,
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // ── Question in speech bubble ──────────────────────────────────
+          Flexible(
+            flex: 0,
+            child: _buildSpeechBubble(q.question, isDark),
+          ),
+
+          const SizedBox(height: 16),
+
+          // ── Answer options ────────────────────────────────────────────
+          Expanded(
+            child: ListView.builder(
+              itemCount: q.options.length,
+              physics: const BouncingScrollPhysics(),
+              itemBuilder: (ctx, i) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: QuizOptionButton(
+                    text: q.options[i],
+                    index: i,
+                    isSelected: _selectedOption == i,
+                    isCorrect: i == q.correctIndex,
+                    showResult: _showResult,
+                    isDark: isDark,
+                    onTap: () => _selectOption(i),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // ── Next button ──────────────────────────────────────────────
+          if (_showResult)
             SizedBox(
               width: double.infinity,
+              height: 52,
               child: ElevatedButton(
                 onPressed: _nextQuestion,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.accentCyan,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                ),
                 child: Text(
                     _currentIndex < _questions.length - 1
-                        ? 'Next Question'
-                        : 'See Results'),
+                        ? 'Next Question →'
+                        : '🏁 See Results'),
               ),
-            ),
-          ],
-          if (!_showResult) const Spacer(),
+            ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.3, end: 0),
         ],
       ),
     );
   }
 
-  // ── Results ───────────────────────────────────────────────────────────────
+  Color get _timerColor {
+    if (_secondsRemaining <= 60) return AppTheme.errorRed;
+    if (_secondsRemaining <= 180) return AppTheme.warningAmber;
+    return AppTheme.accentCyan;
+  }
+
+  // ═════════════════════════════════════════════════════════════════════════
+  //  RESULTS SCREEN
+  // ═════════════════════════════════════════════════════════════════════════
+
   Widget _buildResults(bool isDark) {
     final pct = ((_correctCount / _questions.length) * 100).round();
     final elapsed = _totalStopwatch.elapsed;
     final minutes = elapsed.inMinutes;
     final seconds = elapsed.inSeconds % 60;
     final categoryLabel = _selectedCategory ?? 'All Modules';
+    final xpEarned = pct >= 90 ? 110 : (pct >= 70 ? 80 : 30);
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Row(
+    return Stack(
+      children: [
+        // Confetti layer
+        if (_showConfetti) _buildConfettiOverlay(),
+
+        SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
             children: [
-              IconButton(
-                icon: Icon(Icons.arrow_back_ios_rounded,
-                    color: AppTheme.textPrimaryC(isDark)),
-                onPressed: () => Navigator.pop(context),
+              // Back button
+              Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  icon: Icon(Icons.arrow_back_ios_rounded,
+                      color: AppTheme.textPrimaryC(isDark)),
+                  onPressed: () => Navigator.pop(context),
+                ),
               ),
+              const SizedBox(height: 20),
+
+              // Big result emoji
+              _buildInterviewerFace(size: 110, large: true)
+                  .animate()
+                  .fadeIn(duration: 600.ms)
+                  .scale(begin: const Offset(0.3, 0.3), end: const Offset(1, 1),
+                      curve: Curves.elasticOut, duration: 800.ms),
+
+              const SizedBox(height: 16),
+
+              // Mood comment as speech bubble
+              _buildSpeechBubble(_currentMood.comment, isDark, isComment: true)
+                  .animate()
+                  .fadeIn(delay: 400.ms, duration: 400.ms)
+                  .slideY(begin: 0.2, end: 0),
+
+              const SizedBox(height: 24),
+
+              // Tier label
+              Text(
+                _readinessTier,
+                style: AppTheme.headingLarge
+                    .copyWith(color: _tierColor, fontSize: 24),
+              ).animate().fadeIn(delay: 500.ms),
+
+              const SizedBox(height: 6),
+
+              Text(
+                'Topic: $categoryLabel',
+                style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+              ),
+
+              const SizedBox(height: 28),
+
+              // Score circle
+              Container(
+                width: 130,
+                height: 130,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      _tierColor.withValues(alpha: 0.2),
+                      _tierColor.withValues(alpha: 0.05),
+                    ],
+                  ),
+                  border: Border.all(
+                      color: _tierColor.withValues(alpha: 0.5), width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _tierColor.withValues(alpha: 0.2),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('$pct%',
+                          style: AppTheme.headingLarge
+                              .copyWith(color: _tierColor, fontSize: 36)),
+                      Text('score',
+                          style: AppTheme.bodySmall
+                              .copyWith(color: _tierColor.withValues(alpha: 0.7), fontSize: 11)),
+                    ],
+                  ),
+                ),
+              ).animate().fadeIn(delay: 600.ms, duration: 500.ms)
+                  .scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1)),
+
+              const SizedBox(height: 24),
+
+              // Stats row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildStatCard('✅', '$_correctCount / ${_questions.length}', 'Correct', isDark),
+                  const SizedBox(width: 16),
+                  _buildStatCard('⏱️', '${minutes}m ${seconds}s', 'Time', isDark),
+                  const SizedBox(width: 16),
+                  _buildStatCard('⭐', '+$xpEarned', 'XP', isDark),
+                ],
+              ).animate().fadeIn(delay: 700.ms),
+
+              const SizedBox(height: 32),
+
+              // Buttons
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () => setState(() {
+                    _started = false;
+                    _finished = false;
+                    _showConfetti = false;
+                    _currentMood = InterviewerMood.greeting;
+                  }),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _tierColor,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 0,
+                  ),
+                  child: const Text('Try Again 🔄'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Back to Home',
+                    style: AppTheme.bodyMedium.copyWith(color: AppTheme.accentCyan)),
+              ),
+
+              const SizedBox(height: 40),
             ],
           ),
-          const Spacer(),
-          Center(
-            child: Column(
-              children: [
-                Text(_readinessTier,
-                    style: AppTheme.headingLarge
-                        .copyWith(color: _tierColor, fontSize: 26)),
-                const SizedBox(height: 8),
-                Text(
-                  'Topic: $categoryLabel',
-                  style: AppTheme.bodySmall.copyWith(
-                      color: AppTheme.textMutedC(isDark)),
-                ),
-                const SizedBox(height: 24),
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(colors: [
-                      _tierColor.withOpacity(0.3),
-                      _tierColor.withOpacity(0.1),
-                    ]),
-                    border: Border.all(
-                        color: _tierColor.withOpacity(0.5), width: 3),
-                  ),
-                  child: Center(
-                    child: Text('$pct%',
-                        style: AppTheme.headingLarge
-                            .copyWith(color: _tierColor, fontSize: 32)),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text('$_correctCount / ${_questions.length} correct',
-                    style: AppTheme.headingMedium.copyWith(
-                        color: AppTheme.textPrimaryC(isDark))),
-                const SizedBox(height: 8),
-                Text('Time: ${minutes}m ${seconds}s',
-                    style: AppTheme.bodyMedium.copyWith(
-                        color: AppTheme.textMutedC(isDark))),
-                const SizedBox(height: 12),
-                Text(
-                  '+${pct >= 90 ? 110 : (pct >= 70 ? 80 : 30)} XP earned!',
-                  style: AppTheme.bodyMedium.copyWith(
-                      color: AppTheme.accentAmber,
-                      fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: 200,
-                  child: ElevatedButton(
-                    onPressed: () => setState(() {
-                      _started = false;
-                      _finished = false;
-                    }),
-                    child: const Text('Try Again'),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text('Back to Home',
-                      style: AppTheme.bodyMedium
-                          .copyWith(color: AppTheme.accentCyan)),
-                ),
-              ],
-            ),
-          )
-              .animate()
-              .fadeIn(duration: const Duration(milliseconds: 600))
-              .scale(
-                  begin: const Offset(0.9, 0.9), end: const Offset(1.0, 1.0)),
-          const Spacer(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(String emoji, String value, String label, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.05),
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 20)),
+          const SizedBox(height: 6),
+          Text(value, style: AppTheme.labelMedium.copyWith(
+              color: AppTheme.textPrimaryC(isDark), fontWeight: FontWeight.w800)),
+          const SizedBox(height: 2),
+          Text(label, style: AppTheme.bodySmall.copyWith(
+              color: AppTheme.textMutedC(isDark), fontSize: 10)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildConfettiOverlay() {
+    final rng = Random(42);
+    final confettiColors = [
+      const Color(0xFFFFD700),
+      const Color(0xFFFF6B6B),
+      const Color(0xFF48DBFB),
+      const Color(0xFF5FD068),
+      const Color(0xFFA855F7),
+      const Color(0xFFFF9F43),
+    ];
+
+    return IgnorePointer(
+      child: SizedBox.expand(
+        child: Stack(
+          children: List.generate(30, (i) {
+            final left = rng.nextDouble() * MediaQuery.of(context).size.width;
+            final delay = rng.nextInt(2000);
+            final size = 6.0 + rng.nextDouble() * 8;
+            final color = confettiColors[rng.nextInt(confettiColors.length)];
+            final isCircle = rng.nextBool();
+
+            return Positioned(
+              left: left,
+              top: -20,
+              child: Container(
+                width: size,
+                height: isCircle ? size : size * 1.5,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: isCircle
+                      ? BorderRadius.circular(size)
+                      : BorderRadius.circular(2),
+                ),
+              )
+                  .animate(onPlay: (c) => c.repeat())
+                  .slideY(
+                      begin: 0,
+                      end: MediaQuery.of(context).size.height / size + 5,
+                      duration: Duration(milliseconds: 2500 + rng.nextInt(1500)),
+                      delay: Duration(milliseconds: delay),
+                      curve: Curves.linear)
+                  .rotate(
+                      begin: 0,
+                      end: rng.nextDouble() * 2 - 1,
+                      duration: Duration(milliseconds: 2000 + rng.nextInt(1000)))
+                  .fadeOut(delay: Duration(milliseconds: 3000 + delay), duration: 500.ms),
+            );
+          }),
+        ),
       ),
     );
   }

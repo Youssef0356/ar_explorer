@@ -5,8 +5,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/app_theme.dart';
 import '../../../data/games/coding_game_data.dart';
 import '../../../services/game_progress_service.dart';
+import '../../../services/subscription_service.dart';
 import '../../../models/coding_game_models.dart';
 import '../../../widgets/animated_google_background.dart';
+import '../../settings/paywall_screen.dart';
 import 'coding_challenge_screen.dart';
 
 class CodingGameMapScreen extends StatefulWidget {
@@ -26,6 +28,7 @@ class _CodingGameMapScreenState extends State<CodingGameMapScreen>
   @override
   Widget build(BuildContext context) {
     final progress = context.watch<GameProgressService>();
+    final isPremium = context.watch<SubscriptionService>().isPremium;
     return Theme(
       data: ThemeData.dark(),
       child: DefaultTabController(
@@ -42,11 +45,11 @@ class _CodingGameMapScreenState extends State<CodingGameMapScreen>
                   Expanded(
                     child: TabBarView(
                       children: [
-                        _buildPlatformZone(codingGameZones[0], progress), // Vuforia
-                        _buildPlatformZone(codingGameZones[1], progress), // ARKit
-                        _buildPlatformZone(codingGameZones[2], progress), // ARCore
-                        _buildPlatformZone(codingGameZones[3], progress), // Meta Quest
-                        _buildPlatformZone(codingGameZones[4], progress), // WebXR
+                        _buildPlatformZone(codingGameZones[0], progress, isPremium), // Vuforia — isFree per level
+                        _buildPlatformZone(codingGameZones[1], progress, isPremium), // ARKit
+                        _buildPlatformZone(codingGameZones[2], progress, isPremium), // ARCore
+                        _buildPlatformZone(codingGameZones[3], progress, isPremium), // Meta Quest
+                        _buildPlatformZone(codingGameZones[4], progress, isPremium), // WebXR
                       ],
                     ),
                   ),
@@ -103,24 +106,29 @@ class _CodingGameMapScreenState extends State<CodingGameMapScreen>
     );
   }
 
-  Widget _buildPlatformZone(CodingZone zone, GameProgressService progress) {
+  Widget _buildPlatformZone(CodingZone zone, GameProgressService progress, bool isPremium) {
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
       itemCount: zone.levels.length,
       itemBuilder: (ctx, i) {
         final level = zone.levels[i];
         final isLocked = progress.isLevelLocked(level.id, isFree: level.isFree);
+        // Levels are premium-locked if they require premium AND user isn't premium
+        final isPremiumLocked = !level.isFree && !isPremium;
         final stars = progress.getStars(level.id);
 
         return _PlatformLevelCard(
           level: level,
           zone: zone,
-          isLocked: isLocked,
+          isLocked: isLocked || isPremiumLocked,
+          isPremiumLocked: isPremiumLocked,
           stars: stars,
           index: i + 1,
-          onTap: isLocked
-              ? () => _showUnlockLevelDialog(context, level, progress)
-              : () => _showLevelSheet(level, zone),
+          onTap: isPremiumLocked
+              ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()))
+              : isLocked
+                  ? () => _showUnlockLevelDialog(context, level, progress)
+                  : () => _showLevelSheet(level, zone),
         );
       },
     );
@@ -239,6 +247,7 @@ class _PlatformLevelCard extends StatelessWidget {
   final CodingLevel level;
   final CodingZone zone;
   final bool isLocked;
+  final bool isPremiumLocked;
   final int stars;
   final int index;
   final VoidCallback onTap;
@@ -247,6 +256,7 @@ class _PlatformLevelCard extends StatelessWidget {
     required this.level,
     required this.zone,
     required this.isLocked,
+    this.isPremiumLocked = false,
     required this.stars,
     required this.index,
     required this.onTap,
@@ -312,22 +322,52 @@ class _PlatformLevelCard extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                  if (isPremiumLocked)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFFB300), Color(0xFFFF8F00)],
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.amber.withValues(alpha: 0.4),
+                            blurRadius: 6,
+                          )
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 13),
+                          SizedBox(width: 4),
+                          Text('PRO', style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.0,
+                          )),
+                        ],
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.stars_rounded, color: Colors.amber, size: 12),
+                          SizedBox(width: 4),
+                          Text('20 XP', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(Icons.stars_rounded, color: Colors.amber, size: 12),
-                        SizedBox(width: 4),
-                        Text('20 XP', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
                   const SizedBox(width: 8),
                   const Icon(Icons.lock_outline_rounded, color: Colors.white38, size: 18),
                 ],

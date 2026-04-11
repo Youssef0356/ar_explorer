@@ -35,6 +35,24 @@ class ARNode {
   });
 }
 
+/// A variation holds the parts of a level that can change between replays.
+/// The base [ARLevel] fields act as the default (first) variation.
+class ARLevelVariation {
+  final String projectTask;
+  final String goal;
+  final String buildContext;
+  final List<String> correctSequence;
+  final List<ARNode> availableNodes;
+
+  const ARLevelVariation({
+    required this.projectTask,
+    required this.goal,
+    this.buildContext = '',
+    required this.correctSequence,
+    required this.availableNodes,
+  });
+}
+
 class ARLevel {
   final String id;
   final String title;
@@ -48,6 +66,7 @@ class ARLevel {
   final String zoneId;
   final bool isFree;
   final GameMode mode;
+  final List<ARLevelVariation> variations;
 
   const ARLevel({
     required this.id,
@@ -62,6 +81,7 @@ class ARLevel {
     required this.zoneId,
     this.isFree = false,
     this.mode = GameMode.pipeline,
+    this.variations = const [],
   });
 }
 

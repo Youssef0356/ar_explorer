@@ -177,7 +177,7 @@ class PlayScreen extends StatelessWidget {
   }) {
     return GestureDetector(
       onTap: () {
-        sound.playTap();
+        sound.playGameTap();
         onTap();
       },
       child: Container(

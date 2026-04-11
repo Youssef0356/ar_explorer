@@ -477,7 +477,7 @@ class ARDebuggerMapScreen extends StatelessWidget {
                      delegate: SliverChildBuilderDelegate(
                        (ctx, i) {
                          final level = debugLevels[i];
-                         final isLocked = progress.isLevelLocked(level.id);
+                         final isPaymentLocked = progress.isLevelLocked(level.id, isFree: level.isFree);
                          final isCompleted = progress.isLevelCompleted(level.id);
                          final stars = progress.getStars(level.id);
                           final isReadyToUnlock = progress.isLevelReadyToUnlock(level.id, debugLevelOrder);
@@ -487,19 +487,28 @@ class ARDebuggerMapScreen extends StatelessWidget {
                            child: _LevelCard(
                              level: level,
                              index: i,
-                             isLocked: isLocked,
+                             isLocked: isPaymentLocked || !isReadyToUnlock,
                              isReadyToUnlock: isReadyToUnlock,
                               isCompleted: isCompleted,
                              stars: stars,
-                             onTap: isLocked
-                                 ? () => _showUnlockLevelDialog(ctx, level, progress)
-                                 : () => Navigator.push(
-                                       ctx,
-                                       MaterialPageRoute(
-                                         builder: (_) =>
-                                             ARDebuggerGameScreen(level: level),
-                                       ),
-                                     ),
+                             onTap: () {
+                               if (!isReadyToUnlock) {
+                                 ScaffoldMessenger.of(ctx)
+                                   ..hideCurrentSnackBar()
+                                   ..showSnackBar(
+                                     const SnackBar(content: Text('Complete previous levels to unlock this one!')),
+                                   );
+                               } else if (isPaymentLocked) {
+                                 _showUnlockLevelDialog(ctx, level, progress);
+                               } else {
+                                 Navigator.push(
+                                   ctx,
+                                   MaterialPageRoute(
+                                     builder: (_) => ARDebuggerGameScreen(level: level),
+                                   ),
+                                 );
+                               }
+                             },
                            ),
                          );
                        },

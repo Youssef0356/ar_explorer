@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/app_theme.dart';
 import '../../services/progress_service.dart';
+import '../../services/sound_service.dart';
 import 'main_screen.dart';
 import 'onboarding_screen.dart';
 import '../settings/privacy_policy_screen.dart';
@@ -19,6 +20,10 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    // Play splash sound (ignores if sound is disabled in settings)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SoundService>().playModernDiscovery();
+    });
     _navigateToNext();
   }
 

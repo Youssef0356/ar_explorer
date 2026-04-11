@@ -192,7 +192,13 @@ class _QuizAnalyticsScreenState extends State<QuizAnalyticsScreen> {
              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Interview Trajectory', style: AppTheme.headingSmall.copyWith(color: AppTheme.textPrimaryC(isDark))),
+                  Expanded(
+                    child: Text(
+                      'Interview Trajectory', 
+                        style: AppTheme.headingSmall.copyWith(color: AppTheme.textPrimaryC(isDark))
+                    )
+                  ),
+                  const SizedBox(width: 8),
                   _buildFilterToggle(isDark),
                 ],
              ),
@@ -202,46 +208,44 @@ class _QuizAnalyticsScreenState extends State<QuizAnalyticsScreen> {
                 style: AppTheme.bodySmall.copyWith(color: AppTheme.accentAmber, fontWeight: FontWeight.bold),
              ),
              const SizedBox(height: 24),
-             SizedBox(
-               height: 150,
-               child: SingleChildScrollView(
-                 scrollDirection: Axis.horizontal,
-                 child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: List.generate(filteredHistory.length, (index) {
-                       final score = filteredHistory[index]['score'] as int;
-                       final heightPercent = score / maxScore;
-                       
-                       Color barColor = AppTheme.textMutedC(isDark).withValues(alpha: 0.5);
-                       if (score >= 80) {
-                         barColor = AppTheme.successGreen;
-                       } else if (score >= 50) {
-                         barColor = AppTheme.accentAmber;
-                       } else {
-                         barColor = AppTheme.accentPink;
-                       }
+             SingleChildScrollView(
+               scrollDirection: Axis.horizontal,
+               child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: List.generate(filteredHistory.length, (index) {
+                     final score = filteredHistory[index]['score'] as int;
+                     final heightPercent = score / maxScore;
+                     
+                     Color barColor = AppTheme.textMutedC(isDark).withValues(alpha: 0.5);
+                     if (score >= 80) {
+                       barColor = AppTheme.successGreen;
+                     } else if (score >= 50) {
+                       barColor = AppTheme.accentAmber;
+                     } else {
+                       barColor = AppTheme.accentPink;
+                     }
 
-                       return Padding(
-                         padding: const EdgeInsets.symmetric(horizontal: 4),
-                         child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                               Text('$score', style: AppTheme.bodySmall.copyWith(fontSize: 10, color: AppTheme.textMutedC(isDark))),
-                               const SizedBox(height: 4),
-                               Container(
-                                  width: 14,
-                                  height: (100 * heightPercent).toDouble(),
-                                  decoration: BoxDecoration(
-                                    color: barColor.withValues(alpha: index == filteredHistory.length - 1 ? 1.0 : 0.6),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                               ).animate().scaleY(alignment: Alignment.bottomCenter, duration: const Duration(milliseconds: 600)),
-                            ],
-                         ),
-                       );
-                    }),
-                 ),
+                     return Padding(
+                       padding: const EdgeInsets.symmetric(horizontal: 4),
+                       child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                             Text('$score', style: AppTheme.bodySmall.copyWith(fontSize: 10, color: AppTheme.textMutedC(isDark))),
+                             const SizedBox(height: 4),
+                             Container(
+                                width: 14,
+                                height: (100 * heightPercent).toDouble(),
+                                decoration: BoxDecoration(
+                                  color: barColor.withValues(alpha: index == filteredHistory.length - 1 ? 1.0 : 0.6),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                             ).animate().scaleY(alignment: Alignment.bottomCenter, duration: const Duration(milliseconds: 600)),
+                          ],
+                       ),
+                     );
+                  }),
                ),
              ),
           ],
@@ -309,14 +313,15 @@ class _QuizAnalyticsScreenState extends State<QuizAnalyticsScreen> {
              style: AppTheme.bodySmall.copyWith(color: AppTheme.textSecondaryC(isDark)),
            ),
            const SizedBox(height: 4),
-           Row(
-             crossAxisAlignment: CrossAxisAlignment.end,
+           Wrap(
+             crossAxisAlignment: WrapCrossAlignment.end,
+             spacing: 8,
+             runSpacing: 4,
              children: [
                Text(
                  'In $daysRemaining Days',
                  style: AppTheme.headingMedium.copyWith(color: AppTheme.accentAmber, fontSize: 24),
                ),
-               const SizedBox(width: 8),
                Padding(
                  padding: const EdgeInsets.only(bottom: 4),
                  child: Text(

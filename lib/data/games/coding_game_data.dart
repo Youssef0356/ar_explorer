@@ -123,6 +123,7 @@ final List<CodingZone> codingGameZones = [
         id: 'ak1_session',
         title: 'ARSession Setup',
         goal: 'Start an ARKit session with plane detection.',
+        isFree: true, // First level of zone is free
         lines: [
           CodeLine(text: 'import ARKit', indent: 0),
           CodeLine(text: 'let session = ARSession()', indent: 0),
@@ -221,6 +222,7 @@ final List<CodingZone> codingGameZones = [
         id: 'ac1_hit',
         title: 'Hit Testing',
         goal: 'Perform a hit test to find surfaces.',
+        isFree: true, // First level of zone is free
         lines: [
           CodeLine(text: 'sceneView.onTapAR = { hitResult, _ ->', indent: 0),
           CodeLine(slots: [
@@ -318,6 +320,7 @@ final List<CodingZone> codingGameZones = [
         id: 'mq1_passthrough',
         title: 'Passthrough Setup',
         goal: 'Enable mixed reality passthrough on Meta Quest.',
+        isFree: true, // First level of zone is free
         lines: [
           CodeLine(text: 'public class PassthroughManager : MonoBehaviour {', indent: 0),
           CodeLine(slots: [
@@ -417,6 +420,7 @@ final List<CodingZone> codingGameZones = [
         id: 'wx1_scene',
         title: 'WebAR Scene',
         goal: 'Define a simple A-Frame scene with AR support.',
+        isFree: true, // First level of zone is free
         lines: [
           CodeLine(text: '<a-scene embedded arjs>', indent: 0),
           CodeLine(slots: [

@@ -26,9 +26,15 @@ class GamePipelineScreen extends StatefulWidget {
 }
 
 class _GamePipelineScreenState extends State<GamePipelineScreen> {
-  late List<ARNode?> _slots;
-  late List<bool>   _slotPulsed;
-  late List<ARNode> _pool;
+  late List<ARNode?>  _slots;
+  late List<bool>     _slotPulsed;
+  late List<ARNode>   _pool;
+
+  // ── Resolved variation fields ─────────────────────────────────────────────
+  late String       _activeProjectTask;
+  late String       _activeGoal;
+  late List<String> _activeCorrectSequence;
+  late List<ARNode> _activeAvailableNodes;
 
   bool   _isValidating   = false;
   bool   _showSuccess    = false;
@@ -48,15 +54,47 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
   @override
   void initState() {
     super.initState();
-    _slots      = List.filled(widget.level.correctSequence.length, null);
-    _slotPulsed = List.filled(widget.level.correctSequence.length, false);
-    _pool       = List.from(widget.level.availableNodes)..shuffle();
-    _pool       = List.from(widget.level.availableNodes)..shuffle();
+
+    // ── Pick a random variation (index 0 = base, 1..N = extras) ──────────
+    _resolveVariation();
+
+    _slots      = List.filled(_activeCorrectSequence.length, null);
+    _slotPulsed = List.filled(_activeCorrectSequence.length, false);
+    _pool       = List.from(_activeAvailableNodes)..shuffle();
+    _pool       = List.from(_activeAvailableNodes)..shuffle();
     if (widget.level.isBoss) {
       _secondsRemaining = widget.level.timeLimit;
       _startTimer();
     }
     _checkPipelineTour();
+  }
+
+  /// Randomly selects a variation (or the base level) for the current play.
+  void _resolveVariation() {
+    final variations = widget.level.variations;
+    if (variations.isEmpty) {
+      // No variations — use the base level data directly
+      _activeProjectTask     = widget.level.projectTask;
+      _activeGoal            = widget.level.goal;
+      _activeCorrectSequence = widget.level.correctSequence;
+      _activeAvailableNodes  = widget.level.availableNodes;
+    } else {
+      // Pick randomly from base (index 0) + variations (1..N)
+      final rng   = Random();
+      final pick  = rng.nextInt(variations.length + 1); // 0 = base
+      if (pick == 0) {
+        _activeProjectTask     = widget.level.projectTask;
+        _activeGoal            = widget.level.goal;
+        _activeCorrectSequence = widget.level.correctSequence;
+        _activeAvailableNodes  = widget.level.availableNodes;
+      } else {
+        final v = variations[pick - 1];
+        _activeProjectTask     = v.projectTask;
+        _activeGoal            = v.goal;
+        _activeCorrectSequence = v.correctSequence;
+        _activeAvailableNodes  = v.availableNodes;
+      }
+    }
   }
 
   void _checkPipelineTour() async {
@@ -150,7 +188,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
 
     int firstWrong = -1;
     for (int i = 0; i < _slots.length; i++) {
-      if (_slots[i]?.id != widget.level.correctSequence[i]) {
+      if (_slots[i]?.id != _activeCorrectSequence[i]) {
         firstWrong = i;
         break;
       }
@@ -189,9 +227,9 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
       _failureCount++;
       if (widget.level.isBoss) _starsEarned = max(1, _starsEarned - 1);
       if (_failureCount >= 2) {
-        _hintNode = widget.level.availableNodes.firstWhere(
-          (n) => n.id == widget.level.correctSequence[0],
-          orElse: () => widget.level.availableNodes.first,
+        _hintNode = _activeAvailableNodes.firstWhere(
+          (n) => n.id == _activeCorrectSequence[0],
+          orElse: () => _activeAvailableNodes.first,
         );
       }
       _errorMessage = _slots[wrongIndex]?.errorMessage ??
@@ -210,27 +248,64 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
 
   // ── Navigation helpers ────────────────────────────────────────────────────
   void _goNextLevel() {
+    final progress = context.read<GameProgressService>();
+    final isPremium = context.read<SubscriptionService>().isPremium;
+
     final zIdx = arGameZones.indexWhere((z) => z.id == widget.level.zoneId);
     final lIdx = arGameZones[zIdx].levels.indexWhere((l) => l.id == widget.level.id);
+
     ARLevel? next;
+    int nextZoneIdx = zIdx;
     if (lIdx < arGameZones[zIdx].levels.length - 1) {
       next = arGameZones[zIdx].levels[lIdx + 1];
     } else if (zIdx < arGameZones.length - 1) {
-      next = arGameZones[zIdx + 1].levels.first;
+      nextZoneIdx = zIdx + 1;
+      next = arGameZones[nextZoneIdx].levels.first;
     }
-    if (next != null) {
-      Navigator.pushReplacement(context,
-        MaterialPageRoute(builder: (_) => GamePipelineScreen(level: next!)));
-    } else {
+
+    if (next == null) {
+      // Last level in the game — return to map
       Navigator.pop(context);
+      return;
     }
+
+    // Check premium zone lock
+    final isNextPremiumZone = nextZoneIdx >= 3;
+    if (isNextPremiumZone && !isPremium) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('⭐ This zone requires PRO. Upgrade on the map!'),
+          backgroundColor: Color(0xFFFFB300),
+        ),
+      );
+      return;
+    }
+
+    // Check XP lock
+    final isNextLocked = progress.isLevelLocked(next.id, isFree: next.isFree);
+    if (isNextLocked) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🔒 Unlock the next level on the map for 20 XP!'),
+          backgroundColor: Color(0xFF7C3AED),
+        ),
+      );
+      return;
+    }
+
+    Navigator.pushReplacement(context,
+      MaterialPageRoute(builder: (_) => GamePipelineScreen(level: next!)));
   }
 
   void _retry() {
+    // Pick a fresh variation on retry so the replay feels different
+    _resolveVariation();
     setState(() {
-      _slots          = List.filled(widget.level.correctSequence.length, null);
-      _slotPulsed     = List.filled(widget.level.correctSequence.length, false);
-      _pool           = List.from(widget.level.availableNodes)..shuffle();
+      _slots          = List.filled(_activeCorrectSequence.length, null);
+      _slotPulsed     = List.filled(_activeCorrectSequence.length, false);
+      _pool           = List.from(_activeAvailableNodes)..shuffle();
       _showFailure    = false;
       _isTimeout      = false;
       _wrongSlotIndex = -1;
@@ -253,8 +328,8 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
       final emptyIdx = _slots.indexOf(null);
       if (emptyIdx == -1) return;
       
-      final correctNodeId = widget.level.correctSequence[emptyIdx];
-      final correctNode = widget.level.availableNodes.firstWhere((n) => n.id == correctNodeId);
+      final correctNodeId = _activeCorrectSequence[emptyIdx];
+      final correctNode = _activeAvailableNodes.firstWhere((n) => n.id == correctNodeId);
       
       _tapNode(correctNode);
     }
@@ -633,9 +708,9 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.level.projectTask.isNotEmpty 
-                  ? widget.level.projectTask 
-                  : widget.level.goal,
+              _activeProjectTask.isNotEmpty 
+                  ? _activeProjectTask 
+                  : _activeGoal,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 14, 
@@ -643,7 +718,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                 height: 1.4,
               ),
             ),
-            if (widget.level.projectTask.isNotEmpty && widget.level.goal.isNotEmpty) ...[
+            if (_activeProjectTask.isNotEmpty && _activeGoal.isNotEmpty) ...[
               const SizedBox(height: 10),
               Row(
                 children: [
@@ -651,7 +726,7 @@ class _GamePipelineScreenState extends State<GamePipelineScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      widget.level.goal,
+                      _activeGoal,
                       style: TextStyle(
                         color: zone.accentColor.withValues(alpha: 0.8),
                         fontSize: 11, 
