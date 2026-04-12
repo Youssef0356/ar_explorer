@@ -813,7 +813,10 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
     _interviewHistory = [];
     _username = 'Explorer'; 
     
-    // Explicitly remove ALL keys from SharedPreferences immediately
+    // Explicitly remove keys from SharedPreferences immediately
+    // NOTE: _interviewAttemptsDateKey and _interviewAttemptsCountKey are
+    // intentionally NOT reset to prevent users from exploiting the reset
+    // button to get unlimited free interview attempts.
     final keys = [
       _completedTopicsKey,
       _quizScoresKey,
@@ -826,8 +829,6 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
       _interviewBestKey,
       _interviewHistoryKey,
       _usernameKey, 
-      _interviewAttemptsDateKey,
-      _interviewAttemptsCountKey,
       _lastDailyChallengeKey,
       _activityDatesKey,
     ];

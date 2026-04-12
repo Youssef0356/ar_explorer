@@ -1,3 +1,17 @@
+// ═══════════════════════════════════════════════════════════════════
+//  QUESTION TYPE ENUM
+// ═══════════════════════════════════════════════════════════════════
+
+enum QuestionType {
+  singleChoice,  // Radio button — pick one
+  multiChoice,   // Checkboxes — pick multiple
+  textInput,     // Free-text answer
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  QUIZ MODEL
+// ═══════════════════════════════════════════════════════════════════
+
 class Quiz {
   final String id;
   final String moduleId;
@@ -34,6 +48,10 @@ class Quiz {
       };
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  QUIZ QUESTION MODEL
+// ═══════════════════════════════════════════════════════════════════
+
 class QuizQuestion {
   final String id;
   final String question;
@@ -43,6 +61,11 @@ class QuizQuestion {
   final String? relatedTopicId;
   final String? relatedModuleId;
 
+  // ── New fields for multi-type questions ──
+  final QuestionType type;
+  final List<int>? correctIndices;  // For multiChoice
+  final String? correctText;        // For textInput (fuzzy-matched)
+
   const QuizQuestion({
     required this.id,
     required this.question,
@@ -51,6 +74,9 @@ class QuizQuestion {
     required this.explanation,
     this.relatedTopicId,
     this.relatedModuleId,
+    this.type = QuestionType.singleChoice,
+    this.correctIndices,
+    this.correctText,
   });
 
   factory QuizQuestion.fromJson(Map<String, dynamic> json) {
@@ -63,6 +89,14 @@ class QuizQuestion {
       explanation: json['explanation'] as String? ?? '',
       relatedTopicId: json['relatedTopicId'] as String?,
       relatedModuleId: json['relatedModuleId'] as String?,
+      type: QuestionType.values.firstWhere(
+        (e) => e.name == (json['type'] as String? ?? 'singleChoice'),
+        orElse: () => QuestionType.singleChoice,
+      ),
+      correctIndices: (json['correctIndices'] as List<dynamic>?)
+          ?.map((e) => e as int)
+          .toList(),
+      correctText: json['correctText'] as String?,
     );
   }
 
@@ -74,5 +108,23 @@ class QuizQuestion {
         'explanation': explanation,
         'relatedTopicId': relatedTopicId,
         'relatedModuleId': relatedModuleId,
+        'type': type.name,
+        'correctIndices': correctIndices,
+        'correctText': correctText,
       };
+
+  /// Check if a text-input answer is correct (fuzzy: case-insensitive, trimmed).
+  bool isTextAnswerCorrect(String userInput) {
+    if (correctText == null) return false;
+    final normalized = userInput.trim().toLowerCase();
+    final expected = correctText!.trim().toLowerCase();
+    return normalized == expected;
+  }
+
+  /// Check if multi-choice selections are correct.
+  bool isMultiChoiceCorrect(Set<int> selectedIndices) {
+    if (correctIndices == null) return false;
+    return selectedIndices.length == correctIndices!.length &&
+        selectedIndices.containsAll(correctIndices!);
+  }
 }

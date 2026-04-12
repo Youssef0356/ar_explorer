@@ -15,7 +15,9 @@ import '../../widgets/banner_ad_widget.dart';
 import '../../widgets/quiz_option_button.dart';
 
 class PracticeScreen extends StatefulWidget {
-  const PracticeScreen({super.key});
+  final bool autoStartReview;
+
+  const PracticeScreen({super.key, this.autoStartReview = false});
 
   @override
   State<PracticeScreen> createState() => _PracticeScreenState();
@@ -29,6 +31,16 @@ class _PracticeScreenState extends State<PracticeScreen> {
   bool _showResult = false;
   int _correctCount = 0;
   String _mode = '';
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.autoStartReview) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _startReviewMode();
+      });
+    }
+  }
 
   List<QuizQuestion> _getAllQuestions() {
     return allQuizzes.values

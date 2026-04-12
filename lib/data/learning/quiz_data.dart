@@ -1139,4 +1139,133 @@ final Map<String, Quiz> allQuizzes = {
     ],
   ),
 
+  // ───────────────────────────────────────────────────────────────
+  //  INTERVIEW EXTRA — Multi-Choice & Text Input Questions
+  // ───────────────────────────────────────────────────────────────
+  'quiz_interview_multi_type': Quiz(
+    id: 'quiz_interview_multi_type',
+    moduleId: 'mod_intro', // General pool for interviews
+    title: 'Interview: Mixed Question Types',
+    questions: [
+      // ── Multi-Choice (Checkboxes) ──────────────────────────────
+      const QuizQuestion(
+        id: 'q_mc_1',
+        question: 'Which of the following are valid AR tracking methods? (Select ALL that apply)',
+        type: QuestionType.multiChoice,
+        options: [
+          'Marker-based tracking (image targets)',
+          'Markerless SLAM (Simultaneous Localization and Mapping)',
+          'GPS-based outdoor positioning',
+          'Bluetooth Low Energy proximity detection',
+        ],
+        correctIndex: 0,
+        correctIndices: [0, 1, 2],
+        explanation: 'Marker, markerless SLAM, and GPS are valid AR tracking methods. BLE is used for proximity but not spatial tracking.',
+      ),
+      const QuizQuestion(
+        id: 'q_mc_2',
+        question: 'Which components are part of a typical AR rendering pipeline? (Select ALL that apply)',
+        type: QuestionType.multiChoice,
+        options: [
+          'Pose estimation from sensor fusion',
+          'Scene graph traversal and culling',
+          'Light estimation and shadow casting',
+          'Social media feed integration',
+        ],
+        correctIndex: 0,
+        correctIndices: [0, 1, 2],
+        explanation: 'Pose estimation, scene graph traversal, and light estimation are core parts of the AR rendering pipeline.',
+      ),
+      const QuizQuestion(
+        id: 'q_mc_3',
+        question: 'Which of these can cause AR tracking failure? (Select ALL that apply)',
+        type: QuestionType.multiChoice,
+        options: [
+          'Low-light environments with minimal contrast',
+          'Featureless white walls with no texture',
+          'Rapid device movement causing motion blur',
+          'Using the app in landscape orientation',
+        ],
+        correctIndex: 0,
+        correctIndices: [0, 1, 2],
+        explanation: 'Low light, featureless surfaces, and rapid motion all cause tracking failures. Orientation does not affect tracking.',
+      ),
+      const QuizQuestion(
+        id: 'q_mc_4',
+        question: 'Which Apple frameworks are used for building AR experiences? (Select ALL that apply)',
+        type: QuestionType.multiChoice,
+        options: [
+          'ARKit',
+          'RealityKit',
+          'SceneKit',
+          'CloudKit',
+        ],
+        correctIndex: 0,
+        correctIndices: [0, 1, 2],
+        explanation: 'ARKit, RealityKit, and SceneKit are AR-capable frameworks. CloudKit is for cloud data storage, not AR.',
+      ),
+      const QuizQuestion(
+        id: 'q_mc_5',
+        question: 'Which techniques help improve AR performance on mobile? (Select ALL that apply)',
+        type: QuestionType.multiChoice,
+        options: [
+          'Reducing polygon count with LOD (Level of Detail)',
+          'Using texture atlases to batch draw calls',
+          'Limiting the number of active spatial anchors',
+          'Increasing texture resolution to 4K for all assets',
+        ],
+        correctIndex: 0,
+        correctIndices: [0, 1, 2],
+        explanation: 'LOD, texture atlases, and limiting anchors improve performance. Higher texture resolution hurts performance.',
+      ),
+
+      // ── Text Input (Free Text) ────────────────────────────────
+      const QuizQuestion(
+        id: 'q_ti_1',
+        question: 'What does SLAM stand for? (Type the full name)',
+        type: QuestionType.textInput,
+        options: [],
+        correctIndex: 0,
+        correctText: 'Simultaneous Localization and Mapping',
+        explanation: 'SLAM = Simultaneous Localization and Mapping — building a map while tracking position within it.',
+      ),
+      const QuizQuestion(
+        id: 'q_ti_2',
+        question: 'What is the name of Google\'s AR platform for Android?',
+        type: QuestionType.textInput,
+        options: [],
+        correctIndex: 0,
+        correctText: 'ARCore',
+        explanation: 'ARCore is Google\'s platform for building augmented reality experiences on Android.',
+      ),
+      const QuizQuestion(
+        id: 'q_ti_3',
+        question: 'What is the name of Apple\'s AR framework?',
+        type: QuestionType.textInput,
+        options: [],
+        correctIndex: 0,
+        correctText: 'ARKit',
+        explanation: 'ARKit is Apple\'s framework for building AR experiences on iOS and iPadOS.',
+      ),
+      const QuizQuestion(
+        id: 'q_ti_4',
+        question: 'What does XR stand for? (Type the full name)',
+        type: QuestionType.textInput,
+        options: [],
+        correctIndex: 0,
+        correctText: 'Extended Reality',
+        explanation: 'XR = Extended Reality, the umbrella term covering AR, VR, and MR.',
+      ),
+      const QuizQuestion(
+        id: 'q_ti_5',
+        question: 'What minimum FPS is recommended for comfortable AR experiences? (Type the number only)',
+        type: QuestionType.textInput,
+        options: [],
+        correctIndex: 0,
+        correctText: '60',
+        explanation: '60 FPS is the minimum recommended frame rate for smooth, comfortable AR experiences.',
+      ),
+    ],
+  ),
+
 };

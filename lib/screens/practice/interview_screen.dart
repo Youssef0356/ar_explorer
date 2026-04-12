@@ -12,8 +12,8 @@ import '../../models/quiz_model.dart';
 import '../../services/progress_service.dart';
 import '../../services/theme_service.dart';
 import '../../services/sound_service.dart';
-import '../../widgets/quiz_option_button.dart';
 import '../settings/paywall_screen.dart';
+import 'practice_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  INTERVIEWER MOOD SYSTEM
@@ -22,18 +22,16 @@ import '../settings/paywall_screen.dart';
 enum InterviewerMood {
   greeting,    // 👋  Intro screen welcome
   idle,        // 🤔  Waiting for answer
-  curious,     // 🧐  Timer 30-60s
-  impatient,   // 😤  Timer < 15s
-  angry,       // 😡  Timer < 5s
-  suspicious,  // 🤨  User selected an option (pre-reveal)
-  happy,       // 😄  Correct answer
-  celebrating, // 🥳  Streak 3+
-  disappointed,// 😞  Wrong answer
-  shocked,     // 😱  Time ran out
+  curious,     // 🧐  Timer pressure building
+  impatient,   // 😤  Timer < 90s
+  angry,       // 😡  Timer < 30s
+  thinking,    // 🧠  User answered, moving to next
   impressed,   // 🤩  Great score result
   mindBlown,   // 🤯  Perfect score
   sad,         // 😢  Poor score
   cool,        // 😎  Good score result
+  shocked,     // 😱  Time ran out
+  celebrating, // 🥳  User passed
 }
 
 extension InterviewerMoodEmoji on InterviewerMood {
@@ -44,15 +42,13 @@ extension InterviewerMoodEmoji on InterviewerMood {
       case InterviewerMood.curious:      return '🧐';
       case InterviewerMood.impatient:    return '😤';
       case InterviewerMood.angry:        return '😡';
-      case InterviewerMood.suspicious:   return '🤨';
-      case InterviewerMood.happy:        return '😄';
-      case InterviewerMood.celebrating:  return '🥳';
-      case InterviewerMood.disappointed: return '😞';
-      case InterviewerMood.shocked:      return '😱';
+      case InterviewerMood.thinking:     return '🧠';
       case InterviewerMood.impressed:    return '🤩';
       case InterviewerMood.mindBlown:    return '🤯';
       case InterviewerMood.sad:          return '😢';
       case InterviewerMood.cool:         return '😎';
+      case InterviewerMood.shocked:      return '😱';
+      case InterviewerMood.celebrating:  return '🥳';
     }
   }
 
@@ -63,34 +59,30 @@ extension InterviewerMoodEmoji on InterviewerMood {
       case InterviewerMood.curious:      return const Color(0xFFFFD54F);
       case InterviewerMood.impatient:    return const Color(0xFFFF8A65);
       case InterviewerMood.angry:        return const Color(0xFFEF5350);
-      case InterviewerMood.suspicious:   return const Color(0xFFFFB74D);
-      case InterviewerMood.happy:        return const Color(0xFF66BB6A);
-      case InterviewerMood.celebrating:  return const Color(0xFFFFD700);
-      case InterviewerMood.disappointed: return const Color(0xFF78909C);
-      case InterviewerMood.shocked:      return const Color(0xFFE040FB);
+      case InterviewerMood.thinking:     return const Color(0xFF7C4DFF);
       case InterviewerMood.impressed:    return const Color(0xFFFFD700);
       case InterviewerMood.mindBlown:    return const Color(0xFFFF6E40);
       case InterviewerMood.sad:          return const Color(0xFF42A5F5);
       case InterviewerMood.cool:         return const Color(0xFF26C6DA);
+      case InterviewerMood.shocked:      return const Color(0xFFE040FB);
+      case InterviewerMood.celebrating:  return const Color(0xFFFFD700);
     }
   }
 
   String get comment {
     switch (this) {
       case InterviewerMood.greeting:     return "Ready for your interview? Let's go! 🎤";
-      case InterviewerMood.idle:         return 'Hmm, take your time...';
+      case InterviewerMood.idle:         return 'Take your time, read carefully...';
       case InterviewerMood.curious:      return 'Interesting... what do you think?';
       case InterviewerMood.impatient:    return 'Tick tock! Time is running out!';
       case InterviewerMood.angry:        return 'HURRY UP!! ⏰';
-      case InterviewerMood.suspicious:   return 'Are you sure about that? 🤨';
-      case InterviewerMood.happy:        return 'Nailed it! Great answer! ✅';
-      case InterviewerMood.celebrating:  return "You're on FIRE! 🔥🔥🔥";
-      case InterviewerMood.disappointed: return 'Oops, not quite right...';
-      case InterviewerMood.shocked:      return "Time's up! Oh no! ⏰";
+      case InterviewerMood.thinking:     return 'Noted! Moving on... 📝';
       case InterviewerMood.impressed:    return 'Outstanding performance! 🌟';
       case InterviewerMood.mindBlown:    return 'PERFECT?! You absolute legend!! 🏆';
       case InterviewerMood.sad:          return 'Keep studying, you got this! 💪';
       case InterviewerMood.cool:         return 'Solid work! Well done! 😎';
+      case InterviewerMood.shocked:      return "Time's up! Let's see how you did... ⏰";
+      case InterviewerMood.celebrating:  return "You're ready for an AR post! 🎉";
     }
   }
 }
@@ -108,24 +100,30 @@ class InterviewScreen extends StatefulWidget {
 
 class _InterviewScreenState extends State<InterviewScreen>
     with WidgetsBindingObserver, TickerProviderStateMixin {
-  static const _totalInterviewSeconds = 900; // 15 mins total
+  static const _totalInterviewSeconds = 300; // 5 mins total
   static const _totalQuestions = 10;
+  static const _passingThreshold = 70; // 70% to pass
 
   bool _started = false;
   bool _finished = false;
   List<QuizQuestion> _questions = [];
   int _currentIndex = 0;
-  int? _selectedOption;
-  bool _showResult = false;
-  int _correctCount = 0;
   int _secondsRemaining = _totalInterviewSeconds;
   Timer? _timer;
   final Stopwatch _totalStopwatch = Stopwatch();
   String? _selectedCategory;
 
-  // ── New: Mood & streak ────────────────────────────────────────────────────
+  // ── Answer tracking (no feedback during exam) ──────────────────
+  // For singleChoice: stores the selected option index (or -1 for unanswered)
+  // For multiChoice: uses _multiChoiceSelections map
+  // For textInput: uses _textInputAnswers map
+  List<int?> _userAnswers = [];
+  final Map<int, Set<int>> _multiChoiceSelections = {};
+  final Map<int, String> _textInputAnswers = {};
+  final Map<int, TextEditingController> _textControllers = {};
+
+  // ── Mood system ────────────────────────────────────────────────
   InterviewerMood _currentMood = InterviewerMood.greeting;
-  int _streak = 0;
   bool _showConfetti = false;
   late AnimationController _emojiAnimController;
   late AnimationController _pulseController;
@@ -167,12 +165,15 @@ class _InterviewScreenState extends State<InterviewScreen>
     _timer?.cancel();
     _emojiAnimController.dispose();
     _pulseController.dispose();
+    for (final c in _textControllers.values) {
+      c.dispose();
+    }
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!_started || _finished || _showResult) return;
+    if (!_started || _finished) return;
     if (state == AppLifecycleState.paused) {
       _timer?.cancel();
       _totalStopwatch.stop();
@@ -194,14 +195,13 @@ class _InterviewScreenState extends State<InterviewScreen>
     });
   }
 
-  // ── Mood updates ──────────────────────────────────────────────────────────
+  // ── Mood updates (timer-based only, no correct/wrong) ──────────
   void _updateMoodFromTimer() {
-    if (_showResult) return;
-    if (_secondsRemaining <= 5) {
+    if (_secondsRemaining <= 30) {
       _setMood(InterviewerMood.angry);
-    } else if (_secondsRemaining <= 15) {
+    } else if (_secondsRemaining <= 90) {
       _setMood(InterviewerMood.impatient);
-    } else if (_secondsRemaining <= 45) {
+    } else if (_secondsRemaining <= 180) {
       _setMood(InterviewerMood.curious);
     } else {
       _setMood(InterviewerMood.idle);
@@ -215,7 +215,7 @@ class _InterviewScreenState extends State<InterviewScreen>
     }
   }
 
-  // ── Start ─────────────────────────────────────────────────────────────────
+  // ── Start ─────────────────────────────────────────────────────
   void _startInterview() async {
     final progress = context.read<ProgressService>();
 
@@ -264,30 +264,61 @@ class _InterviewScreenState extends State<InterviewScreen>
 
     final rng = Random();
     final shuffled = pool.take(min(_totalQuestions, pool.length)).map((q) {
-      final indices = List<int>.generate(q.options.length, (i) => i);
-      indices.shuffle(rng);
-      final newOptions = [for (final i in indices) q.options[i]];
-      final newCorrect = indices.indexOf(q.correctIndex);
-      return QuizQuestion(
-        id: q.id,
-        question: q.question,
-        options: newOptions,
-        correctIndex: newCorrect,
-        explanation: q.explanation,
-        relatedTopicId: q.relatedTopicId,
-        relatedModuleId: q.relatedModuleId,
-      );
+      // Only shuffle options for singleChoice questions
+      if (q.type == QuestionType.singleChoice) {
+        final indices = List<int>.generate(q.options.length, (i) => i);
+        indices.shuffle(rng);
+        final newOptions = [for (final i in indices) q.options[i]];
+        final newCorrect = indices.indexOf(q.correctIndex);
+        return QuizQuestion(
+          id: q.id,
+          question: q.question,
+          options: newOptions,
+          correctIndex: newCorrect,
+          explanation: q.explanation,
+          relatedTopicId: q.relatedTopicId,
+          relatedModuleId: q.relatedModuleId,
+          type: q.type,
+          correctIndices: q.correctIndices,
+          correctText: q.correctText,
+        );
+      } else if (q.type == QuestionType.multiChoice) {
+        // Shuffle options for multiChoice too, adjusting correctIndices
+        final indices = List<int>.generate(q.options.length, (i) => i);
+        indices.shuffle(rng);
+        final newOptions = [for (final i in indices) q.options[i]];
+        final newCorrectIndices = q.correctIndices?.map((ci) => indices.indexOf(ci)).toList();
+        return QuizQuestion(
+          id: q.id,
+          question: q.question,
+          options: newOptions,
+          correctIndex: 0,
+          explanation: q.explanation,
+          relatedTopicId: q.relatedTopicId,
+          relatedModuleId: q.relatedModuleId,
+          type: q.type,
+          correctIndices: newCorrectIndices,
+          correctText: q.correctText,
+        );
+      }
+      // textInput — no shuffle needed
+      return q;
     }).toList();
+
+    // Clear old text controllers
+    for (final c in _textControllers.values) {
+      c.dispose();
+    }
+    _textControllers.clear();
+    _multiChoiceSelections.clear();
+    _textInputAnswers.clear();
 
     setState(() {
       _questions = shuffled;
       _started = true;
       _finished = false;
       _currentIndex = 0;
-      _selectedOption = null;
-      _showResult = false;
-      _correctCount = 0;
-      _streak = 0;
+      _userAnswers = List<int?>.filled(shuffled.length, null);
       _secondsRemaining = _totalInterviewSeconds;
       _currentMood = InterviewerMood.idle;
     });
@@ -312,66 +343,130 @@ class _InterviewScreenState extends State<InterviewScreen>
 
   void _timeUp() {
     _timer?.cancel();
-    if (!_showResult) {
-      _streak = 0;
-      _setMood(InterviewerMood.shocked);
-      context.read<SoundService>().playFailure();
-      setState(() {
-        _showResult = true;
-        _selectedOption = -1;
-      });
-      Future.delayed(const Duration(seconds: 2), _nextQuestion);
-    }
+    _setMood(InterviewerMood.shocked);
+    // Immediately finish — no waiting
+    _finishInterview();
   }
 
-  void _selectOption(int index) {
-    if (_showResult) return;
-    _timer?.cancel();
-    final q = _questions[_currentIndex];
-    final isCorrect = index == q.correctIndex;
-
-    if (isCorrect) {
-      _correctCount++;
-      _streak++;
-      if (_streak >= 3) {
-        _setMood(InterviewerMood.celebrating);
-      } else {
-        _setMood(InterviewerMood.happy);
-      }
-      context.read<SoundService>().playSuccess();
-    } else {
-      _streak = 0;
-      _setMood(InterviewerMood.disappointed);
-      context.read<SoundService>().playFailure();
-    }
-
+  // ── Select answer (NO feedback, NO timer stop) ─────────────────
+  void _selectSingleOption(int index) {
     setState(() {
-      _selectedOption = index;
-      _showResult = true;
+      _userAnswers[_currentIndex] = index;
     });
   }
 
+  void _toggleMultiOption(int index) {
+    setState(() {
+      _multiChoiceSelections[_currentIndex] ??= {};
+      final set = _multiChoiceSelections[_currentIndex]!;
+      if (set.contains(index)) {
+        set.remove(index);
+      } else {
+        set.add(index);
+      }
+    });
+  }
+
+  void _updateTextAnswer(String text) {
+    _textInputAnswers[_currentIndex] = text;
+  }
+
+  // ── Navigation ─────────────────────────────────────────────────
   void _nextQuestion() {
     if (!mounted) return;
     if (_currentIndex < _questions.length - 1) {
       setState(() {
         _currentIndex++;
-        _selectedOption = null;
-        _showResult = false;
-        _currentMood = InterviewerMood.idle;
+        _setMood(InterviewerMood.idle);
       });
-      _startTimer();
     } else {
       _finishInterview();
+    }
+  }
+
+  void _previousQuestion() {
+    if (_currentIndex > 0) {
+      setState(() {
+        _currentIndex--;
+      });
+    }
+  }
+
+  bool _hasAnsweredCurrent() {
+    final q = _questions[_currentIndex];
+    switch (q.type) {
+      case QuestionType.singleChoice:
+        return _userAnswers[_currentIndex] != null;
+      case QuestionType.multiChoice:
+        return (_multiChoiceSelections[_currentIndex]?.isNotEmpty ?? false);
+      case QuestionType.textInput:
+        return (_textInputAnswers[_currentIndex]?.trim().isNotEmpty ?? false);
+    }
+  }
+
+  // ── Scoring & Finish ───────────────────────────────────────────
+  int _calculateScore() {
+    int correct = 0;
+    for (int i = 0; i < _questions.length; i++) {
+      final q = _questions[i];
+      switch (q.type) {
+        case QuestionType.singleChoice:
+          if (_userAnswers[i] == q.correctIndex) correct++;
+          break;
+        case QuestionType.multiChoice:
+          final selected = _multiChoiceSelections[i] ?? {};
+          if (q.isMultiChoiceCorrect(selected)) correct++;
+          break;
+        case QuestionType.textInput:
+          final answer = _textInputAnswers[i] ?? '';
+          if (q.isTextAnswerCorrect(answer)) correct++;
+          break;
+      }
+    }
+    return correct;
+  }
+
+  bool _isQuestionCorrect(int index) {
+    final q = _questions[index];
+    switch (q.type) {
+      case QuestionType.singleChoice:
+        return _userAnswers[index] == q.correctIndex;
+      case QuestionType.multiChoice:
+        final selected = _multiChoiceSelections[index] ?? {};
+        return q.isMultiChoiceCorrect(selected);
+      case QuestionType.textInput:
+        final answer = _textInputAnswers[index] ?? '';
+        return q.isTextAnswerCorrect(answer);
     }
   }
 
   void _finishInterview() {
     _timer?.cancel();
     _totalStopwatch.stop();
-    final scorePercent = ((_correctCount / _questions.length) * 100).round();
-    context.read<ProgressService>().saveInterviewScore(scorePercent);
-    context.read<SoundService>().playAchievement();
+
+    final correctCount = _calculateScore();
+    final scorePercent = (correctCount / _questions.length * 100).round();
+    final passed = scorePercent >= _passingThreshold;
+
+    final progress = context.read<ProgressService>();
+    progress.saveInterviewScore(scorePercent);
+
+    // Save wrong answers for Review Weak Areas in Practice tab
+    for (int i = 0; i < _questions.length; i++) {
+      if (!_isQuestionCorrect(i)) {
+        progress.saveWrongAnswer(_questions[i].id);
+      } else {
+        progress.removeWrongAnswer(_questions[i].id);
+      }
+    }
+
+    // Play SFX based on result
+    final sound = context.read<SoundService>();
+    if (passed) {
+      sound.playSuccess();
+    } else {
+      sound.playFailure();
+    }
 
     // Set result mood
     if (scorePercent == 100) {
@@ -380,7 +475,10 @@ class _InterviewScreenState extends State<InterviewScreen>
     } else if (scorePercent >= 80) {
       _currentMood = InterviewerMood.impressed;
       _showConfetti = true;
-    } else if (scorePercent >= 60) {
+    } else if (scorePercent >= _passingThreshold) {
+      _currentMood = InterviewerMood.celebrating;
+      _showConfetti = true;
+    } else if (scorePercent >= 50) {
       _currentMood = InterviewerMood.cool;
     } else {
       _currentMood = InterviewerMood.sad;
@@ -480,7 +578,7 @@ class _InterviewScreenState extends State<InterviewScreen>
   }
 
   String get _readinessTier {
-    final pct = ((_correctCount / _questions.length) * 100).round();
+    final pct = (_calculateScore() / _questions.length * 100).round();
     if (pct >= 91) return '🏆 AR Expert / Lead';
     if (pct >= 71) return '⚡ Senior AR Dev';
     if (pct >= 51) return '🔍 Mid-Level AR Dev';
@@ -489,7 +587,7 @@ class _InterviewScreenState extends State<InterviewScreen>
   }
 
   Color get _tierColor {
-    final pct = ((_correctCount / _questions.length) * 100).round();
+    final pct = (_calculateScore() / _questions.length * 100).round();
     if (pct >= 91) return const Color(0xFFFFD700);
     if (pct >= 71) return AppTheme.accentCyan;
     if (pct >= 51) return AppTheme.accentBlue;
@@ -497,9 +595,9 @@ class _InterviewScreenState extends State<InterviewScreen>
     return AppTheme.accentPink;
   }
 
-  // ═════════════════════════════════════════════════════════════════════════
+  // ═════════════════════════════════════════════════════════════════
   //  BUILD
-  // ═════════════════════════════════════════════════════════════════════════
+  // ═════════════════════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
@@ -507,7 +605,7 @@ class _InterviewScreenState extends State<InterviewScreen>
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _handleBack();
       },
       child: Scaffold(
@@ -533,9 +631,9 @@ class _InterviewScreenState extends State<InterviewScreen>
     );
   }
 
-  // ═════════════════════════════════════════════════════════════════════════
+  // ═════════════════════════════════════════════════════════════════
   //  INTERVIEWER FACE WIDGET
-  // ═════════════════════════════════════════════════════════════════════════
+  // ═════════════════════════════════════════════════════════════════
 
   Widget _buildInterviewerFace({
     double size = 80,
@@ -568,7 +666,7 @@ class _InterviewScreenState extends State<InterviewScreen>
     } else if (_currentMood == InterviewerMood.shocked) {
       face = face.animate()
           .scale(begin: const Offset(0.5, 0.5), end: const Offset(1.0, 1.0), duration: 300.ms, curve: Curves.elasticOut);
-    } else if (_currentMood == InterviewerMood.disappointed || _currentMood == InterviewerMood.sad) {
+    } else if (_currentMood == InterviewerMood.sad) {
       face = face.animate()
           .slideY(begin: 0, end: 0.05, duration: 600.ms, curve: Curves.easeInOut);
     }
@@ -612,7 +710,7 @@ class _InterviewScreenState extends State<InterviewScreen>
     final timerFraction = _secondsRemaining / _totalInterviewSeconds;
     final timerColor = _secondsRemaining <= 60
         ? AppTheme.errorRed
-        : _secondsRemaining <= 180
+        : _secondsRemaining <= 120
             ? AppTheme.warningAmber
             : AppTheme.accentCyan;
 
@@ -640,7 +738,7 @@ class _InterviewScreenState extends State<InterviewScreen>
     );
   }
 
-  // ── Speech bubble ─────────────────────────────────────────────────────────
+  // ── Speech bubble ─────────────────────────────────────────────
   Widget _buildSpeechBubble(String text, bool isDark, {bool isComment = false}) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -678,9 +776,9 @@ class _InterviewScreenState extends State<InterviewScreen>
     );
   }
 
-  // ═════════════════════════════════════════════════════════════════════════
+  // ═════════════════════════════════════════════════════════════════
   //  INTRO SCREEN
-  // ═════════════════════════════════════════════════════════════════════════
+  // ═════════════════════════════════════════════════════════════════
 
   Widget _buildIntro(bool isDark) {
     final bestScore = context.watch<ProgressService>().interviewBestScore;
@@ -736,10 +834,37 @@ class _InterviewScreenState extends State<InterviewScreen>
             alignment: WrapAlignment.center,
             children: [
               _buildInfoChip('📝 10 Questions', isDark),
-              _buildInfoChip('⏱️ 15m Total', isDark),
+              _buildInfoChip('⏱️ 5m Total', isDark),
               _buildInfoChip('🚫 No Hints', isDark),
+              _buildInfoChip('📊 70% to Pass', isDark),
             ],
           ).animate().fadeIn(delay: 500.ms),
+
+          const SizedBox(height: 12),
+
+          // Exam format note
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.accentPurple.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.accentPurple.withValues(alpha: 0.15)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline_rounded, color: AppTheme.accentPurple, size: 16),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Exam mode: No feedback per question. Multiple question types: '
+                    'single choice, multi-select, and text input. Results shown at the end.',
+                    style: AppTheme.bodySmall.copyWith(
+                        color: AppTheme.textSecondaryC(isDark), fontSize: 11),
+                  ),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(delay: 550.ms),
 
           const SizedBox(height: 20),
 
@@ -826,7 +951,7 @@ class _InterviewScreenState extends State<InterviewScreen>
             },
           ),
 
-          // ── Category selector (Premium only) ──────────────────────
+          // ── Category selector (Premium only) ──────────────────
           if (isPremium) ...[
             const SizedBox(height: 24),
             Align(
@@ -945,9 +1070,9 @@ class _InterviewScreenState extends State<InterviewScreen>
     );
   }
 
-  // ═════════════════════════════════════════════════════════════════════════
-  //  QUIZ SCREEN
-  // ═════════════════════════════════════════════════════════════════════════
+  // ═════════════════════════════════════════════════════════════════
+  //  QUIZ SCREEN (Exam mode — no feedback)
+  // ═════════════════════════════════════════════════════════════════
 
   Widget _buildQuiz(bool isDark) {
     final q = _questions[_currentIndex];
@@ -956,7 +1081,7 @@ class _InterviewScreenState extends State<InterviewScreen>
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
       child: Column(
         children: [
-          // ── Top bar: Back + Progress + Timer text ──────────────────────
+          // ── Top bar: Back + Progress + Timer text ──────────────
           Row(
             children: [
               GestureDetector(
@@ -997,33 +1122,22 @@ class _InterviewScreenState extends State<InterviewScreen>
                 ),
               ),
               const SizedBox(width: 12),
-              // Streak badge
-              if (_streak >= 2)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFFB300), Color(0xFFFF8F00)],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
+              // Question type badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _questionTypeBadgeColor(q.type).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _questionTypeLabel(q.type),
+                  style: AppTheme.bodySmall.copyWith(
+                    color: _questionTypeBadgeColor(q.type),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 10,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('🔥', style: TextStyle(fontSize: 12)),
-                      const SizedBox(width: 4),
-                      Text('$_streak', style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                      )),
-                    ],
-                  ),
-                ).animate().scale(
-                    begin: const Offset(0.5, 0.5),
-                    end: const Offset(1, 1),
-                    curve: Curves.elasticOut,
-                    duration: 400.ms),
+                ),
+              ),
               // Timer text
               Container(
                 margin: const EdgeInsets.only(left: 8),
@@ -1041,17 +1155,12 @@ class _InterviewScreenState extends State<InterviewScreen>
 
           const SizedBox(height: 16),
 
-          // ── Interviewer face with circular timer ───────────────────────
-          _buildInterviewerFace(size: 72, showTimer: true)
-              .animate(target: _showResult ? 1 : 0)
-              .scale(
-                  begin: const Offset(1, 1),
-                  end: const Offset(1.05, 1.05),
-                  duration: 300.ms),
+          // ── Interviewer face with circular timer ───────────────
+          _buildInterviewerFace(size: 64, showTimer: true),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
 
-          // ── Mood comment ──────────────────────────────────────────────
+          // ── Mood comment ──────────────────────────────────────
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 250),
             child: Text(
@@ -1068,7 +1177,7 @@ class _InterviewScreenState extends State<InterviewScreen>
 
           const SizedBox(height: 12),
 
-          // ── Question in speech bubble ──────────────────────────────────
+          // ── Question in speech bubble ──────────────────────────
           Flexible(
             flex: 0,
             child: _buildSpeechBubble(q.question, isDark),
@@ -1076,69 +1185,381 @@ class _InterviewScreenState extends State<InterviewScreen>
 
           const SizedBox(height: 16),
 
-          // ── Answer options ────────────────────────────────────────────
+          // ── Answer area (depends on question type) ─────────────
           Expanded(
-            child: ListView.builder(
-              itemCount: q.options.length,
-              physics: const BouncingScrollPhysics(),
-              itemBuilder: (ctx, i) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: QuizOptionButton(
-                    text: q.options[i],
-                    index: i,
-                    isSelected: _selectedOption == i,
-                    isCorrect: i == q.correctIndex,
-                    showResult: _showResult,
-                    isDark: isDark,
-                    onTap: () => _selectOption(i),
-                  ),
-                );
-              },
-            ),
+            child: _buildAnswerArea(q, isDark),
           ),
 
-          // ── Next button ──────────────────────────────────────────────
-          if (_showResult)
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _nextQuestion,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.accentCyan,
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
+          const SizedBox(height: 8),
+
+          // ── Navigation buttons ─────────────────────────────────
+          Row(
+            children: [
+              // Previous button
+              if (_currentIndex > 0)
+                Expanded(
+                  child: SizedBox(
+                    height: 48,
+                    child: OutlinedButton.icon(
+                      onPressed: _previousQuestion,
+                      icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                      label: const Text('Previous'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.textSecondaryC(isDark),
+                        side: BorderSide(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                  ),
                 ),
-                child: Text(
-                    _currentIndex < _questions.length - 1
-                        ? 'Next Question →'
-                        : '🏁 See Results'),
+              if (_currentIndex > 0) const SizedBox(width: 12),
+              // Next / Submit button
+              Expanded(
+                flex: 2,
+                child: SizedBox(
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: _nextQuestion,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _currentIndex < _questions.length - 1
+                          ? AppTheme.accentCyan
+                          : AppTheme.successGreen,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      _currentIndex < _questions.length - 1
+                          ? (_hasAnsweredCurrent() ? 'Next Question →' : 'Skip →')
+                          : '🏁 Submit Exam',
+                      style: AppTheme.labelMedium.copyWith(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.3, end: 0),
+            ],
+          ),
         ],
       ),
     );
   }
 
+  // ── Answer area builders ────────────────────────────────────────
+  Widget _buildAnswerArea(QuizQuestion q, bool isDark) {
+    switch (q.type) {
+      case QuestionType.singleChoice:
+        return _buildSingleChoiceOptions(q, isDark);
+      case QuestionType.multiChoice:
+        return _buildMultiChoiceOptions(q, isDark);
+      case QuestionType.textInput:
+        return _buildTextInputArea(q, isDark);
+    }
+  }
+
+  Widget _buildSingleChoiceOptions(QuizQuestion q, bool isDark) {
+    final labels = ['A', 'B', 'C', 'D', 'E', 'F'];
+    final selectedIdx = _userAnswers[_currentIndex];
+
+    return ListView.builder(
+      itemCount: q.options.length,
+      physics: const BouncingScrollPhysics(),
+      itemBuilder: (ctx, i) {
+        final isSelected = selectedIdx == i;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: GestureDetector(
+            onTap: () => _selectSingleOption(i),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppTheme.accentCyan.withValues(alpha: isDark ? 0.15 : 0.1)
+                    : AppTheme.cardC(isDark),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected
+                      ? AppTheme.accentCyan.withValues(alpha: 0.5)
+                      : AppTheme.dividerC(isDark),
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                children: [
+                  // Radio-style indicator
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isSelected ? AppTheme.accentCyan : AppTheme.textMutedC(isDark),
+                        width: 2,
+                      ),
+                      color: isSelected
+                          ? AppTheme.accentCyan.withValues(alpha: 0.2)
+                          : Colors.transparent,
+                    ),
+                    child: isSelected
+                        ? Center(
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppTheme.accentCyan,
+                              ),
+                            ),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppTheme.accentCyan.withValues(alpha: 0.2)
+                          : (isDark
+                                ? Colors.white.withValues(alpha: 0.05)
+                                : Colors.grey.withValues(alpha: 0.08)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      i < labels.length ? labels[i] : '${i + 1}',
+                      style: AppTheme.labelMedium.copyWith(
+                        color: isSelected ? AppTheme.accentCyan : AppTheme.textMutedC(isDark),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      q.options[i],
+                      style: AppTheme.bodyMedium.copyWith(
+                        color: AppTheme.textPrimaryC(isDark),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMultiChoiceOptions(QuizQuestion q, bool isDark) {
+    final selected = _multiChoiceSelections[_currentIndex] ?? {};
+
+    return ListView.builder(
+      itemCount: q.options.length,
+      physics: const BouncingScrollPhysics(),
+      itemBuilder: (ctx, i) {
+        final isChecked = selected.contains(i);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: GestureDetector(
+            onTap: () => _toggleMultiOption(i),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: isChecked
+                    ? AppTheme.accentPurple.withValues(alpha: isDark ? 0.15 : 0.1)
+                    : AppTheme.cardC(isDark),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isChecked
+                      ? AppTheme.accentPurple.withValues(alpha: 0.5)
+                      : AppTheme.dividerC(isDark),
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                children: [
+                  // Checkbox-style indicator
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isChecked ? AppTheme.accentPurple : AppTheme.textMutedC(isDark),
+                        width: 2,
+                      ),
+                      color: isChecked
+                          ? AppTheme.accentPurple.withValues(alpha: 0.2)
+                          : Colors.transparent,
+                    ),
+                    child: isChecked
+                        ? const Icon(Icons.check_rounded, size: 16, color: AppTheme.accentPurple)
+                        : null,
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Text(
+                      q.options[i],
+                      style: AppTheme.bodyMedium.copyWith(
+                        color: AppTheme.textPrimaryC(isDark),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTextInputArea(QuizQuestion q, bool isDark) {
+    _textControllers[_currentIndex] ??= TextEditingController(
+      text: _textInputAnswers[_currentIndex] ?? '',
+    );
+    final controller = _textControllers[_currentIndex]!;
+
+    return Column(
+      children: [
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.04)
+                : Colors.black.withValues(alpha: 0.03),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.08),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.keyboard_rounded,
+                      color: AppTheme.accentCyan.withValues(alpha: 0.7), size: 18),
+                  const SizedBox(width: 8),
+                  Text('Type your answer below',
+                      style: AppTheme.bodySmall.copyWith(
+                        color: AppTheme.textMutedC(isDark),
+                        fontWeight: FontWeight.w600,
+                      )),
+                ],
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                onChanged: _updateTextAnswer,
+                style: AppTheme.bodyMedium.copyWith(
+                  color: AppTheme.textPrimaryC(isDark),
+                  fontSize: 16,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Enter your answer...',
+                  hintStyle: AppTheme.bodyMedium.copyWith(
+                    color: AppTheme.textMutedC(isDark),
+                  ),
+                  filled: true,
+                  fillColor: isDark
+                      ? Colors.white.withValues(alpha: 0.03)
+                      : Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppTheme.accentCyan.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: AppTheme.accentCyan,
+                      width: 2,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+                textInputAction: TextInputAction.done,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppTheme.accentCyan.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.lightbulb_outline_rounded, color: AppTheme.accentCyan, size: 14),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'Answer is case-insensitive. Type the exact answer.',
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.accentCyan.withValues(alpha: 0.8),
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _questionTypeLabel(QuestionType type) {
+    switch (type) {
+      case QuestionType.singleChoice: return 'SINGLE';
+      case QuestionType.multiChoice: return 'MULTI';
+      case QuestionType.textInput: return 'TEXT';
+    }
+  }
+
+  Color _questionTypeBadgeColor(QuestionType type) {
+    switch (type) {
+      case QuestionType.singleChoice: return AppTheme.accentCyan;
+      case QuestionType.multiChoice: return AppTheme.accentPurple;
+      case QuestionType.textInput: return AppTheme.accentOrange;
+    }
+  }
+
   Color get _timerColor {
     if (_secondsRemaining <= 60) return AppTheme.errorRed;
-    if (_secondsRemaining <= 180) return AppTheme.warningAmber;
+    if (_secondsRemaining <= 120) return AppTheme.warningAmber;
     return AppTheme.accentCyan;
   }
 
-  // ═════════════════════════════════════════════════════════════════════════
+  // ═════════════════════════════════════════════════════════════════
   //  RESULTS SCREEN
-  // ═════════════════════════════════════════════════════════════════════════
+  // ═════════════════════════════════════════════════════════════════
 
   Widget _buildResults(bool isDark) {
-    final pct = ((_correctCount / _questions.length) * 100).round();
+    final correctCount = _calculateScore();
+    final pct = (correctCount / _questions.length * 100).round();
+    final passed = pct >= _passingThreshold;
     final elapsed = _totalStopwatch.elapsed;
     final minutes = elapsed.inMinutes;
     final seconds = elapsed.inSeconds % 60;
     final categoryLabel = _selectedCategory ?? 'All Modules';
     final xpEarned = pct >= 90 ? 110 : (pct >= 70 ? 80 : 30);
+    final wrongCount = _questions.length - correctCount;
 
     return Stack(
       children: [
@@ -1169,9 +1590,42 @@ class _InterviewScreenState extends State<InterviewScreen>
 
               const SizedBox(height: 16),
 
+              // PASS / FAIL badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: passed
+                        ? [AppTheme.successGreen.withValues(alpha: 0.2), AppTheme.successGreen.withValues(alpha: 0.08)]
+                        : [AppTheme.errorRed.withValues(alpha: 0.2), AppTheme.errorRed.withValues(alpha: 0.08)],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: passed
+                        ? AppTheme.successGreen.withValues(alpha: 0.4)
+                        : AppTheme.errorRed.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Text(
+                  passed ? '✅ PASSED' : '❌ FAILED',
+                  style: AppTheme.headingMedium.copyWith(
+                    color: passed ? AppTheme.successGreen : AppTheme.errorRed,
+                    fontSize: 22,
+                  ),
+                ),
+              ).animate().fadeIn(delay: 300.ms, duration: 400.ms)
+                  .scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1)),
+
+              const SizedBox(height: 16),
+
               // Mood comment as speech bubble
-              _buildSpeechBubble(_currentMood.comment, isDark, isComment: true)
-                  .animate()
+              _buildSpeechBubble(
+                passed
+                    ? _currentMood.comment
+                    : 'Keep studying! Check your wrong answers in Practice → Review Weak Areas 💪',
+                isDark,
+                isComment: true,
+              ).animate()
                   .fadeIn(delay: 400.ms, duration: 400.ms)
                   .slideY(begin: 0.2, end: 0),
 
@@ -1183,6 +1637,40 @@ class _InterviewScreenState extends State<InterviewScreen>
                 style: AppTheme.headingLarge
                     .copyWith(color: _tierColor, fontSize: 24),
               ).animate().fadeIn(delay: 500.ms),
+
+              // Passed message
+              if (passed) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFFFFD700).withValues(alpha: 0.15),
+                        AppTheme.successGreen.withValues(alpha: 0.1),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFFFD700).withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('🎉', style: TextStyle(fontSize: 20)),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          "You're capable for an AR post!",
+                          style: AppTheme.bodyMedium.copyWith(
+                            color: const Color(0xFFFFD700),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ).animate().fadeIn(delay: 600.ms),
+              ],
 
               const SizedBox(height: 6),
 
@@ -1237,7 +1725,7 @@ class _InterviewScreenState extends State<InterviewScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildStatCard('✅', '$_correctCount / ${_questions.length}', 'Correct', isDark),
+                  _buildStatCard('✅', '$correctCount / ${_questions.length}', 'Correct', isDark),
                   const SizedBox(width: 16),
                   _buildStatCard('⏱️', '${minutes}m ${seconds}s', 'Time', isDark),
                   const SizedBox(width: 16),
@@ -1245,9 +1733,38 @@ class _InterviewScreenState extends State<InterviewScreen>
                 ],
               ).animate().fadeIn(delay: 700.ms),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
 
-              // Buttons
+              // ── Review Wrong Answers button ──────────────────────
+              if (wrongCount > 0)
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PracticeScreen(autoStartReview: true),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.rate_review_rounded, size: 20),
+                    label: Text('Review Wrong Answers ($wrongCount)',
+                        style: AppTheme.labelMedium.copyWith(color: Colors.black, fontWeight: FontWeight.w800)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.accentPink,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                  ),
+                ).animate().fadeIn(delay: 800.ms).slideY(begin: 0.2, end: 0),
+
+              const SizedBox(height: 12),
+
+              // Try Again button
               SizedBox(
                 width: double.infinity,
                 height: 52,
