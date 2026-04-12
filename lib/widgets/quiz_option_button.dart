@@ -12,6 +12,8 @@ class QuizOptionButton extends StatelessWidget {
   final VoidCallback onTap;
   final bool isDark;
 
+  final bool isReviewHighlight;
+
   const QuizOptionButton({
     super.key,
     required this.text,
@@ -21,9 +23,13 @@ class QuizOptionButton extends StatelessWidget {
     required this.showResult,
     required this.onTap,
     this.isDark = true,
+    this.isReviewHighlight = false,
   });
 
   Color get _backgroundColor {
+    if (isReviewHighlight && !showResult) {
+      return AppTheme.errorRed.withValues(alpha: isDark ? 0.15 : 0.1);
+    }
     if (!showResult) {
       return isSelected
           ? AppTheme.accentPurple.withValues(alpha: isDark ? 0.15 : 0.1)
@@ -39,6 +45,9 @@ class QuizOptionButton extends StatelessWidget {
   }
 
   Color get _borderColor {
+    if (isReviewHighlight && !showResult) {
+      return AppTheme.errorRed.withValues(alpha: 0.5);
+    }
     if (!showResult) {
       return isSelected
           ? AppTheme.accentPurple.withValues(alpha: 0.5)
@@ -54,6 +63,7 @@ class QuizOptionButton extends StatelessWidget {
   }
 
   IconData? get _trailingIcon {
+    if (isReviewHighlight && !showResult) return Icons.cancel_rounded;
     if (!showResult) return null;
     if (isCorrect) return Icons.check_circle_rounded;
     if (isSelected && !isCorrect) return Icons.cancel_rounded;
@@ -94,20 +104,24 @@ class QuizOptionButton extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: isSelected && !showResult
-                    ? AppTheme.accentPurple.withValues(alpha: 0.2)
-                    : (isDark
-                          ? Colors.white.withValues(alpha: 0.05)
-                          : Colors.grey.withValues(alpha: 0.08)),
+                color: isReviewHighlight && !showResult
+                    ? AppTheme.errorRed.withValues(alpha: 0.2)
+                    : isSelected && !showResult
+                        ? AppTheme.accentPurple.withValues(alpha: 0.2)
+                        : (isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.grey.withValues(alpha: 0.08)),
                 borderRadius: BorderRadius.circular(8),
               ),
               alignment: Alignment.center,
               child: Text(
                 labels[index],
                 style: AppTheme.labelMedium.copyWith(
-                  color: isSelected && !showResult
-                      ? AppTheme.accentPurple
-                      : AppTheme.textMutedC(isDark),
+                  color: isReviewHighlight && !showResult
+                      ? AppTheme.errorRed
+                      : isSelected && !showResult
+                          ? AppTheme.accentPurple
+                          : AppTheme.textMutedC(isDark),
                 ),
               ),
             ),

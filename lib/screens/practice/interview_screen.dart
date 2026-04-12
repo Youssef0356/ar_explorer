@@ -451,12 +451,19 @@ class _InterviewScreenState extends State<InterviewScreen>
     final progress = context.read<ProgressService>();
     progress.saveInterviewScore(scorePercent);
 
-    // Save wrong answers for Review Weak Areas in Practice tab
+    // Save wrong answers with details for Review Weak Areas in Practice tab
     for (int i = 0; i < _questions.length; i++) {
+      final q = _questions[i];
       if (!_isQuestionCorrect(i)) {
-        progress.saveWrongAnswer(_questions[i].id);
+        dynamic selection;
+        switch (q.type) {
+          case QuestionType.singleChoice: selection = _userAnswers[i]; break;
+          case QuestionType.multiChoice: selection = _multiChoiceSelections[i]; break;
+          case QuestionType.textInput: selection = _textInputAnswers[i]; break;
+        }
+        progress.saveWrongAnswer(q.id, selection: selection, type: q.type);
       } else {
-        progress.removeWrongAnswer(_questions[i].id);
+        progress.removeWrongAnswer(q.id);
       }
     }
 

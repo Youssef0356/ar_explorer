@@ -27,10 +27,18 @@ class _PracticeScreenState extends State<PracticeScreen> {
   bool _showingMenu = true;
   List<QuizQuestion> _questions = [];
   int _currentIndex = 0;
-  int? _selectedOption;
+  
+  // ── State for different question types ──
+  int? _selectedOption; // For singleChoice
+  final Set<int> _currentMultiChoices = {}; // For multiChoice
+  String _currentTextAnswer = ''; // For textInput
+  final TextEditingController _textController = TextEditingController();
+
   bool _showResult = false;
   int _correctCount = 0;
   String _mode = '';
+
+  bool get isReviewMode => _mode == 'Review Weak Areas';
 
   @override
   void initState() {
@@ -42,18 +50,61 @@ class _PracticeScreenState extends State<PracticeScreen> {
     }
   }
 
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
   List<QuizQuestion> _getAllQuestions() {
     return allQuizzes.values
         .expand((quiz) => quiz.questions)
         .toList();
   }
 
+  void _resetQuestionState() {
+    final progress = context.read<ProgressService>();
+    final q = _questions.isNotEmpty && _currentIndex < _questions.length ? _questions[_currentIndex] : null;
+
+    _selectedOption = null;
+    _currentMultiChoices.clear();
+    _currentTextAnswer = '';
+    _textController.clear();
+    _showResult = false;
+
+    if (_mode == 'Review Weak Areas' && q != null) {
+      final detail = progress.getWrongAnswerDetail(q.id);
+      if (detail != null) {
+        final selection = detail['selection'];
+        if (q.type == QuestionType.singleChoice) {
+          _selectedOption = selection as int?;
+        } else if (q.type == QuestionType.multiChoice) {
+          if (selection is List) {
+            _currentMultiChoices.addAll(selection.cast<int>());
+          }
+        } else if (q.type == QuestionType.textInput) {
+          _currentTextAnswer = selection as String? ?? '';
+          _textController.text = _currentTextAnswer;
+        }
+      }
+    }
+  }
+
+  void _revealSolution() {
+    setState(() {
+      _showResult = true;
+    });
+  }
+
   void _startReviewMode() {
     final progress = context.read<ProgressService>();
     final wrongIds = progress.wrongAnswers;
     final all = _getAllQuestions();
-    final questions =
-        all.where((q) => wrongIds.contains(q.id)).toList()..shuffle();
+    
+    // Only include questions that have detail about the last mistake (Skip Old Data)
+    final questions = all
+        .where((q) => wrongIds.contains(q.id) && progress.hasWrongAnswerDetail(q.id))
+        .toList()..shuffle();
 
     if (questions.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -71,10 +122,9 @@ class _PracticeScreenState extends State<PracticeScreen> {
       _mode = 'Review Weak Areas';
       _questions = questions.take(10).toList();
       _currentIndex = 0;
-      _selectedOption = null;
-      _showResult = false;
       _correctCount = 0;
       _showingMenu = false;
+      _resetQuestionState();
     });
   }
 
@@ -113,18 +163,58 @@ class _PracticeScreenState extends State<PracticeScreen> {
       _mode = 'Daily Challenge';
       _questions = all.take(5).toList();
       _currentIndex = 0;
-      _selectedOption = null;
-      _showResult = false;
       _correctCount = 0;
       _showingMenu = false;
+      _resetQuestionState();
     });
   }
 
-  void _selectOption(int index) {
+  // Handle single choice selection
+  void _selectSingleOption(int index) {
     if (_showResult) return;
+    _validateAndShowScore(index);
+  }
+
+  // Handle multi choice toggling
+  void _toggleMultiOption(int index) {
+    if (_showResult) return;
+    setState(() {
+      if (_currentMultiChoices.contains(index)) {
+        _currentMultiChoices.remove(index);
+      } else {
+        _currentMultiChoices.add(index);
+      }
+    });
+  }
+
+  // Handle multi choice submission
+  void _submitMultiChoice() {
+    if (_showResult || _currentMultiChoices.isEmpty) return;
+    _validateAndShowScore();
+  }
+
+  // Handle text input submission
+  void _submitTextInput() {
+    final answer = _textController.text.trim();
+    if (_showResult || answer.isEmpty) return;
+    
+    _currentTextAnswer = answer;
+    _validateAndShowScore();
+  }
+
+  void _validateAndShowScore([int? singleIdx]) {
     final progress = context.read<ProgressService>();
     final q = _questions[_currentIndex];
-    final isCorrect = index == q.correctIndex;
+    bool isCorrect = false;
+
+    if (q.type == QuestionType.singleChoice) {
+      isCorrect = singleIdx == q.correctIndex;
+      _selectedOption = singleIdx;
+    } else if (q.type == QuestionType.multiChoice) {
+      isCorrect = q.isMultiChoiceCorrect(_currentMultiChoices);
+    } else if (q.type == QuestionType.textInput) {
+      isCorrect = q.isTextAnswerCorrect(_currentTextAnswer);
+    }
 
     if (isCorrect) {
       _correctCount++;
@@ -134,7 +224,6 @@ class _PracticeScreenState extends State<PracticeScreen> {
     }
 
     setState(() {
-      _selectedOption = index;
       _showResult = true;
     });
   }
@@ -143,8 +232,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
     if (_currentIndex < _questions.length - 1) {
       setState(() {
         _currentIndex++;
-        _selectedOption = null;
-        _showResult = false;
+        _resetQuestionState();
       });
     } else {
       if (_mode == 'Daily Challenge') {
@@ -326,8 +414,6 @@ class _PracticeScreenState extends State<PracticeScreen> {
 
           const SizedBox(height: 14),
 
-          const SizedBox(height: 14),
-
           // ── Info box ──
           Container(
             padding: const EdgeInsets.all(14),
@@ -409,6 +495,23 @@ class _PracticeScreenState extends State<PracticeScreen> {
             ),
           ),
           const SizedBox(height: 24),
+          // Question type badge (like in interview screen)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: _questionTypeBadgeColor(q.type).withOpacity(0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              _questionTypeLabel(q.type),
+              style: AppTheme.bodySmall.copyWith(
+                color: _questionTypeBadgeColor(q.type),
+                fontWeight: FontWeight.w700,
+                fontSize: 10,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
           Text(
             q.question,
             style: AppTheme.headingSmall.copyWith(
@@ -417,7 +520,76 @@ class _PracticeScreenState extends State<PracticeScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          ...List.generate(q.options.length, (i) {
+          
+          // ── Dynamic Answer Area ──
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildAnswerInput(q, isDark),
+                  
+                  // ── Action Buttons for Review ──
+                  if (isReviewMode && !_showResult) ...[
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: ElevatedButton.icon(
+                        onPressed: _revealSolution,
+                        icon: const Icon(Icons.auto_awesome_rounded),
+                        label: const Text('Reveal Correct Answer'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.accentPurple,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 0,
+                        ),
+                      ),
+                    ).animate().fadeIn().scale(begin: const Offset(0.9, 0.9)),
+                  ],
+
+                  // ── Feedback / Explanation ──
+                  if (_showResult) ...[
+                    const SizedBox(height: 20),
+                    _buildFeedbackSection(q, isDark, isReviewMode),
+                  ],
+                ],
+              ),
+            ),
+          ),
+
+          if (_showResult) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _next,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppTheme.accentPurple,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                child: Text(
+                  _currentIndex < _questions.length - 1
+                      ? 'Next Question →'
+                      : 'Finish ✨',
+                  style: AppTheme.labelMedium.copyWith(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnswerInput(QuizQuestion q, bool isDark) {
+    switch (q.type) {
+      case QuestionType.singleChoice:
+        return Column(
+          children: List.generate(q.options.length, (i) {
+            final isWrongChoice = isReviewMode && _selectedOption == i && i != q.correctIndex;
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: QuizOptionButton(
@@ -426,107 +598,188 @@ class _PracticeScreenState extends State<PracticeScreen> {
                 isSelected: _selectedOption == i,
                 isCorrect: i == q.correctIndex,
                 showResult: _showResult,
+                isReviewHighlight: isWrongChoice && !_showResult,
                 isDark: isDark,
-                onTap: () => _selectOption(i),
+                onTap: isReviewMode ? () {} : () => _selectSingleOption(i),
               ),
             );
           }),
-          // ── Explanation for weak area review ──
-          if (_showResult && isReviewMode) ...[
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: _selectedOption == q.correctIndex
-                    ? AppTheme.successGreen.withOpacity(isDark ? 0.08 : 0.06)
-                    : AppTheme.errorRed.withOpacity(isDark ? 0.08 : 0.06),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: _selectedOption == q.correctIndex
-                      ? AppTheme.successGreen.withOpacity(0.2)
-                      : AppTheme.errorRed.withOpacity(0.2),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        _selectedOption == q.correctIndex
-                            ? Icons.check_circle_rounded
-                            : Icons.info_rounded,
-                        color: _selectedOption == q.correctIndex
-                            ? AppTheme.successGreen
-                            : AppTheme.accentPurple,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _selectedOption == q.correctIndex
-                            ? 'Correct!'
-                            : 'Why the correct answer is:',
-                        style: AppTheme.labelMedium.copyWith(
-                          color: _selectedOption == q.correctIndex
-                              ? AppTheme.successGreen
-                              : AppTheme.accentPurple,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (_selectedOption != q.correctIndex) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      q.options[q.correctIndex],
-                      style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.successGreen,
-                        fontWeight: FontWeight.w700,
+        );
+      case QuestionType.multiChoice:
+        return Column(
+          children: [
+            ...List.generate(q.options.length, (i) {
+              final isChecked = _currentMultiChoices.contains(i);
+              final isCorrectPart = q.correctIndices?.contains(i) ?? false;
+              
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: GestureDetector(
+                  onTap: () => _toggleMultiOption(i),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: _showResult
+                          ? (isCorrectPart 
+                              ? AppTheme.successGreen.withOpacity(isDark ? 0.15 : 0.1)
+                              : (isChecked ? AppTheme.errorRed.withOpacity(isDark ? 0.15 : 0.1) : AppTheme.cardC(isDark)))
+                          : (isReviewMode && isChecked && !isCorrectPart
+                              ? AppTheme.errorRed.withOpacity(isDark ? 0.15 : 0.1)
+                              : (isChecked ? AppTheme.accentPurple.withOpacity(isDark ? 0.15 : 0.1) : AppTheme.cardC(isDark))),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: _showResult
+                            ? (isCorrectPart ? AppTheme.successGreen : (isChecked ? AppTheme.errorRed : AppTheme.dividerC(isDark)))
+                            : (isReviewMode && isChecked && !isCorrectPart
+                                ? AppTheme.errorRed
+                                : (isChecked ? AppTheme.accentPurple : AppTheme.dividerC(isDark))),
+                        width: 1.5,
                       ),
                     ),
-                  ],
-                  const SizedBox(height: 8),
-                  Text(
-                    q.explanation,
-                    style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.textSecondaryC(isDark), height: 1.5),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: isReviewMode && isChecked && !isCorrectPart
+                                  ? AppTheme.errorRed
+                                  : isChecked ? AppTheme.accentPurple : AppTheme.textMutedC(isDark),
+                              width: 2,
+                            ),
+                          ),
+                          child: isChecked ? Icon(
+                            isReviewMode && !isCorrectPart ? Icons.close_rounded : Icons.check_rounded,
+                            size: 16,
+                            color: isReviewMode && !isCorrectPart ? AppTheme.errorRed : AppTheme.accentPurple
+                          ) : null,
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(child: Text(q.options[i], style: AppTheme.bodyMedium.copyWith(color: AppTheme.textPrimaryC(isDark)))),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ).animate().fadeIn(duration: 300.ms),
-          ] else if (_showResult) ...[
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppTheme.cardC(isDark),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.dividerC(isDark)),
-              ),
-              child: Text(
-                q.explanation,
-                style: AppTheme.bodyMedium.copyWith(
-                    color: AppTheme.textSecondaryC(isDark)),
-              ),
-            ),
-          ],
-          if (_showResult) ...[
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _next,
-                child: Text(
-                  _currentIndex < _questions.length - 1
-                      ? 'Next Question'
-                      : 'Finish',
+                ),
+              );
+            }),
+            if (!_showResult) ...[
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _currentMultiChoices.isNotEmpty ? _submitMultiChoice : null,
+                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accentPurple),
+                  child: const Text('Confirm Selections'),
                 ),
               ),
-            ),
+            ],
           ],
-          if (!_showResult) const Spacer(),
+        );
+      case QuestionType.textInput:
+        return Column(
+          children: [
+            TextField(
+              controller: _textController,
+              enabled: !_showResult,
+              onSubmitted: (_) => _submitTextInput(),
+              style: AppTheme.bodyMedium.copyWith(color: AppTheme.textPrimaryC(isDark)),
+              decoration: InputDecoration(
+                hintText: 'Type your answer here...',
+                hintStyle: AppTheme.bodyMedium.copyWith(color: AppTheme.textMutedC(isDark)),
+                filled: true,
+                fillColor: isDark ? Colors.white.withOpacity(0.03) : Colors.black.withOpacity(0.02),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(
+                  color: isReviewMode && !_showResult ? AppTheme.errorRed : AppTheme.dividerC(isDark)
+                )),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(
+                  color: isReviewMode && !_showResult ? AppTheme.errorRed : AppTheme.accentPurple
+                )),
+              ),
+            ),
+            if (!_showResult) ...[
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _submitTextInput,
+                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accentPurple),
+                  child: const Text('Submit Answer'),
+                ),
+              ),
+            ],
+          ],
+        );
+    }
+  }
+
+  Widget _buildFeedbackSection(QuizQuestion q, bool isDark, bool isReviewMode) {
+    bool isCorrect = false;
+    if (q.type == QuestionType.singleChoice) isCorrect = _selectedOption == q.correctIndex;
+    else if (q.type == QuestionType.multiChoice) isCorrect = q.isMultiChoiceCorrect(_currentMultiChoices);
+    else if (q.type == QuestionType.textInput) isCorrect = q.isTextAnswerCorrect(_currentTextAnswer);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isCorrect
+            ? AppTheme.successGreen.withOpacity(isDark ? 0.08 : 0.05)
+            : AppTheme.errorRed.withOpacity(isDark ? 0.08 : 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isCorrect ? AppTheme.successGreen.withOpacity(0.3) : AppTheme.errorRed.withOpacity(0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(isCorrect ? Icons.check_circle_rounded : Icons.info_rounded, color: isCorrect ? AppTheme.successGreen : AppTheme.errorRed, size: 20),
+              const SizedBox(width: 8),
+              Text(isCorrect ? 'Excellent!' : 'Reviewing the Fact:', style: AppTheme.headingSmall.copyWith(color: isCorrect ? AppTheme.successGreen : AppTheme.errorRed, fontSize: 16)),
+            ],
+          ),
+          if (!isCorrect) ...[
+            const SizedBox(height: 12),
+            Text('Correct Answer:', style: AppTheme.labelMedium.copyWith(color: AppTheme.textPrimaryC(isDark), fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            _buildCorrectAnswerDisplay(q),
+          ],
+          const SizedBox(height: 12),
+          Text(q.explanation, style: AppTheme.bodyMedium.copyWith(color: AppTheme.textSecondaryC(isDark), height: 1.5)),
         ],
       ),
-    );
+    ).animate().fadeIn().slideY(begin: 0.1, end: 0);
+  }
+
+  Widget _buildCorrectAnswerDisplay(QuizQuestion q) {
+    if (q.type == QuestionType.singleChoice) {
+      return Text(q.options[q.correctIndex], style: AppTheme.bodyMedium.copyWith(color: AppTheme.successGreen, fontWeight: FontWeight.w600));
+    } else if (q.type == QuestionType.multiChoice) {
+      final corrects = q.correctIndices?.map((i) => q.options[i]).join(', ') ?? '';
+      return Text(corrects, style: AppTheme.bodyMedium.copyWith(color: AppTheme.successGreen, fontWeight: FontWeight.w600));
+    } else {
+      return Text(q.correctText ?? '', style: AppTheme.bodyMedium.copyWith(color: AppTheme.successGreen, fontWeight: FontWeight.w600));
+    }
+  }
+
+  String _questionTypeLabel(QuestionType type) {
+    switch (type) {
+      case QuestionType.singleChoice: return 'SINGLE CHOICE';
+      case QuestionType.multiChoice: return 'MULTI-SELECT';
+      case QuestionType.textInput: return 'TEXT INPUT';
+    }
+  }
+
+  Color _questionTypeBadgeColor(QuestionType type) {
+    switch (type) {
+      case QuestionType.singleChoice: return AppTheme.accentPurple;
+      case QuestionType.multiChoice: return AppTheme.accentPink;
+      case QuestionType.textInput: return AppTheme.accentAmber;
+    }
   }
 }
 

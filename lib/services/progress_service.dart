@@ -8,6 +8,7 @@ import '../data/learning/modules_data.dart';
 import '../data/learning/quiz_data.dart';
 import 'subscription_service.dart';
 import 'game_progress_service.dart';
+import '../models/quiz_model.dart';
 
 class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
   SubscriptionService? _subscriptionService;
@@ -38,6 +39,7 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
   static const _premiumXpGrantedKey = 'premium_xp_granted';
   static const _showDebugToolsKey = 'show_debug_tools';
   static const _activityDatesKey = 'activity_dates';
+  static const _wrongAnswersDetailsKey = 'wrong_answers_details';
   static const int weeklyTopicsGoal = 5;
 
   SharedPreferences? _prefs;
@@ -46,6 +48,7 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
   Map<String, int> _quizScores = {};
   Set<String> _achievements = {};
   Set<String> _wrongAnswers = {};
+  Map<String, dynamic> _wrongAnswersDetails = {}; // Stores { questionId: { 'selection': dynamic, 'type': String } }
   Set<String> _bookmarks = {};
   Map<String, String> _notes = {};
   Set<String> _adUnlockedModules = {};
@@ -133,6 +136,15 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
     final wrongJson = _prefs?.getStringList(_wrongAnswersKey);
     if (wrongJson != null) {
       _wrongAnswers = wrongJson.toSet();
+    }
+
+    final wrongDetailsJson = _prefs?.getString(_wrongAnswersDetailsKey);
+    if (wrongDetailsJson != null) {
+      try {
+        _wrongAnswersDetails = jsonDecode(wrongDetailsJson) as Map<String, dynamic>;
+      } catch (e) {
+        _wrongAnswersDetails = {};
+      }
     }
 
     final bookmarksJson = _prefs?.getStringList(_bookmarksKey);
@@ -243,6 +255,7 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
     await _prefs?.setString(_quizScoresKey, jsonEncode(_quizScores));
     await _prefs?.setStringList(_achievementsKey, _achievements.toList());
     await _prefs?.setStringList(_wrongAnswersKey, _wrongAnswers.toList());
+    await _prefs?.setString(_wrongAnswersDetailsKey, jsonEncode(_wrongAnswersDetails));
     await _prefs?.setStringList(_bookmarksKey, _bookmarks.toList());
     await _prefs?.setString(_notesKey, jsonEncode(_notes));
     await _prefs?.setStringList(_adUnlockedModulesKey, _adUnlockedModules.toList());
@@ -588,14 +601,25 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
   // ── Wrong Answer Tracking (Practice Mode) ─────────────────────
   Set<String> get wrongAnswers => Set.unmodifiable(_wrongAnswers);
 
-  Future<void> saveWrongAnswer(String questionId) async {
+  bool hasWrongAnswerDetail(String questionId) => _wrongAnswersDetails.containsKey(questionId);
+  
+  Map<String, dynamic>? getWrongAnswerDetail(String questionId) => _wrongAnswersDetails[questionId];
+
+  Future<void> saveWrongAnswer(String questionId, {dynamic selection, QuestionType? type}) async {
     _wrongAnswers.add(questionId);
+    if (selection != null && type != null) {
+      _wrongAnswersDetails[questionId] = {
+        'selection': selection is Set ? selection.toList() : selection,
+        'type': type.name,
+      };
+    }
     recordActivity();
     await _saveProgress();
   }
 
   Future<void> removeWrongAnswer(String questionId) async {
     _wrongAnswers.remove(questionId);
+    _wrongAnswersDetails.remove(questionId);
     await _saveProgress();
   }
 
@@ -822,6 +846,7 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
       _quizScoresKey,
       _achievementsKey,
       _wrongAnswersKey,
+      _wrongAnswersDetailsKey,
       _bookmarksKey,
       _notesKey,
       _adUnlockedModulesKey,
