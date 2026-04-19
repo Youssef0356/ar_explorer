@@ -170,6 +170,283 @@ final List<LearningModule> allModules = [
           ),
         ],
       ),
+      Topic(
+        id: 'ar_history_timeline',
+        title: 'History of AR: Key Milestones',
+        subtitle: 'From Sutherland\'s headset to spatial computing.',
+        quizId: 'quiz_ar_history',
+        contentBlocks: [
+          const ContentBlock.heading('A Brief, Precise History of AR'),
+          const ContentBlock.body(
+            'Understanding AR history is not trivia — it explains why modern SDKs are architected '
+            'the way they are. Every major limitation of today\'s hardware maps directly to a '
+            'problem that generations of researchers spent decades solving.',
+          ),
+          const ContentBlock.subheading('1968 — Ivan Sutherland: The First HMD'),
+          const ContentBlock.body(
+            'Ivan Sutherland at Harvard built the first head-mounted display (HMD), nicknamed '
+            '"The Sword of Damocles" because it was so heavy it had to be suspended from the ceiling. '
+            'It rendered simple wireframe graphics registered to the viewer\'s head orientation — '
+            'the conceptual ancestor of every AR headset made today.',
+          ),
+          const ContentBlock.subheading('1990 — Tom Caudell Coins "Augmented Reality"'),
+          const ContentBlock.body(
+            'Boeing engineer Tom Caudell used the term "Augmented Reality" to describe a '
+            'head-mounted digital display guiding aircraft workers during cable assembly. '
+            'This was the first documented industrial AR application — the same use case driving '
+            'HoloLens and Vision Pro enterprise adoption today.',
+          ),
+          const ContentBlock.subheading('1994 — Ronald Azuma Defines the 3 Pillars'),
+          const ContentBlock.body(
+            'Ronald Azuma published the seminal academic definition: AR must (1) combine real and '
+            'virtual objects, (2) be interactive in real time, and (3) be registered in 3D. '
+            'This definition is still used verbatim in technical interviews today.',
+          ),
+          const ContentBlock.subheading('2016 — HoloLens 1 & Pokémon GO'),
+          const ContentBlock.body(
+            'Two landmark moments: Microsoft shipped HoloLens 1 — the first self-contained enterprise '
+            'MR headset. In the same year, Pokémon GO reached hundreds of millions of users, '
+            'demonstrating AR could achieve consumer scale — even with simple GPS-based placement '
+            'rather than true SLAM registration.',
+          ),
+          const ContentBlock.subheading('2017 — ARKit & ARCore: Mobile AR Goes Mainstream'),
+          const ContentBlock.body(
+            'Apple\'s ARKit (iOS 11) and Google\'s ARCore launched within weeks of each other. '
+            'This single moment made AR a standard developer tool — over a billion smartphones '
+            'became capable AR devices overnight without any hardware changes.',
+          ),
+          const ContentBlock.subheading('2023–2024 — Apple Vision Pro & Spatial Computing'),
+          const ContentBlock.body(
+            'Apple launched Vision Pro, a Video See-Through (VST) mixed reality headset, '
+            'and introduced the term "Spatial Computing" as its consumer framing. '
+            'It represents the current frontier of consumer spatial hardware.',
+          ),
+          const ContentBlock.info(
+            'The arc from 1968 to 2024 is a story of miniaturization: '
+            'ceiling-mounted → desktop → backpack → headset → glasses → phone → glasses again. '
+            'Each generation solved the previous generation\'s weight, cost, and tracking limitations.',
+          ),
+          const ContentBlock.quote(
+            'INTERVIEW FOCUS: "Why did Google Glass fail but HoloLens succeed?" \n'
+            'Answer: Use case specificity. Glass was a general consumer device with no killer app. '
+            'HoloLens targeted enterprise with a measurable ROI: faster assembly, fewer errors, '
+            'and hands-free access to digital manuals on the factory floor.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'ar_display_technologies',
+        title: 'Display Technologies in AR',
+        subtitle: 'Waveguides, birdbaths, VST, and the eye-box explained.',
+        quizId: 'quiz_ar_displays',
+        contentBlocks: [
+          const ContentBlock.heading('How AR Displays Work'),
+          const ContentBlock.body(
+            'Every optical AR headset faces the same challenge: how do you overlay a sharp digital '
+            'image onto a direct view of the real world without blocking natural light or '
+            'making the device uncomfortably heavy?',
+          ),
+          const ContentBlock.subheading('Diffractive Waveguides'),
+          const ContentBlock.body(
+            'Used by HoloLens 2 and Magic Leap 2. Light from a micro-display enters a glass '
+            'waveguide and is guided to the eye using microscopic diffraction gratings etched into the glass.',
+          ),
+          const ContentBlock.bullet(
+            'Advantages: Thin form factor, fully transparent background, good uniformity.',
+          ),
+          const ContentBlock.bullet(
+            'Disadvantages: Very expensive to manufacture, limited FOV (~52°), '
+            'and visible colour non-uniformity ("rainbow artifacts") at high brightness.',
+          ),
+          const ContentBlock.subheading('Reflective Waveguides (Birdbath Optics)'),
+          const ContentBlock.body(
+            'Used by Xreal Air and similar consumer AR glasses. A partially reflective curved mirror '
+            'bounces display light toward the eye while allowing real-world light to pass through.',
+          ),
+          const ContentBlock.bullet(
+            'Advantages: Lower cost, brighter image, easier to manufacture at scale.',
+          ),
+          const ContentBlock.bullet(
+            'Disadvantages: Light leakage in bright outdoor environments washes out the image. '
+            'The reflective element is slightly visible when viewed from outside the device.',
+          ),
+          const ContentBlock.subheading('Video See-Through (VST) — No Optics Required'),
+          const ContentBlock.body(
+            'Apple Vision Pro and Meta Quest 3 skip optical overlay entirely. External cameras '
+            'capture the real world and render it on internal micro-OLED panels alongside virtual content. '
+            'The user sees a camera feed, not the actual world directly.',
+          ),
+          const ContentBlock.warning(
+            'VST introduces a baseline latency between the real world and what the user perceives '
+            '(typically 12–20ms). At fast movements, this creates a subtle "swimming" effect '
+            'where the real world appears to trail physical head motion.',
+          ),
+          const ContentBlock.subheading('Key Term: Eye-Box'),
+          const ContentBlock.body(
+            'The eye-box is the 3D volume within which the user\'s eye must sit to see the full '
+            'virtual image. A small eye-box means the headset requires precise fitting per user — '
+            'a significant problem in shared enterprise environments where many workers use one device.',
+          ),
+          const ContentBlock.info(
+            'Micro-OLED panels (used in Vision Pro) offer near-retinal pixel density (~3300 PPI), '
+            'eliminating the "screen door effect" — the visible pixel grid that plagued earlier VR headsets.',
+          ),
+          const ContentBlock.quote(
+            'INTERVIEW SCENARIO: "A client wants to deploy AR headsets across 50 factory workers '
+            'in rotating shifts. They compare HoloLens 2 vs Xreal Air. What optical trade-off '
+            'do you flag first?" \n'
+            'Answer: Eye-box size. HoloLens 2\'s diffractive waveguide has a larger, more forgiving '
+            'eye-box that accommodates different users without per-user re-fitting. '
+            'Consumer birdbath glasses often need individual calibration, creating friction in '
+            'shift-rotation environments.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'ar_six_dof',
+        title: 'Degrees of Freedom: 3DoF vs 6DoF',
+        subtitle: 'The difference between orientation tracking and full spatial tracking.',
+        quizId: 'quiz_dof',
+        contentBlocks: [
+          const ContentBlock.heading('Why Degrees of Freedom Define AR Quality'),
+          const ContentBlock.body(
+            'The number of Degrees of Freedom (DoF) a tracking system supports '
+            'directly determines how realistic and stable an AR experience can be. '
+            'Choosing the wrong DoF level is the most common cause of "floaty" or "swimming" AR.',
+          ),
+          const ContentBlock.subheading('3DoF — Rotation Only'),
+          const ContentBlock.body(
+            'A 3DoF system tracks three rotational axes: Pitch (nodding), Yaw (turning head), '
+            'and Roll (tilting side to side). It knows where you are looking — but not where you are in space.',
+          ),
+          const ContentBlock.bullet(
+            'Use cases: 360° video viewers (Google Cardboard), simple head-look UI navigation.',
+          ),
+          const ContentBlock.bullet(
+            'Critical limitation: If you physically move your head sideways (translate), '
+            'the virtual content does not compensate — it drifts relative to the real world, '
+            'immediately breaking the AR illusion.',
+          ),
+          const ContentBlock.subheading('6DoF — Rotation + Translation'),
+          const ContentBlock.body(
+            'A 6DoF system tracks all three rotations plus three translational axes: '
+            'left/right (X), up/down (Y), and forward/back (Z). '
+            'It knows not just where you are looking, but precisely where you are in 3D space.',
+          ),
+          const ContentBlock.bullet(
+            'Use cases: All serious AR — ARKit, ARCore, HoloLens, and Quest all require 6DoF.',
+          ),
+          const ContentBlock.bullet(
+            'Result: As you lean forward or walk right, virtual objects maintain '
+            'exact spatial registration with the real world.',
+          ),
+          const ContentBlock.subheading('Inside-Out vs Outside-In Tracking'),
+          const ContentBlock.bullet(
+            'Inside-Out: The device\'s own cameras track the environment to determine position. '
+            'ARKit, ARCore, and HoloLens use this — no external hardware required.',
+          ),
+          const ContentBlock.bullet(
+            'Outside-In: External base stations (like Valve Index Lighthouses) define the tracking volume. '
+            'Higher accuracy, but requires physical installation in the target environment.',
+          ),
+          const ContentBlock.code(
+            '// AR Foundation: Confirming 6DoF world tracking is active\n'
+            'if (ARSession.state == ARSessionState.SessionTracking) {\n'
+            '    // Full 6DoF is live; position data is reliable\n'
+            '    Debug.Log("Position: " + Camera.main.transform.position);\n'
+            '}',
+          ),
+          const ContentBlock.info(
+            'A common interview mistake: confusing "head tracking" (3DoF) with "world tracking" (6DoF). '
+            'Head tracking captures orientation only. World tracking (SLAM) captures position. '
+            'You need world tracking to place a virtual object that stays fixed in a room as you walk.',
+          ),
+          const ContentBlock.quote(
+            'INTERVIEW SCENARIO: "A client wants AR floor arrows to guide workers '
+            'through a warehouse. They propose a 360° viewer SDK to save cost. '
+            'What do you tell them?" \n'
+            'Answer: A 360° viewer SDK is 3DoF — it tracks head rotation but not movement. '
+            'As a worker walks forward, the floor arrows drift relative to the real floor. '
+            'You need 6DoF world tracking (ARCore or AR Foundation) for floor-fixed content. '
+            'The cost saving is false economy — tracking failures will make the guidance unusable.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'ar_use_case_analysis',
+        title: 'Choosing the Right AR Approach',
+        subtitle: 'Matching the platform, SDK, and tracking method to the problem.',
+        quizId: 'quiz_ar_approach',
+        contentBlocks: [
+          const ContentBlock.heading('The Right Tool for the Right Job'),
+          const ContentBlock.body(
+            'One of the most valuable AR skills is knowing which stack to reach for before writing '
+            'a line of code. The wrong choice at project start costs months — sometimes the entire budget.',
+          ),
+          const ContentBlock.subheading('Decision Framework — Ask These First'),
+          const ContentBlock.numbered(
+            '1. Who is the user? Consumer, enterprise worker, or medical professional?',
+          ),
+          const ContentBlock.numbered(
+            '2. What is the environment? Controlled office, outdoor, moving vehicle, or operating room?',
+          ),
+          const ContentBlock.numbered(
+            '3. Required tracking accuracy? Centimetre precision vs approximate placement?',
+          ),
+          const ContentBlock.numbered(
+            '4. Friction tolerance? Will users download a 150MB app or need instant access?',
+          ),
+          const ContentBlock.numbered(
+            '5. Content lifecycle? One-shot marketing moment or persistent long-term asset?',
+          ),
+          const ContentBlock.subheading('Platform Selection Guide'),
+          const ContentBlock.bullet(
+            'WebAR (<model-viewer> or 8th Wall): Zero install friction. '
+            'Best for marketing and e-commerce. Choose when reach matters more than precision.',
+          ),
+          const ContentBlock.bullet(
+            'ARCore / ARKit native: Advanced features — depth, geospatial, persistent Cloud Anchors. '
+            'Choose for flagship consumer apps with complex requirements.',
+          ),
+          const ContentBlock.bullet(
+            'Unity + AR Foundation: Cross-platform (iOS + Android) with complex 3D scenes. '
+            'The editor\'s productivity advantage outweighs native performance in most projects.',
+          ),
+          const ContentBlock.bullet(
+            'Vuforia (Image/Model Targets): Enterprise scenarios requiring recognition of specific '
+            'physical objects or machinery where SLAM alone is insufficient.',
+          ),
+          const ContentBlock.bullet(
+            'HoloLens / OpenXR: Hands-free industrial workflows with persistent spatial mapping '
+            'and multi-user shared experiences in a fixed facility.',
+          ),
+          const ContentBlock.subheading('Tracking Method Selection'),
+          const ContentBlock.bullet(
+            'Image Targets: Controlled environments where a printed marker can be placed. Best accuracy for small-scale content.',
+          ),
+          const ContentBlock.bullet(
+            'Plane Detection: Any environment with flat surfaces. General-purpose and widely deployed.',
+          ),
+          const ContentBlock.bullet(
+            'Model Targets: Specific 3D objects (engines, vehicles, devices) that cannot be modified with a printed marker.',
+          ),
+          const ContentBlock.bullet(
+            'Geospatial (VPS): Outdoor or city-scale experiences requiring GPS-level placement accuracy.',
+          ),
+          const ContentBlock.info(
+            'There is no universally "best" stack. The correct recommendation always depends on '
+            'the specific constraints of deployment: budget, environment, user profile, and accuracy threshold.',
+          ),
+          const ContentBlock.quote(
+            'INTERVIEW SCENARIO: "A client needs AR maintenance instructions on 500 identical '
+            'industrial pumps. No flat surface is available for a printed marker. '
+            'What tracking approach do you recommend?" \n'
+            'Answer: Vuforia Model Targets. Provide a CAD model of the pump to Vuforia\'s '
+            'Target Manager. The app recognises each pump purely from its 3D silhouette — '
+            'no printed markers required. This is the canonical enterprise use case for Model Targets.',
+          ),
+        ],
+      ),
     ],
   ),
 
@@ -1770,6 +2047,296 @@ final List<LearningModule> allModules = [
             'PRO TIP: Use "Visual Consistency" cues. \n'
             'If tracking is LIMITED, desaturate the virtual content or show a ghosting effect. '
             'This non-verbally communicates to the user that the alignment is currently approximate.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'onboarding_patterns',
+        title: 'AR Onboarding Patterns',
+        subtitle: 'Getting users into spatial experiences without confusion.',
+        quizId: 'quiz_ar_onboarding',
+        contentBlocks: [
+          const ContentBlock.heading('The First 10 Seconds Win or Lose the User'),
+          const ContentBlock.body(
+            'AR onboarding is harder than standard app onboarding because users must physically '
+            'move and interact with their environment to make it work. '
+            'A first-time user who stares at a blank camera feed for 5 seconds with no guidance will close the app.',
+          ),
+          const ContentBlock.subheading('The 3-Second Rule'),
+          const ContentBlock.body(
+            'A user who does not understand what to do within 3 seconds of launching an AR experience '
+            'will abandon it. This is measured drop-off behaviour, not a UX opinion. '
+            'Every design decision must be evaluated against this constraint.',
+          ),
+          const ContentBlock.subheading('Apple\'s Gold Standard: ARCoachingOverlayView'),
+          const ContentBlock.body(
+            'Apple provides ARCoachingOverlayView — a standardized animated scanning UI that '
+            'shows users exactly what to do: tilt your phone, move slowly, look around. '
+            'It adapts to the active tracking goal (horizontal plane, vertical plane, or any plane). '
+            'On iOS, always use this. Never rebuild it from scratch.',
+          ),
+          const ContentBlock.code(
+            '// Swift: Attaching ARCoachingOverlayView to an ARView\n'
+            'let coachingOverlay = ARCoachingOverlayView()\n'
+            'coachingOverlay.session = arView.session\n'
+            'coachingOverlay.goal = .horizontalPlane\n'
+            'coachingOverlay.activatesAutomatically = true\n'
+            'arView.addSubview(coachingOverlay)',
+          ),
+          const ContentBlock.subheading('ARCore: Progressive Prompt Pattern'),
+          const ContentBlock.body(
+            'ARCore does not provide a built-in coaching overlay. '
+            'Google\'s guidelines recommend a three-phase progressive prompt:',
+          ),
+          const ContentBlock.numbered(
+            '1. "Move your phone slowly" — with an animated scanning ring graphic.',
+          ),
+          const ContentBlock.numbered(
+            '2. "Point at a flat surface" — with a highlighting animation when a plane is detected.',
+          ),
+          const ContentBlock.numbered(
+            '3. "Tap to place" — with a reticle indicating the valid placement point.',
+          ),
+          const ContentBlock.subheading('Animation Patterns That Work'),
+          const ContentBlock.bullet(
+            'Scanning rings: A circular animated ring that communicates the app is actively searching — not frozen.',
+          ),
+          const ContentBlock.bullet(
+            'Pulsing reticle: A dot or crosshair on detected surfaces confirming a valid placement spot.',
+          ),
+          const ContentBlock.bullet(
+            'Dim overlay with progress: A semi-transparent overlay that lightens as tracking quality improves.',
+          ),
+          const ContentBlock.warning(
+            'Never use text-only onboarding in AR. Spatial users respond to visual motion cues, '
+            'not paragraphs. If you must use text, keep it under 6 words per instruction.',
+          ),
+          const ContentBlock.info(
+            'For enterprise AR (HoloLens, industrial tablets): workers may use the same app 50 times per day. '
+            'After a few sessions, animated onboarding becomes friction. '
+            'Always add a "Skip Coaching" option that remembers the user\'s preference.',
+          ),
+          const ContentBlock.quote(
+            'INTERVIEW SCENARIO: "During user testing, 60% of participants fail to place '
+            'a virtual object within 30 seconds. The app shows a plain camera feed with a '
+            'text instruction. What changes do you prioritize?" \n'
+            'Answer: Replace all text instructions with an animated visual guide immediately. '
+            'Add a scanning ring animation for the tracking phase. '
+            'On iOS, integrate ARCoachingOverlayView as the first priority fix.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'spatial_audio_design',
+        title: 'Spatial Audio in AR',
+        subtitle: 'Sound that knows where it is in 3D space.',
+        quizId: 'quiz_spatial_audio',
+        contentBlocks: [
+          const ContentBlock.heading('Audio That Belongs in the World'),
+          const ContentBlock.body(
+            'Traditional app audio is stereo or mono. Spatial audio in AR is fundamentally different: '
+            'sounds have a 3D world-space position that updates as the user moves. '
+            'A virtual machine to your left should sound like it is to your left — '
+            'and get louder as you walk toward it.',
+          ),
+          const ContentBlock.subheading('HRTF — Head-Related Transfer Function'),
+          const ContentBlock.body(
+            'The human auditory system determines sound direction by analysing microscopic timing '
+            'and frequency differences between what each ear hears. '
+            'An HRTF is a mathematical model that simulates these differences in headphones, '
+            'creating the convincing perception of a sound emanating from a specific 3D position.',
+          ),
+          const ContentBlock.subheading('RealityKit — SpatialAudioComponent'),
+          const ContentBlock.body(
+            'Apple\'s RealityKit makes spatial audio a first-class feature. '
+            'Attach an AudioFileResource to an entity via SpatialAudioComponent '
+            'and the sound is automatically positioned in 3D space, adjusting as the user moves.',
+          ),
+          const ContentBlock.code(
+            '// Swift: Attaching spatial audio to an AR entity\n'
+            'let audioResource = try! AudioFileResource.load(named: "engine.mp3")\n'
+            'var spatialAudio = SpatialAudioComponent()\n'
+            'spatialAudio.reverbSendLevel = 0.3\n'
+            'machineEntity.components[SpatialAudioComponent.self] = spatialAudio\n'
+            'machineEntity.playAudio(audioResource)',
+          ),
+          const ContentBlock.subheading('Unity — Spatialize AudioSource'),
+          const ContentBlock.code(
+            '// Unity: Configuring spatial audio programmatically\n'
+            'AudioSource source = machineObject.GetComponent<AudioSource>();\n'
+            'source.spatialize = true;\n'
+            'source.spatialBlend = 1.0f; // 1.0 = fully 3D spatial\n'
+            'source.rolloffMode = AudioRolloffMode.Logarithmic;\n'
+            'source.maxDistance = 10f;',
+          ),
+          const ContentBlock.subheading('Practical UX Applications'),
+          const ContentBlock.bullet(
+            'Attention direction: Guide users toward a virtual object they cannot currently see — '
+            'far more natural than a 2D arrow overlay on screen.',
+          ),
+          const ContentBlock.bullet(
+            'Status feedback: A "healthy" machine hums; a "warning" state adds an alert tone; '
+            'a "critical" state plays a louder alarm from that spatial direction.',
+          ),
+          const ContentBlock.bullet(
+            'Proximity confirmation: Play a soft chime when the user gets close enough to interact with a virtual element.',
+          ),
+          const ContentBlock.info(
+            'Spatial audio dramatically increases immersion at near-zero rendering cost. '
+            'It is one of the most underused techniques in AR development, '
+            'despite being trivial to implement in both Unity and RealityKit.',
+          ),
+          const ContentBlock.quote(
+            'INTERVIEW SCENARIO: "You are building a warehouse AR picking app for workers '
+            'wearing over-ear headsets. They cannot always look at their AR glasses. '
+            'How do you use audio to guide them?" \n'
+            'Answer: Attach spatial audio to each virtual pick location. '
+            'As the worker approaches the correct bin, the tone gets louder and centres spatially. '
+            'Wrong direction → tone fades. Correct item picked → brief confirmation chime. '
+            'This delivers full spatial guidance without requiring any visual display interaction.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'ar_accessibility',
+        title: 'Accessibility in AR',
+        subtitle: 'Designing for users with visual, motor, or cognitive differences.',
+        quizId: 'quiz_ar_accessibility',
+        contentBlocks: [
+          const ContentBlock.heading('AR Accessibility Is Uniquely Challenging'),
+          const ContentBlock.body(
+            'Standard accessibility frameworks — Apple\'s VoiceOver, Android\'s TalkBack, '
+            'high-contrast mode — were built for 2D screen-based interfaces. '
+            'In AR, the interface is spatial, dynamic, and tied to the physical environment. '
+            'Most standard accessibility tools do not apply out of the box.',
+          ),
+          const ContentBlock.subheading('Visual Impairments'),
+          const ContentBlock.bullet(
+            'Offer audio descriptions for key spatial events: '
+            '"A virtual object has been placed 1 metre in front of you." '
+            'Screen readers cannot narrate floating 3D content.',
+          ),
+          const ContentBlock.bullet(
+            'Use high-contrast outlines on virtual content. '
+            'Low-contrast objects are invisible to users with low vision in bright environments.',
+          ),
+          const ContentBlock.bullet(
+            'Support dynamic type scaling for any text rendered in the AR scene.',
+          ),
+          const ContentBlock.subheading('Motor Impairments'),
+          const ContentBlock.body(
+            'Many AR interactions assume fine motor control: pinch-to-scale, two-handed manipulation, '
+            'precise tap targets. For users with limited hand mobility:',
+          ),
+          const ContentBlock.bullet(
+            'Implement dwell-based gaze selection: the user looks at an object for 1.5–2 seconds '
+            'to select it, with a visible countdown ring indicator.',
+          ),
+          const ContentBlock.bullet(
+            'Minimum virtual button size: 1cm × 1cm in 3D world space at typical interaction distance (~1.25m).',
+          ),
+          const ContentBlock.bullet(
+            'Provide voice input alternatives for interactions that require physical gestures.',
+          ),
+          const ContentBlock.subheading('Cognitive Load & Vestibular Safety'),
+          const ContentBlock.bullet(
+            'Never present more than 2–3 active UI elements simultaneously in the field of view.',
+          ),
+          const ContentBlock.bullet(
+            'Provide a "Reduce Motion" setting that removes all animated AR content. '
+            'Moving virtual objects can trigger vestibular discomfort in susceptible users.',
+          ),
+          const ContentBlock.code(
+            '// SwiftUI (iOS 17+): Accessibility label on an AR interface element\n'
+            'arEntityView.accessibilityLabel = "Virtual chair, tap to place"\n'
+            'arEntityView.isAccessibilityElement = true',
+          ),
+          const ContentBlock.warning(
+            'AR apps used in healthcare, public installations, or enterprise training '
+            'are often subject to WCAG 2.1 compliance requirements. '
+            'Ignoring accessibility may violate the EU Accessibility Act and US ADA guidelines for digital products.',
+          ),
+          const ContentBlock.quote(
+            'INTERVIEW SCENARIO: "Your AR assembly app is deployed in a factory where '
+            '15% of workers have colour blindness. Your current design uses red = error, '
+            'green = correct as the only visual distinction. What do you change?" \n'
+            'Answer: Never rely on colour alone to convey state. '
+            'Add shape-based differentiation (X mark for error, checkmark for correct). '
+            'Run the palette through a deuteranopia simulation tool before shipping. '
+            'Consider adding a distinct audio cue for each state as a fallback.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'ar_content_placement',
+        title: 'Content Placement Strategy',
+        subtitle: 'Scale, grounding, and lifecycle rules for virtual content.',
+        quizId: 'quiz_content_placement',
+        contentBlocks: [
+          const ContentBlock.heading('Placement Is Where Most AR Apps Fail'),
+          const ContentBlock.body(
+            'Poor content placement is the most common cause of a "cheap" or "broken" AR impression. '
+            'It is often not a tracking problem — it is a design problem caused by missing rules '
+            'around scale accuracy, surface snapping, and visual confirmation.',
+          ),
+          const ContentBlock.subheading('Scale Accuracy'),
+          const ContentBlock.body(
+            'AR SDKs (ARKit, ARCore, AR Foundation) use metres as their unit. '
+            '1 world unit = 1 real metre. '
+            'A virtual chair appearing 3 metres tall at initial placement destroys user trust instantly — '
+            'even if tracking is perfect. Always preview content against a known real-world reference '
+            '(a 1.8m standard door frame) before shipping.',
+          ),
+          const ContentBlock.subheading('Snap-to-Surface Rules'),
+          const ContentBlock.bullet(
+            'Always prefer a plane-hit anchor over a raw feature-point anchor. '
+            'Plane hits provide a smooth normal vector, ensuring the object sits upright on the surface.',
+          ),
+          const ContentBlock.bullet(
+            'Objects should never float. If no plane is detected, block placement and '
+            'show a "searching for surface" indicator instead.',
+          ),
+          const ContentBlock.bullet(
+            'Use a placement reticle with a surface-orientation indicator so users understand '
+            'exactly how and where the object will land before confirming.',
+          ),
+          const ContentBlock.subheading('Grounding Shadows'),
+          const ContentBlock.body(
+            'A simple blob shadow beneath a virtual object dramatically improves the perception '
+            'that it is physically resting on a real surface — even without ray-traced shadows. '
+            'This technique contributes more to visual realism than any texture quality improvement.',
+          ),
+          const ContentBlock.code(
+            '// Unity: Shadow projector for AR grounding effect\n'
+            '// Project shadow only onto the AR plane layer\n'
+            'shadowProjector.ignoreLayers = ~(1 << LayerMask.NameToLayer("ARPlane"));\n'
+            'shadowProjector.opacity = 0.5f; // 0.4–0.6 for natural appearance',
+          ),
+          const ContentBlock.subheading('The Placement Lifecycle'),
+          const ContentBlock.numbered(
+            '1. Proposal: Reticle appears on detected surface. Content shown as semi-transparent ghost.',
+          ),
+          const ContentBlock.numbered(
+            '2. Confirmation: User taps. Content snaps to surface with a brief scale-up animation and placement sound.',
+          ),
+          const ContentBlock.numbered(
+            '3. Persistence: Content anchored. If tracking is lost, freeze the last known pose.',
+          ),
+          const ContentBlock.numbered(
+            '4. Removal: Tap-and-hold or dedicated gesture. Content scales down and plays a dismissal sound.',
+          ),
+          const ContentBlock.info(
+            'Grounding shadows cost almost nothing to render but contribute more convincingly '
+            'to the illusion of physical presence than any other single rendering feature. '
+            'Include them in every AR experience that places objects on surfaces.',
+          ),
+          const ContentBlock.quote(
+            'INTERVIEW SCENARIO: "In user testing, virtual furniture hovers 5–8cm '
+            'above the floor despite the plane being correctly detected. What is the cause?" \n'
+            'Answer: The 3D model\'s pivot point (origin) is not at the base of the mesh. '
+            'If the pivot is at the geometric centre, the object sits half its height above the detected plane. '
+            'Fix: move the pivot to the bottom face in the 3D editor before importing, '
+            'or offset the Y position by half the object\'s height at runtime.',
           ),
         ],
       ),

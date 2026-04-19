@@ -1268,4 +1268,491 @@ final Map<String, Quiz> allQuizzes = {
     ],
   ),
 
+  // ───────────────────────────────────────────────────────────────
+  //  QUIZ — AR History Timeline
+  // ───────────────────────────────────────────────────────────────
+  'quiz_ar_history': Quiz(
+    id: 'quiz_ar_history',
+    moduleId: 'intro_ar_basics',
+    title: 'Checkup: History of AR',
+    passingScore: 70,
+    questions: [
+      const QuizQuestion(
+        id: 'q_hist_1',
+        question: 'Who coined the term "Augmented Reality" and in what context?',
+        options: [
+          'Ivan Sutherland, while building the first head-mounted display at Harvard',
+          'Tom Caudell, while guiding aircraft workers with a digital overlay at Boeing',
+          'Ronald Azuma, while publishing his seminal academic AR definition paper',
+          'Mark Billinghurst, while demonstrating collaborative AR at HITL',
+        ],
+        correctIndex: 1,
+        explanation: 'Tom Caudell coined "Augmented Reality" at Boeing in 1990 to describe a head-mounted digital display for aircraft assembly guidance.',
+      ),
+      const QuizQuestion(
+        id: 'q_hist_2',
+        question: 'Ronald Azuma\'s 1994 definition states AR must do three things. Which option is NOT one of them?',
+        options: [
+          'Combine real and virtual objects in a single view',
+          'Be interactive in real time without any delays',
+          'Be registered and aligned in 3D space',
+          'Use a dedicated hardware headset as the display device',
+        ],
+        correctIndex: 3,
+        explanation: 'Azuma\'s 3 pillars are: combines real+virtual, interactive in real time, and registered in 3D. No specific hardware is required.',
+      ),
+      const QuizQuestion(
+        id: 'q_hist_3',
+        question: 'In what year did both ARKit and ARCore launch, bringing AR to mainstream smartphones?',
+        options: ['2013', '2015', '2017', '2019'],
+        correctIndex: 2,
+        explanation: 'Apple ARKit (iOS 11) and Google ARCore both launched in 2017, making AR accessible on a billion+ existing devices without new hardware.',
+      ),
+      const QuizQuestion(
+        id: 'q_hist_4',
+        question: 'Which display type does Apple Vision Pro use for showing the real world?',
+        options: [
+          'Optical See-Through (OST) waveguide lenses',
+          'Video See-Through (VST) via external cameras',
+          'Retinal projection onto the user\'s eye directly',
+          'Birdbath reflective optics with a micro-OLED display',
+        ],
+        correctIndex: 1,
+        explanation: 'Vision Pro uses Video See-Through (VST): external cameras capture reality and render it on internal micro-OLED panels alongside virtual content.',
+      ),
+      const QuizQuestion(
+        id: 'q_hist_5',
+        question: 'SCENARIO: A client asks why Google Glass failed but HoloLens succeeded in enterprise. What is the core answer?',
+        options: [
+          'HoloLens had significantly better battery life than Google Glass in all conditions',
+          'Glass lacked a specific enterprise use case with measurable ROI; HoloLens targeted industrial guided assembly with clear productivity gains',
+          'HoloLens was sold at a lower price point which made enterprise adoption easier',
+          'Glass was rejected purely because of its unusual aesthetic design in social settings',
+        ],
+        correctIndex: 1,
+        explanation: 'Use case specificity was the key difference. HoloLens gave enterprise workers hands-free instructions with measurable improvements in speed and error rates.',
+      ),
+    ],
+  ),
+
+  // ───────────────────────────────────────────────────────────────
+  //  QUIZ — AR Display Technologies
+  // ───────────────────────────────────────────────────────────────
+  'quiz_ar_displays': Quiz(
+    id: 'quiz_ar_displays',
+    moduleId: 'intro_ar_basics',
+    title: 'Checkup: AR Display Technologies',
+    passingScore: 70,
+    questions: [
+      const QuizQuestion(
+        id: 'q_disp_1',
+        question: 'Which display technology do HoloLens 2 and Magic Leap 2 use?',
+        options: [
+          'Birdbath reflective optics with a curved mirror element',
+          'Diffractive waveguides with etched diffraction gratings',
+          'Video See-Through (VST) with external cameras and panels',
+          'Retinal projection using focused laser beams into the eye',
+        ],
+        correctIndex: 1,
+        explanation: 'HoloLens 2 and Magic Leap 2 use diffractive waveguides — light is guided to the eye via microscopic diffraction gratings etched into glass.',
+      ),
+      const QuizQuestion(
+        id: 'q_disp_2',
+        question: 'What is the "eye-box" in AR headset optics?',
+        options: [
+          'The maximum field of view angle of the headset display',
+          'The 3D volume within which the user\'s eye sees the full virtual image',
+          'A component that physically adjusts the lens position per user',
+          'The resolution of the display panel measured in pixels per inch',
+        ],
+        correctIndex: 1,
+        explanation: 'The eye-box is the 3D zone where the eye must be positioned to see the full image. A small eye-box requires precise fitting per user.',
+      ),
+      const QuizQuestion(
+        id: 'q_disp_3',
+        question: 'What latency issue affects Video See-Through (VST) headsets like Apple Vision Pro?',
+        options: [
+          'A 200–500ms network delay when loading 3D model assets from the cloud',
+          'A 12–20ms baseline delay between the real world and the camera-rendered view',
+          'A 100ms GPS synchronization delay for outdoor geospatial experiences',
+          'A frame rate cap of 30 FPS imposed by the camera sensor hardware',
+        ],
+        correctIndex: 1,
+        explanation: 'VST introduces 12–20ms latency between the real world and the rendered camera view. At fast movements, this can cause a "swimming" effect.',
+      ),
+      const QuizQuestion(
+        id: 'q_disp_4',
+        question: 'SCENARIO: A client wants AR headsets for 50 workers in rotating shifts. They\'re choosing between HoloLens 2 (diffractive) and consumer birdbath glasses. What key optical trade-off do you highlight?',
+        options: [
+          'HoloLens 2 has a lower total cost of ownership over a 3-year deployment period',
+          'HoloLens 2\'s larger eye-box accommodates multiple users without per-user calibration, unlike birdbath optics',
+          'Consumer birdbath glasses offer a wider FOV making it easier to see virtual overlays',
+          'HoloLens 2 works outdoors better because diffractive waveguides are not affected by sunlight',
+        ],
+        correctIndex: 1,
+        explanation: 'Eye-box size is the critical enterprise trade-off. A larger eye-box means different workers can pick up and use the headset without re-fitting.',
+      ),
+    ],
+  ),
+
+  // ───────────────────────────────────────────────────────────────
+  //  QUIZ — 3DoF vs 6DoF
+  // ───────────────────────────────────────────────────────────────
+  'quiz_dof': Quiz(
+    id: 'quiz_dof',
+    moduleId: 'intro_ar_basics',
+    title: 'Checkup: Degrees of Freedom',
+    passingScore: 70,
+    questions: [
+      const QuizQuestion(
+        id: 'q_dof_1',
+        question: 'What does a 3DoF tracking system measure?',
+        options: [
+          'Three translational axes: X (left/right), Y (up/down), Z (forward/back)',
+          'Three rotational axes: Pitch, Yaw, and Roll',
+          'All six axes: three rotational and three translational',
+          'Absolute GPS position combined with device orientation',
+        ],
+        correctIndex: 1,
+        explanation: '3DoF tracks only rotation (Pitch, Yaw, Roll). It knows where you are looking but not where you physically are in space.',
+      ),
+      const QuizQuestion(
+        id: 'q_dof_2',
+        question: 'Why is 3DoF insufficient for "true" AR where objects stay fixed in a room?',
+        options: [
+          '3DoF tracking consumes too much battery to run alongside a camera feed',
+          'When the user physically moves sideways, the virtual content drifts because position changes are not tracked',
+          '3DoF systems cannot detect flat surfaces, so objects have no surface to rest on',
+          '3DoF tracking requires an internet connection and has high latency in offline scenarios',
+        ],
+        correctIndex: 1,
+        explanation: '3DoF only tracks orientation. When the user moves laterally, the virtual content does not compensate — it drifts from its intended real-world position.',
+      ),
+      const QuizQuestion(
+        id: 'q_dof_3',
+        question: 'What is "Inside-Out" tracking?',
+        options: [
+          'External base stations that track the device position from outside the room',
+          'The device uses its own cameras to track the surrounding environment to determine its own position',
+          'A hybrid GPS + IMU system that determines position from satellite data',
+          'A tracking approach limited to headsets and not available on smartphones',
+        ],
+        correctIndex: 1,
+        explanation: 'Inside-out tracking uses onboard cameras (inside → looking out). ARKit, ARCore, and HoloLens all use inside-out tracking — no external hardware needed.',
+      ),
+      const QuizQuestion(
+        id: 'q_dof_4',
+        question: 'SCENARIO: A client proposes using a 360° video viewer SDK (3DoF) to display AR floor arrows that guide workers through a warehouse. What do you tell them?',
+        options: [
+          'A 360° viewer SDK is suitable because workers will primarily be rotating, not translating',
+          'A 360° viewer SDK is 3DoF and tracks only head rotation. As workers walk, floor arrows will drift. You need 6DoF world tracking (ARCore or AR Foundation)',
+          'A 360° viewer SDK provides sufficient accuracy for floor-based AR at distances under 5 metres',
+          'A 360° viewer SDK will work if you combine it with a Bluetooth beacon network for position correction',
+        ],
+        correctIndex: 1,
+        explanation: 'Floor-fixed AR requires 6DoF world tracking. A 3DoF system cannot compensate for positional movement, causing the arrows to drift as workers walk.',
+      ),
+    ],
+  ),
+
+  // ───────────────────────────────────────────────────────────────
+  //  QUIZ — Choosing the Right AR Approach
+  // ───────────────────────────────────────────────────────────────
+  'quiz_ar_approach': Quiz(
+    id: 'quiz_ar_approach',
+    moduleId: 'intro_ar_basics',
+    title: 'Checkup: Choosing the Right AR Stack',
+    passingScore: 70,
+    questions: [
+      const QuizQuestion(
+        id: 'q_approach_1',
+        question: 'Which AR deployment approach has the lowest user friction for a one-time marketing campaign?',
+        options: [
+          'A native iOS ARKit app published to the App Store for download',
+          'A Unity + AR Foundation cross-platform app with 3D product visualization',
+          'WebAR using <model-viewer> or 8th Wall — accessible directly in the browser',
+          'A HoloLens app distributed through Microsoft Store for Business',
+        ],
+        correctIndex: 2,
+        explanation: 'WebAR eliminates the app download barrier entirely — users access the experience through a link in a browser, making it ideal for marketing campaigns.',
+      ),
+      const QuizQuestion(
+        id: 'q_approach_2',
+        question: 'When should you choose Vuforia Model Targets over Plane Detection?',
+        options: [
+          'When you need outdoor geospatial AR at city scale on consumer smartphones',
+          'When the target is a specific 3D object that cannot have a printed marker attached to it',
+          'When you need the lowest-cost tracking solution with no licensing fees',
+          'When you are building a cross-platform app that also runs as a WebAR experience',
+        ],
+        correctIndex: 1,
+        explanation: 'Model Targets identify a specific 3D shape (engine, vehicle, device) using its CAD silhouette — no marker required. Plane detection only finds flat surfaces.',
+      ),
+      const QuizQuestion(
+        id: 'q_approach_3',
+        question: 'What is the main advantage of Unity + AR Foundation over native ARKit or ARCore?',
+        options: [
+          'Unity provides higher tracking accuracy than ARKit and ARCore on iOS devices',
+          'Unity + AR Foundation produces smaller app binary sizes for App Store submission',
+          'A single codebase deploys to both iOS (ARKit) and Android (ARCore) saving development time',
+          'Unity has native hardware access to LiDAR on all supported devices',
+        ],
+        correctIndex: 2,
+        explanation: 'AR Foundation\'s cross-platform abstraction means one Unity project targets both iOS and Android, avoiding the need to maintain two separate native codebases.',
+      ),
+      const QuizQuestion(
+        id: 'q_approach_4',
+        question: 'SCENARIO: A client needs AR maintenance instructions on 500 identical industrial pumps in a factory. No flat surface is available for a printed marker. What do you recommend?',
+        options: [
+          'Image Targets: Print a sticker with a high-contrast marker and attach it to each pump',
+          'Vuforia Model Targets: Provide a CAD model to Vuforia\'s Target Manager to recognise each pump by its 3D silhouette',
+          'Plane Detection: The floor near each pump provides a sufficient anchor surface',
+          'GPS Geospatial: Position AR content by the GPS coordinates of each pump location',
+        ],
+        correctIndex: 1,
+        explanation: 'Model Targets are the canonical solution for recognising specific industrial machinery without modifying the physical object. ARCore Geospatial does not provide cm-level indoor accuracy.',
+      ),
+    ],
+  ),
+
+  // ───────────────────────────────────────────────────────────────
+  //  QUIZ — AR Onboarding Patterns
+  // ───────────────────────────────────────────────────────────────
+  'quiz_ar_onboarding': Quiz(
+    id: 'quiz_ar_onboarding',
+    moduleId: 'mod_spatial_ux',
+    title: 'Checkup: AR Onboarding Patterns',
+    passingScore: 70,
+    questions: [
+      const QuizQuestion(
+        id: 'q_onboard_1',
+        question: 'What is the "3-Second Rule" in AR onboarding?',
+        options: [
+          'The maximum time allowed for a 3D model to load before showing a progress indicator',
+          'A user who does not understand what to do within 3 seconds of launch will abandon the app',
+          'The minimum time an onboarding animation must play before allowing the user to skip it',
+          'The delay between plane detection and the reticle appearing on screen',
+        ],
+        correctIndex: 1,
+        explanation: 'Research shows users abandon AR experiences within 3 seconds if they don\'t immediately understand the required action. Every onboarding decision must respect this.',
+      ),
+      const QuizQuestion(
+        id: 'q_onboard_2',
+        question: 'Which Apple component provides standardized AR scanning onboarding UI?',
+        options: [
+          'ARWorldTrackingConfiguration',
+          'ARCoachingOverlayView',
+          'ARSCNView',
+          'ARPlaneAnchor',
+        ],
+        correctIndex: 1,
+        explanation: 'ARCoachingOverlayView is Apple\'s built-in, animated onboarding UI for AR sessions. It adapts to the active tracking goal and should be used instead of custom implementations.',
+      ),
+      const QuizQuestion(
+        id: 'q_onboard_3',
+        question: 'For enterprise AR where workers use the same app 50+ times per day, what onboarding consideration is most important?',
+        options: [
+          'Increasing the animation duration so it is always clearly visible to all workers',
+          'Making the onboarding overlay show for a mandatory 10 seconds even for experienced users',
+          'Providing a "Skip Coaching" option that persists the user\'s preference so it doesn\'t repeat every session',
+          'Adding more text instructions to ensure workers of all literacy levels understand the procedure',
+        ],
+        correctIndex: 2,
+        explanation: 'Experienced enterprise users find repeated onboarding animations frustrating. A persistent skip preference removes friction for daily users while keeping guidance available for newcomers.',
+      ),
+      const QuizQuestion(
+        id: 'q_onboard_4',
+        question: 'SCENARIO: In user testing, 60% of participants fail to place a virtual object within 30 seconds. The app shows a plain camera feed with a text instruction at the bottom. What is your first fix?',
+        options: [
+          'Replace the text font with a larger, bolder typeface to improve legibility',
+          'Add more detailed text instructions explaining each step of the placement process',
+          'Replace text instructions with animated visual cues: a scanning ring for tracking, a pulsing reticle when a surface is found. On iOS, integrate ARCoachingOverlayView',
+          'Reduce the minimum plane size threshold so surfaces are detected faster',
+        ],
+        correctIndex: 2,
+        explanation: 'Spatial users respond to visual motion cues, not text. Animated guides showing what to do (move, look, tap) dramatically outperform text instructions in first-time AR experiences.',
+      ),
+    ],
+  ),
+
+  // ───────────────────────────────────────────────────────────────
+  //  QUIZ — Spatial Audio in AR
+  // ───────────────────────────────────────────────────────────────
+  'quiz_spatial_audio': Quiz(
+    id: 'quiz_spatial_audio',
+    moduleId: 'mod_spatial_ux',
+    title: 'Checkup: Spatial Audio in AR',
+    passingScore: 70,
+    questions: [
+      const QuizQuestion(
+        id: 'q_audio_1',
+        question: 'What is HRTF in the context of spatial audio?',
+        options: [
+          'A lossless audio compression format used for high-fidelity AR soundscapes',
+          'A mathematical model that simulates how human ears perceive 3D sound direction',
+          'A Unity Inspector setting that controls the maximum volume of an AudioSource',
+          'A network protocol for streaming spatial audio from a cloud server to the device',
+        ],
+        correctIndex: 1,
+        explanation: 'HRTF (Head-Related Transfer Function) models how the human auditory system perceives the direction and distance of sounds. AR audio engines use HRTF to create convincing 3D sound placement.',
+      ),
+      const QuizQuestion(
+        id: 'q_audio_2',
+        question: 'In Unity, which AudioSource property sets it to fully 3D spatial audio mode?',
+        options: [
+          'source.audioMode = AudioMode.Spatial3D',
+          'source.spatialBlend = 1.0f',
+          'source.hrtfEnabled = true',
+          'source.volumeRolloff = 3D',
+        ],
+        correctIndex: 1,
+        explanation: 'spatialBlend controls the 2D-to-3D blend. A value of 1.0 makes the AudioSource fully 3D, positioning it relative to the listener in world space.',
+      ),
+      const QuizQuestion(
+        id: 'q_audio_3',
+        question: 'Which Apple RealityKit component positions audio in 3D world space relative to an AR entity?',
+        options: [
+          'AudioEnvironmentComponent',
+          'SpatialAudioComponent',
+          'ARSoundAnchor',
+          'ReverbComponent',
+        ],
+        correctIndex: 1,
+        explanation: 'SpatialAudioComponent attaches to a RealityKit Entity and automatically positions and attenuates its audio in 3D space as the user moves.',
+      ),
+      const QuizQuestion(
+        id: 'q_audio_4',
+        question: 'SCENARIO: A warehouse AR picking app is used by workers wearing over-ear headsets who can\'t always look at their AR glasses. How should you use spatial audio to guide them?',
+        options: [
+          'Play a loud alarm sound from both channels equally when the worker is near any bin',
+          'Attach spatial audio to each pick location. Correct bin: tone gets louder and centres as the worker approaches. Wrong direction: tone fades. Successful pick: brief confirmation chime',
+          'Use spatial audio only for error states — reserve silence for normal operation to reduce fatigue',
+          'Stream audio instructions from a cloud server describing the route in real time',
+        ],
+        correctIndex: 1,
+        explanation: 'Spatialized tones at pick locations provide intuitive directional guidance without visual attention. Proximity-volume and confirmation cues complete the feedback loop without any screen interaction required.',
+      ),
+    ],
+  ),
+
+  // ───────────────────────────────────────────────────────────────
+  //  QUIZ — Accessibility in AR
+  // ───────────────────────────────────────────────────────────────
+  'quiz_ar_accessibility': Quiz(
+    id: 'quiz_ar_accessibility',
+    moduleId: 'mod_spatial_ux',
+    title: 'Checkup: Accessibility in AR',
+    passingScore: 70,
+    questions: [
+      const QuizQuestion(
+        id: 'q_access_1',
+        question: 'Why don\'t standard accessibility frameworks like VoiceOver fully apply to AR?',
+        options: [
+          'VoiceOver was deprecated in iOS 15 and no longer functions on modern devices',
+          'AR interfaces are spatial and 3D, not screen-based — screen readers cannot narrate floating 3D objects',
+          'VoiceOver conflicts with the ARKit session causing tracking instability',
+          'Standard frameworks work fine in AR; they just require a special entitlement from Apple',
+        ],
+        correctIndex: 1,
+        explanation: 'VoiceOver and TalkBack were built for 2D screen UIs. AR content exists in 3D world space — a floating virtual machine has no screen coordinates for a screen reader to narrate.',
+      ),
+      const QuizQuestion(
+        id: 'q_access_2',
+        question: 'What is "dwell-based gaze selection" and why is it used in accessible AR?',
+        options: [
+          'A technique that dims the AR scene during periods of network inactivity to save battery',
+          'An interaction method where the user selects objects by looking at them for a set duration (1.5–2s), providing a hands-free alternative to touch',
+          'A calibration process where the user locks their gaze to configure the AR tracking volume',
+          'A visual effect that causes selected objects to slowly pulse to indicate their interactive state',
+        ],
+        correctIndex: 1,
+        explanation: 'Dwell selection enables interaction for users with limited hand mobility: gaze at an object for a fixed duration to activate it. No touch or gesture required.',
+      ),
+      const QuizQuestion(
+        id: 'q_access_3',
+        question: 'Which legal framework can require WCAG 2.1 compliance for enterprise AR applications in Europe?',
+        options: [
+          'The General Data Protection Regulation (GDPR)',
+          'The EU Accessibility Act',
+          'The EU AI Act',
+          'ISO 9001 Quality Management Standard',
+        ],
+        correctIndex: 1,
+        explanation: 'The EU Accessibility Act (EAA) requires digital products and services to meet accessibility standards, including enterprise software deployed to workers in the EU.',
+      ),
+      const QuizQuestion(
+        id: 'q_access_4',
+        question: 'SCENARIO: An AR assembly guidance app is deployed in a factory where 15% of workers have colour blindness. The current UI uses red = error and green = correct as the only visual distinction. What do you change?',
+        options: [
+          'Increase the brightness and saturation of the red and green colours to make them more distinguishable',
+          'Add shape-based differentiation (X for error, checkmark for correct), run the palette through a deuteranopia simulator, and optionally add distinct audio cues per state',
+          'Switch from red/green to orange/blue, as this combination is always accessible for all colour blindness types',
+          'Add a colour blindness mode toggle in settings that users must manually enable themselves',
+        ],
+        correctIndex: 1,
+        explanation: 'Never rely on colour alone for state communication. Shape + colour ensures accessibility for all colour blindness types. A simulation tool catches issues before deployment.',
+      ),
+    ],
+  ),
+
+  // ───────────────────────────────────────────────────────────────
+  //  QUIZ — Content Placement Strategy
+  // ───────────────────────────────────────────────────────────────
+  'quiz_content_placement': Quiz(
+    id: 'quiz_content_placement',
+    moduleId: 'mod_spatial_ux',
+    title: 'Checkup: Content Placement Strategy',
+    passingScore: 70,
+    questions: [
+      const QuizQuestion(
+        id: 'q_place_1',
+        question: 'What unit of measurement do ARKit, ARCore, and AR Foundation use by default?',
+        options: [
+          'Centimetres — 1 world unit = 1 centimetre',
+          'Inches — matching the imperial measurement system common in US enterprise',
+          'Metres — 1 world unit = 1 real metre',
+          'Scene Units — a relative unit calibrated per session based on detected surface size',
+        ],
+        correctIndex: 2,
+        explanation: 'All major AR SDKs use metres. 1 world unit = 1 real metre. A chair model with height 1.8 will appear exactly 1.8 metres tall in the real world.',
+      ),
+      const QuizQuestion(
+        id: 'q_place_2',
+        question: 'Why is a plane-hit anchor preferred over a feature-point anchor for placing objects?',
+        options: [
+          'Plane hits consume less battery because fewer sensors are active during the raycast',
+          'Plane hits provide a reliable surface normal, ensuring placed objects sit upright rather than at random angles',
+          'Feature-point hits require an internet connection to resolve accurately',
+          'Plane hits are faster to compute and cause less CPU overhead per frame',
+        ],
+        correctIndex: 1,
+        explanation: 'A plane hit provides the surface normal (perpendicular direction), so the object aligns correctly with the surface. Feature-point hits lack this, leading to tilted or floating objects.',
+      ),
+      const QuizQuestion(
+        id: 'q_place_3',
+        question: 'What rendering effect most cost-effectively improves the perceived realism of a placed virtual object?',
+        options: [
+          'Ray-traced global illumination computed per frame on the device GPU',
+          'A simple blob shadow projected beneath the virtual object onto the detected surface',
+          'Increasing the texture resolution from 1K to 4K for the object\'s primary material',
+          'Adding 10,000 extra triangles to smooth the object\'s silhouette geometry',
+        ],
+        correctIndex: 1,
+        explanation: 'A grounding shadow costs almost nothing to render but strongly reinforces the illusion that the virtual object physically rests on the real surface — more so than any other single technique.',
+      ),
+      const QuizQuestion(
+        id: 'q_place_4',
+        question: 'SCENARIO: In user testing, virtual furniture appears to hover 5–8cm above the floor even though the plane is correctly detected. What is the most likely cause?',
+        options: [
+          'The ARCore session tracking confidence is too low, causing the plane\'s Y position to offset upward',
+          'The 3D model\'s pivot point is at its geometric centre, not its base — causing it to sit half its height above the detected plane',
+          'The device camera intrinsics are miscalibrated, causing a systematic vertical error in the hit test result',
+          'The floor plane mesh is being rendered with a Y offset in the AR Foundation PlaneManager settings',
+        ],
+        correctIndex: 1,
+        explanation: 'The pivot point (origin) of a 3D model defines where it sits on the anchor. If the pivot is at the centre, the object floats half its height above the plane. Fix: move the pivot to the bottom face in the 3D editor.',
+      ),
+    ],
+  ),
+
 };
