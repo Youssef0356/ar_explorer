@@ -128,12 +128,12 @@ class AdService extends ChangeNotifier {
     }
   }
 
-  Future<void> showInterstitialAd() async {
-    if (_subscriptionService?.isPremium ?? false) return;
+  Future<bool> showInterstitialAd() async {
+    if (_subscriptionService?.isPremium ?? false) return false;
     if (_interstitialAd == null) {
       debugPrint('Warning: attempt to show interstitial before loaded.');
       _loadInterstitialAd();
-      return;
+      return false;
     }
     
     debugPrint('Attempting to show InterstitialAd...');
@@ -141,13 +141,16 @@ class AdService extends ChangeNotifier {
     if (_lastAdShownTimestamp != null && 
         DateTime.now().difference(_lastAdShownTimestamp!) < _adCooldown) {
       debugPrint('InterstitialAd skipped due to 60s cooldown.');
-      return;
+      return false;
     }
+
+    final completer = Completer<bool>();
 
     _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
       onAdShowedFullScreenContent: (ad) {
         debugPrint('InterstitialAd showed successfully.');
         _lastAdShownTimestamp = DateTime.now();
+        if (!completer.isCompleted) completer.complete(true);
       },
       onAdDismissedFullScreenContent: (ad) {
         debugPrint('InterstitialAd dismissed.');
@@ -160,10 +163,12 @@ class AdService extends ChangeNotifier {
         ad.dispose();
         _interstitialAd = null;
         _loadInterstitialAd();
+        if (!completer.isCompleted) completer.complete(false);
       },
     );
 
     await _interstitialAd!.show();
+    return completer.future;
   }
 
   Future<bool> showRewardedAd() async {

@@ -37,14 +37,18 @@ class NotificationService extends ChangeNotifier {
   static const String _dailyChannelName = 'Daily XP Reminders';
 
   final List<String> _funnyMessages = [
-    "We miss you! Come back and continue your AR journey! 🤖",
-    "We are waiting for your interview, don't keep the hologram hanging! 🤖",
-    "Your AR skills are getting rusty. Time to polish them! ✨",
-    "Did you know? AR doesn't stand for 'Always Resting'. Get back to work! 🔥",
-    "The systems are failing! Only you can debug them. 💻",
-    "Continue your journey to becoming an XR Builder. The future is waiting. 🚀",
-    "Your future self just called. They said they need those AR certifications! 📞",
-    "Is that a bug in the matrix? No, just you missing your daily lesson. 🐛",
+    "We miss you! Come back and continue your AR journey!",
+    "The hologram is waiting... don't leave it hanging!",
+    "Your AR skills are getting rusty. Time to polish them!",
+    "Did you know? AR doesn't stand for 'Always Resting'. Get back to work!",
+    "The systems are failing! Only you can debug them.",
+    "Continue your journey to becoming an XR Builder. The future is waiting.",
+    "Your future self just called. They said they need those AR certifications!",
+    "Is that a bug in the matrix? No, just you missing your daily lesson.",
+    "Time to level up your AR knowledge!",
+    "Your streak misses you. Come back today!",
+    "New AR challenges await your expertise.",
+    "The AR engine is idling... start it up!",
   ];
 
   Future<void> init() async {
@@ -159,7 +163,7 @@ class NotificationService extends ChangeNotifier {
       
       await _notificationsPlugin.zonedSchedule(
         id: 2000 + i,
-        title: "Continue Your Journey 🚀",
+        title: "Continue Your Journey",
         body: message,
         scheduledDate: tz.TZDateTime.now(tz.local).add(Duration(days: days[i])),
         notificationDetails: const NotificationDetails(
@@ -196,12 +200,12 @@ class NotificationService extends ChangeNotifier {
     await _notificationsPlugin.cancel(id: 1001);
 
     final String message = currentStreak == 1
-        ? "Don't lose your 1 day streak! Jump in for a quick lesson. 🔥"
-        : "Your $currentStreak day streak is in danger! Keep it alive today. 🏆";
+        ? "Don't lose your 1 day streak! Jump in for a quick lesson."
+        : "Your $currentStreak day streak is in danger! Keep it alive today.";
 
     await _notificationsPlugin.zonedSchedule(
       id: 1001,
-      title: "Streak Alert! 🔥",
+      title: "Streak Alert!",
       body: message,
       scheduledDate: tz.TZDateTime.now(tz.local).add(const Duration(hours: 23)),
       notificationDetails: const NotificationDetails(
@@ -229,7 +233,7 @@ class NotificationService extends ChangeNotifier {
       
       await _notificationsPlugin.zonedSchedule(
         id: 2000 + i,
-        title: "Continue Your Journey 🚀",
+        title: "Continue Your Journey",
         body: message,
         scheduledDate: tz.TZDateTime.now(tz.local).add(Duration(days: days[i])),
         notificationDetails: const NotificationDetails(
@@ -262,15 +266,19 @@ class NotificationService extends ChangeNotifier {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
 
+    // Pick a random funny message for variety each day
+    final random = Random();
+    final String dailyMessage = _funnyMessages[random.nextInt(_funnyMessages.length)];
+
     await _notificationsPlugin.zonedSchedule(
       id: 3000,
-      title: "Daily XP Ready! 🚀",
-      body: "Come get your 5 XP to start your journey and unlock new AR modules!",
+      title: "Daily AR Reminder!",
+      body: dailyMessage,
       scheduledDate: scheduledDate,
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
-          _dailyChannelId,
-          _dailyChannelName,
+          _funnyChannelId,
+          _funnyChannelName,
           importance: Importance.high,
           priority: Priority.high,
         ),
@@ -287,7 +295,7 @@ class NotificationService extends ChangeNotifier {
     
     await _notificationsPlugin.show(
       id: 8888,
-      title: "Quick AR Reminder! 🚀",
+      title: "Quick AR Reminder!",
       body: message,
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(

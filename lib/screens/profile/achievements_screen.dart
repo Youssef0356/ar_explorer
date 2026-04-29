@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -54,8 +55,20 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     final adService = context.read<AdService>();
     final gameProgress = context.read<GameProgressService>();
     
+    // Show loading indicator
+    setState(() {
+      _isLoadingAdCount = true;
+    });
+    
     final success = await adService.showRewardedAd();
-    if (success && mounted) {
+    
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoadingAdCount = false;
+    });
+    
+    if (success) {
       final prefs = await SharedPreferences.getInstance();
       _adsWatchedToday++;
       await prefs.setInt('ad_reward_count', _adsWatchedToday);
@@ -63,12 +76,35 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('🎉 +30 XP Earned!'),
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(PhosphorIcons.trophy(), color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              const Text('+30 XP Earned!'),
+            ],
+          ),
           backgroundColor: AppTheme.successGreen,
           behavior: SnackBarBehavior.floating,
         )
       );
       setState(() {});
+    } else {
+      // Show error when ad fails to load or show
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(PhosphorIcons.warning(), color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              const Text('Ad failed to load. Please try again later.'),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        )
+      );
     }
   }
 
@@ -162,7 +198,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 
                       const SizedBox(height: 32),
 
-                      _sectionTitle('🏆 EARNED BADGES', isDark),
+                      _sectionTitleWithIcon(PhosphorIcons.trophy(), 'EARNED BADGES', isDark),
                       const SizedBox(height: 16),
 
                       KeyedSubtree(
@@ -195,7 +231,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
       decoration: AppTheme.glassCard(isDark),
       child: Column(
         children: [
-          const Text('⚡', style: TextStyle(fontSize: 48)),
+          Icon(PhosphorIcons.lightning(), size: 48, color: AppTheme.accentCyan),
           const SizedBox(height: 12),
           Text(
             levelTitle,
@@ -255,18 +291,11 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     ).animate().fadeIn().slideY(begin: 0.1, end: 0);
   }
 
-  Widget _sectionTitle(String title, bool isDark) {
+  Widget _sectionTitleWithIcon(IconData icon, String title, bool isDark) {
     return Row(
       children: [
-        Container(
-          width: 4,
-          height: 16,
-          decoration: BoxDecoration(
-            color: AppTheme.accentCyan,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 10),
+        Icon(icon, size: 16, color: AppTheme.accentCyan),
+        const SizedBox(width: 8),
         Text(
           title,
           style: AppTheme.labelMedium.copyWith(
@@ -498,12 +527,21 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  hasFreeze ? '🧊 Streak Freeze Active' : 'Streak Freeze',
-                  style: AppTheme.headingSmall.copyWith(
-                    fontSize: 13,
-                    color: hasFreeze ? AppTheme.accentCyan : AppTheme.textPrimaryC(isDark),
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (hasFreeze) ...[
+                      Icon(PhosphorIcons.snowflake(), size: 14, color: AppTheme.accentCyan),
+                      const SizedBox(width: 4),
+                    ],
+                    Text(
+                      hasFreeze ? 'Streak Freeze Active' : 'Streak Freeze',
+                      style: AppTheme.headingSmall.copyWith(
+                        fontSize: 13,
+                        color: hasFreeze ? AppTheme.accentCyan : AppTheme.textPrimaryC(isDark),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 3),
                 Text(
@@ -523,7 +561,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                       if (context.mounted && ok) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: const Text('🧊 Streak Freeze activated! (-50 XP)'),
+                            content: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(PhosphorIcons.snowflake(), color: Colors.white, size: 18),
+                                const SizedBox(width: 8),
+                                const Text('Streak Freeze activated! (-50 XP)'),
+                              ],
+                            ),
                             backgroundColor: AppTheme.accentCyan,
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -595,7 +640,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionTitle('🎓 YOUR CERTIFICATES', isDark),
+        _sectionTitleWithIcon(PhosphorIcons.graduationCap(), 'YOUR CERTIFICATES', isDark),
         const SizedBox(height: 16),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,

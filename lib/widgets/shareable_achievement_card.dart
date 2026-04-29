@@ -57,7 +57,7 @@ class _ShareableAchievementCardState extends State<ShareableAchievementCard> {
       // 3. Share the image
       await Share.shareXFiles(
         [XFile(imagePath)],
-        text: 'I just leveled up in AR Explorer! Check out my progress. 🚀',
+        text: 'I just leveled up in AR Explorer! Check out my progress.',
       );
     } catch (e) {
       debugPrint('Error sharing achievement: \$e');
