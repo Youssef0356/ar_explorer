@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -51,9 +52,122 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _adsWatchedToday = 0;
+  bool _isLoadingAd = false;
+
   @override
   void initState() {
     super.initState();
+    _loadAdsWatched();
+  }
+
+  Future<void> _loadAdsWatched() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final storedDate = prefs.getString('home_ad_reward_date');
+    if (storedDate != today) {
+      await prefs.setString('home_ad_reward_date', today);
+      await prefs.setInt('home_ad_reward_count', 0);
+      _adsWatchedToday = 0;
+    } else {
+      _adsWatchedToday = prefs.getInt('home_ad_reward_count') ?? 0;
+    }
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _watchAdForXP() async {
+    if (_adsWatchedToday >= 3 || _isLoadingAd) return;
+    
+    final adService = context.read<AdService>();
+    final gameProgress = context.read<GameProgressService>();
+    
+    setState(() => _isLoadingAd = true);
+    
+    final success = await adService.showRewardedAd();
+    
+    if (!mounted) return;
+    
+    setState(() => _isLoadingAd = false);
+    
+    if (success) {
+      final prefs = await SharedPreferences.getInstance();
+      _adsWatchedToday++;
+      await prefs.setInt('home_ad_reward_count', _adsWatchedToday);
+      gameProgress.addUnifiedXP(30);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(PhosphorIcons.trophy(), color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              const Text('+30 XP Earned!'),
+            ],
+          ),
+          backgroundColor: AppTheme.successGreen,
+          behavior: SnackBarBehavior.floating,
+        )
+      );
+    }
+  }
+
+  Widget _buildCompactAdButton(bool isDark) {
+    final isPremium = context.watch<SubscriptionService>().isPremium;
+    if (isPremium) return const SizedBox.shrink();
+    
+    final reachedCap = _adsWatchedToday >= 3;
+    final remaining = 3 - _adsWatchedToday;
+    
+    return GestureDetector(
+      onTap: reachedCap || _isLoadingAd ? null : _watchAdForXP,
+      child: Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: reachedCap 
+              ? AppTheme.successGreen.withValues(alpha: 0.1)
+              : AppTheme.accentPink.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: reachedCap 
+                ? AppTheme.successGreen.withValues(alpha: 0.3)
+                : AppTheme.accentPink.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _isLoadingAd
+                ? SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: reachedCap ? AppTheme.successGreen : AppTheme.accentPink,
+                    ),
+                  )
+                : Icon(
+                    reachedCap ? PhosphorIcons.checkCircle() : PhosphorIcons.playCircle(),
+                    size: 14,
+                    color: reachedCap ? AppTheme.successGreen : AppTheme.accentPink,
+                  ),
+            const SizedBox(width: 6),
+            Text(
+              reachedCap 
+                  ? 'Daily Limit Reached'
+                  : 'Watch Ad +30 XP ($remaining left)',
+              style: AppTheme.bodySmall.copyWith(
+                fontSize: 11,
+                color: reachedCap ? AppTheme.successGreen : AppTheme.accentPink,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
 
@@ -482,6 +596,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           children: [
                             _buildXPRow(isDark),
+                            _buildCompactAdButton(isDark),
                             const SizedBox(height: 16),
                             _buildDailyKeywordBanner(isDark),
                             const SizedBox(height: 20),
@@ -617,149 +732,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // ── Certificate Achievement ──
-              Consumer2<ProgressService, GameProgressService>(
-                builder: (context, progress, gameProgress, _) {
-                  final certData = computeProgress(progress, gameProgress);
-                  final tier = certData.highestUnlocked;
-                  final tierInfo = tier != null
-                      ? kTiers.firstWhere((t) => t.tier == tier)
-                      : null;
-                  return SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-                    sliver: SliverToBoxAdapter(
-                      child: KeyedSubtree(
-                        key: TourKeys.homeCertificatesKey,
-                        child: _buildCertificateCard(context, isDark, tierInfo, certData),
-                      ),
-                    ),
-                  );
-                },
-              ),
             ],
           ),
         ),
       ),
     );
   }
-
-  Widget _buildCertificateCard(BuildContext context, bool isDark, TierData? tierInfo, CertProgressData certData) {
-    final hasTier = tierInfo != null;
-    final accentColor = hasTier ? tierInfo.color : AppTheme.accentCyan;
-    // Next tier progress
-    final nextTierIdx = hasTier
-        ? kTiers.indexOf(tierInfo) + 1
-        : 0;
-    final hasNextTier = nextTierIdx < kTiers.length;
-    final nextProgress = hasNextTier
-        ? certData.tierProgress(kTiers[nextTierIdx].tier)
-        : 1.0;
-
-    return GestureDetector(
-      onTap: () {
-        context.read<SoundService>().playTap();
-        Navigator.pushNamed(context, '/certificate');
-      },
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              accentColor.withValues(alpha: 0.15),
-              accentColor.withValues(alpha: 0.03),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: accentColor.withValues(alpha: 0.4),
-            width: 1.5,
-          ),
-        ),
-        child: Column(
-          children: [
-            Text(
-              hasTier ? tierInfo.emoji : '🎯',
-              style: const TextStyle(fontSize: 40),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              hasTier ? '${tierInfo.name} Certificate Earned' : 'Earn Your First Certificate',
-              style: AppTheme.headingSmall.copyWith(
-                color: hasTier ? accentColor : AppTheme.textPrimaryC(isDark),
-                fontSize: 17,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              hasTier
-                  ? tierInfo.description
-                  : 'Complete 3 modules to unlock your Bronze certificate.',
-              textAlign: TextAlign.center,
-              style: AppTheme.bodySmall.copyWith(
-                color: AppTheme.textSecondaryC(isDark),
-                height: 1.4,
-              ),
-            ),
-            if (hasNextTier) ...[
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Text(
-                    'Next: ${kTiers[nextTierIdx].name}',
-                    style: TextStyle(
-                      color: kTiers[nextTierIdx].color.withValues(alpha: 0.7),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    '${(nextProgress * 100).toInt()}%',
-                    style: TextStyle(
-                      color: kTiers[nextTierIdx].color,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: nextProgress,
-                  backgroundColor: kTiers[nextTierIdx].color.withValues(alpha: 0.1),
-                  valueColor: AlwaysStoppedAnimation(kTiers[nextTierIdx].color),
-                  minHeight: 5,
-                ),
-              ),
-            ],
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: accentColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: accentColor.withValues(alpha: 0.3)),
-              ),
-              child: Text(
-                'VIEW ALL TIERS',
-                style: AppTheme.buttonText.copyWith(
-                  fontSize: 11,
-                  color: accentColor,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-
 
   // ── Quick Actions (Practice, Interview, Roadmap, Bookmarks) ──────────
   Widget _buildQuickActions(BuildContext context, bool isDark, bool enableAnimations) {

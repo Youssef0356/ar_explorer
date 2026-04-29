@@ -2,19 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/app_theme.dart';
 import '../../core/tour_keys.dart';
 import '../../data/learning/modules_data.dart';
 import '../../services/game_progress_service.dart';
 import '../../services/progress_service.dart';
+import '../../services/sound_service.dart';
 import '../../services/theme_service.dart';
-import '../../services/subscription_service.dart';
-import '../../services/ad_service.dart';
 import '../../widgets/achievement_badge.dart';
-import '../../widgets/shareable_achievement_card.dart';
 import '../../widgets/animated_google_background.dart';
+import '../../widgets/shareable_achievement_card.dart';
+import 'certificate_progression_screen.dart';
 
 class AchievementsScreen extends StatefulWidget {
   const AchievementsScreen({super.key});
@@ -24,90 +23,6 @@ class AchievementsScreen extends StatefulWidget {
 }
 
 class _AchievementsScreenState extends State<AchievementsScreen> {
-  int _adsWatchedToday = 0;
-  bool _isLoadingAdCount = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadAdsWatched();
-  }
-
-  Future<void> _loadAdsWatched() async {
-    final prefs = await SharedPreferences.getInstance();
-    final today = DateTime.now().toIso8601String().substring(0, 10);
-    final storedDate = prefs.getString('ad_reward_date');
-    if (storedDate != today) {
-      await prefs.setString('ad_reward_date', today);
-      await prefs.setInt('ad_reward_count', 0);
-      _adsWatchedToday = 0;
-    } else {
-      _adsWatchedToday = prefs.getInt('ad_reward_count') ?? 0;
-    }
-    setState(() {
-      _isLoadingAdCount = false;
-    });
-  }
-
-  Future<void> _watchAd() async {
-    if (_adsWatchedToday >= 3) return;
-    
-    final adService = context.read<AdService>();
-    final gameProgress = context.read<GameProgressService>();
-    
-    // Show loading indicator
-    setState(() {
-      _isLoadingAdCount = true;
-    });
-    
-    final success = await adService.showRewardedAd();
-    
-    if (!mounted) return;
-    
-    setState(() {
-      _isLoadingAdCount = false;
-    });
-    
-    if (success) {
-      final prefs = await SharedPreferences.getInstance();
-      _adsWatchedToday++;
-      await prefs.setInt('ad_reward_count', _adsWatchedToday);
-      gameProgress.addUnifiedXP(30);
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(PhosphorIcons.trophy(), color: Colors.white, size: 18),
-              const SizedBox(width: 8),
-              const Text('+30 XP Earned!'),
-            ],
-          ),
-          backgroundColor: AppTheme.successGreen,
-          behavior: SnackBarBehavior.floating,
-        )
-      );
-      setState(() {});
-    } else {
-      // Show error when ad fails to load or show
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(PhosphorIcons.warning(), color: Colors.white, size: 18),
-              const SizedBox(width: 8),
-              const Text('Ad failed to load. Please try again later.'),
-            ],
-          ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        )
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = context.watch<ThemeService>().isDarkMode;
@@ -185,16 +100,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 
                       const SizedBox(height: 24),
 
-                      // ── Sharable Certificates ──
-                      _buildCertificates(context, isDark, coreProgress),
-
-                      const SizedBox(height: 24),
-
-                      // ── Premium Aesthetics ──
-                      _buildPremiumAesthetics(context, isDark),
-
-                      // ── Watch Ad for XP ──
-                      _buildAdRewardSection(context, isDark),
+                      // ── Certificate Progress ──
+                      _buildCertificateProgress(context, isDark),
 
                       const SizedBox(height: 32),
 
@@ -394,7 +301,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                       insetPadding: const EdgeInsets.symmetric(horizontal: 16),
                       child: ShareableAchievementCard(
                         title: badge.label,
-                        subtitle: 'I unlocked this badge in AR Explorer! ✨',
+                        subtitle: 'I unlocked this badge in AR Explorer!',
                         icon: badge.icon,
                         color: badge.color,
                         score: '',
@@ -610,265 +517,130 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildCertificates(BuildContext context, bool isDark, ProgressService coreProgress) {
-    final isPremium = context.watch<SubscriptionService>().isPremium;
-    
-    if (!isPremium) {
-      return Container(
-        padding: const EdgeInsets.all(20),
-        decoration: AppTheme.glassCard(isDark),
-        child: Column(
-          children: [
-            const Icon(Icons.verified_user_rounded, color: AppTheme.accentAmber, size: 40),
-            const SizedBox(height: 12),
-            Text('Premium Certificates', style: AppTheme.headingSmall.copyWith(color: AppTheme.textPrimaryC(isDark))),
-            const SizedBox(height: 8),
-            Text('Get official certificates for your AR journey.', 
-                 style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-                 textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => Navigator.pushNamed(context, '/paywall'),
-              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accentAmber),
-              child: const Text('Unlock with PRO', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
-      );
-    }
+  Widget _buildCertificateProgress(BuildContext context, bool isDark) {
+    return Consumer2<ProgressService, GameProgressService>(
+      builder: (context, progress, gameProgress, _) {
+        final certData = computeProgress(progress, gameProgress);
+        final tier = certData.highestUnlocked;
+        final tierInfo = tier != null
+            ? kTiers.firstWhere((t) => t.tier == tier)
+            : null;
+        final hasTier = tierInfo != null;
+        final accentColor = hasTier ? tierInfo.color : AppTheme.accentCyan;
+        
+        // Next tier progress
+        final nextTierIdx = hasTier
+            ? kTiers.indexOf(tierInfo) + 1
+            : 0;
+        final hasNextTier = nextTierIdx < kTiers.length;
+        final nextProgress = hasNextTier
+            ? certData.tierProgress(kTiers[nextTierIdx].tier)
+            : 1.0;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionTitleWithIcon(PhosphorIcons.graduationCap(), 'YOUR CERTIFICATES', isDark),
-        const SizedBox(height: 16),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              if (coreProgress.hasAchievement(ProgressService.certPipelineEngineer))
-                _buildCertificateCard('AR Pipeline Engineer', 'Pipeline Challenge', isDark),
-              
-              if (coreProgress.hasAchievement(ProgressService.certPipelineEngineer) &&
-                  coreProgress.hasAchievement(ProgressService.certPlatformDeveloper))
-                const SizedBox(width: 16),
-                
-              if (coreProgress.hasAchievement(ProgressService.certPlatformDeveloper))
-                _buildCertificateCard('XR Platform Developer', 'Coding Games', isDark),
-
-              if (!coreProgress.hasAchievement(ProgressService.certPipelineEngineer) &&
-                  !coreProgress.hasAchievement(ProgressService.certPlatformDeveloper))
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    'Complete all game levels to earn certificates!',
-                    style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCertificateCard(String title, String subtitle, bool isDark) {
-    return Container(
-      width: 220,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E2638),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.accentCyan.withValues(alpha: 0.3), width: 1.5),
-        boxShadow: [
-          BoxShadow(color: AppTheme.accentCyan.withValues(alpha: 0.1), blurRadius: 15),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Icon(Icons.school, color: AppTheme.accentCyan, size: 28),
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(color: Colors.amber, shape: BoxShape.circle),
-                child: const Icon(Icons.verified, color: Colors.black, size: 12),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16)),
-          const SizedBox(height: 4),
-          Text(subtitle, style: TextStyle(color: AppTheme.accentCyan.withValues(alpha: 0.7), fontSize: 12)),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Preparing your certificate for sharing...'))
-                );
-              },
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppTheme.accentCyan.withValues(alpha: 0.5)),
-                foregroundColor: AppTheme.accentCyan,
-              ),
-              child: const Text('SHARE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPremiumAesthetics(BuildContext context, bool isDark) {
-    final subService = context.watch<SubscriptionService>();
-    if (!subService.isPremium) return const SizedBox.shrink();
-
-    final themeService = context.watch<ThemeService>();
-    final isNeon = themeService.isNeonMode;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      // ... content
-      decoration: BoxDecoration(
-        color: isNeon ? const Color(0xFF0D0D12) : AppTheme.cardC(isDark),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isNeon ? AppTheme.neonPurple.withValues(alpha: 0.5) : AppTheme.accentPurple.withValues(alpha: 0.3),
-          width: 2,
-        ),
-        boxShadow: [
-          if (isNeon) BoxShadow(color: AppTheme.neonPurple.withValues(alpha: 0.1), blurRadius: 20),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-               const Icon(Icons.auto_awesome_rounded, color: AppTheme.accentAmber, size: 20),
-               const SizedBox(width: 10),
-               Text(
-                'PREMIUM AESTHETICS',
-                style: AppTheme.labelMedium.copyWith(color: AppTheme.accentAmber, letterSpacing: 1.5),
-               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Dark/Neon Theme',
-                      style: AppTheme.headingSmall.copyWith(fontSize: 16, color: Colors.white),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Deep blacks and vibrant glowing accents.',
-                      style: AppTheme.bodySmall.copyWith(color: AppTheme.textSecondaryC(isDark)),
-                    ),
-                  ],
-                ),
-              ),
-              Switch.adaptive(
-                value: isNeon,
-                activeColor: AppTheme.neonPurple,
-                onChanged: (val) => themeService.setNeonMode(val),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ).animate().fadeIn(delay: 200.ms).scale(begin: const Offset(0.95, 0.95));
-  }
-
-  Widget _buildAdRewardSection(BuildContext context, bool isDark) {
-    final isPremium = context.watch<SubscriptionService>().isPremium;
-    if (isPremium) return const SizedBox.shrink();
-
-    final reachedCap = _adsWatchedToday >= 3;
-
-    return Container(
-      padding: const EdgeInsets.all(18),
-      margin: const EdgeInsets.only(top: 24),
-      decoration: BoxDecoration(
-        color: AppTheme.cardC(isDark),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppTheme.accentPink.withValues(alpha: 0.3),
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
+        return GestureDetector(
+          onTap: () {
+            context.read<SoundService>().playTap();
+            Navigator.pushNamed(context, '/certificate');
+          },
+          child: Container(
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppTheme.accentPink.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  accentColor.withValues(alpha: 0.15),
+                  accentColor.withValues(alpha: 0.03),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: accentColor.withValues(alpha: 0.4),
+                width: 1.5,
+              ),
             ),
-            child: const Icon(
-              Icons.play_circle_filled_rounded,
-              color: AppTheme.accentPink,
-              size: 26,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Icon(
+                  hasTier ? PhosphorIcons.trophy() : PhosphorIcons.target(),
+                  size: 40,
+                  color: accentColor,
+                ),
+                const SizedBox(height: 12),
                 Text(
-                  'Watch Ad for XP',
+                  hasTier ? '${tierInfo.name} Certificate Earned' : 'Earn Your First Certificate',
                   style: AppTheme.headingSmall.copyWith(
-                    fontSize: 14,
-                    color: AppTheme.textPrimaryC(isDark),
+                    color: hasTier ? accentColor : AppTheme.textPrimaryC(isDark),
+                    fontSize: 17,
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 6),
                 Text(
-                  reachedCap 
-                      ? 'Daily limit reached. Come back tomorrow!'
-                      : 'Earn +30 XP instantly. (${3 - _adsWatchedToday} left today)',
-                  style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
+                  hasTier
+                      ? tierInfo.description
+                      : 'Complete 3 modules to unlock your Bronze certificate.',
+                  textAlign: TextAlign.center,
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.textSecondaryC(isDark),
+                    height: 1.4,
+                  ),
+                ),
+                if (hasNextTier) ...[
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Text(
+                        'Next: ${kTiers[nextTierIdx].name}',
+                        style: TextStyle(
+                          color: kTiers[nextTierIdx].color.withValues(alpha: 0.7),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${(nextProgress * 100).toInt()}%',
+                        style: TextStyle(
+                          color: kTiers[nextTierIdx].color,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: nextProgress,
+                      backgroundColor: kTiers[nextTierIdx].color.withValues(alpha: 0.1),
+                      valueColor: AlwaysStoppedAnimation(kTiers[nextTierIdx].color),
+                      minHeight: 5,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: accentColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: accentColor.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(
+                    'VIEW ALL TIERS',
+                    style: AppTheme.buttonText.copyWith(
+                      fontSize: 11,
+                      color: accentColor,
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-          if (!reachedCap)
-            GestureDetector(
-              onTap: _isLoadingAdCount ? null : _watchAd,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.accentPink.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: _isLoadingAdCount
-                    ? const SizedBox(
-                        width: 14, height: 14, 
-                        child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accentPink))
-                    : Text(
-                        'WATCH',
-                        style: AppTheme.labelMedium.copyWith(
-                          color: AppTheme.accentPink,
-                          fontSize: 12,
-                        ),
-                      ),
-              ),
-            )
-          else
-            const Icon(Icons.check_circle_rounded, color: AppTheme.successGreen, size: 24),
-        ],
-      ),
-    ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.05, end: 0);
+        ).animate().fadeIn().slideY(begin: 0.05, end: 0);
+      },
+    );
   }
 }
 
