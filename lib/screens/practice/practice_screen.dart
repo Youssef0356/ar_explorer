@@ -9,9 +9,7 @@ import '../../data/learning/quiz_data.dart';
 
 import '../../models/quiz_model.dart';
 import '../../services/progress_service.dart';
-import '../../services/subscription_service.dart';
 import '../../services/theme_service.dart';
-import '../../widgets/banner_ad_widget.dart';
 import '../../widgets/quiz_option_button.dart';
 
 class PracticeScreen extends StatefulWidget {
@@ -439,13 +437,6 @@ class _PracticeScreenState extends State<PracticeScreen> {
           ).animate().fadeIn(delay: const Duration(milliseconds: 300)),
 
           const SizedBox(height: 20),
-
-          // ── Banner Ad (low-emotion zone / browsing) ──
-          Builder(builder: (context) {
-            final isPremium = context.watch<SubscriptionService>().isPremium;
-            if (isPremium) return const SizedBox.shrink();
-            return const Center(child: BannerAdWidget());
-          }),
         ],
       ),
     );

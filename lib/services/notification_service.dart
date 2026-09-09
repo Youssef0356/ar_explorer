@@ -7,6 +7,9 @@ import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:workmanager/workmanager.dart';
 
+import '../data/learning/modules_data.dart';
+import 'progress_service.dart';
+
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
@@ -29,12 +32,17 @@ class NotificationService extends ChangeNotifier {
   bool _notificationsEnabled = true;
   bool get notificationsEnabled => _notificationsEnabled;
 
+  ProgressService? _progressService;
+  void setProgressService(ProgressService service) => _progressService = service;
+
   static const String _streakChannelId = 'streak_reminders';
   static const String _streakChannelName = 'Streak Reminders';
   static const String _funnyChannelId = 'engagement_messages';
   static const String _funnyChannelName = 'Funny Reminders';
   static const String _dailyChannelId = 'daily_xp_reminders';
   static const String _dailyChannelName = 'Daily XP Reminders';
+  static const String _weeklyModuleChannelId = 'weekly_module_reminders';
+  static const String _weeklyModuleChannelName = 'Weekly Module Reminders';
 
   final List<String> _funnyMessages = [
     "We miss you! Come back and continue your AR journey!",
@@ -49,6 +57,15 @@ class NotificationService extends ChangeNotifier {
     "Your streak misses you. Come back today!",
     "New AR challenges await your expertise.",
     "The AR engine is idling... start it up!",
+  ];
+
+  final List<String> _weeklyModuleMessages = [
+    "You have unfinished modules waiting! Keep the momentum going.",
+    "Weekly check-in: which modules still need your attention?",
+    "Don't let incomplete modules pile up — finish one this week!",
+    "Your learning journey isn't over yet. Check your incomplete modules.",
+    "Time flies! Have you made progress on your modules this week?",
+    "A quick weekly reminder: your modules miss you!",
   ];
 
   Future<void> init() async {
@@ -112,10 +129,18 @@ class NotificationService extends ChangeNotifier {
       importance: Importance.high,
       description: 'Reminders to claim your daily XP bonus.',
     ));
+
+    await androidPlugin?.createNotificationChannel(const AndroidNotificationChannel(
+      _weeklyModuleChannelId,
+      _weeklyModuleChannelName,
+      importance: Importance.high,
+      description: 'Weekly reminders about incomplete learning modules.',
+    ));
     
     if (_notificationsEnabled) {
       scheduleEngagementNotifications();
       scheduleDailyXPReminder();
+      scheduleWeeklyModuleReminder();
       
       // Ensure WorkManager is also initialized and checking periodically
       try {
@@ -190,6 +215,7 @@ class NotificationService extends ChangeNotifier {
     } else {
       scheduleEngagementNotifications();
       scheduleDailyXPReminder();
+      scheduleWeeklyModuleReminder();
     }
     notifyListeners();
   }
@@ -286,6 +312,62 @@ class NotificationService extends ChangeNotifier {
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
+    );
+  }
+
+  Future<void> scheduleWeeklyModuleReminder() async {
+    if (!_notificationsEnabled) return;
+
+    await _notificationsPlugin.cancel(id: 4000);
+
+    final random = Random();
+    final String message = _weeklyModuleMessages[random.nextInt(_weeklyModuleMessages.length)];
+
+    // Schedule for next Monday at 10:00 AM
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, 10, 0);
+
+    // Find next Monday (weekday 1 = Monday)
+    while (scheduledDate.weekday != DateTime.monday || scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+
+    // If it's already Monday and before 10 AM, use today; otherwise use next Monday
+    // The loop above handles this correctly.
+
+    // Build dynamic body based on incomplete modules
+    String body = message;
+    if (_progressService != null) {
+      final incompleteModules = allModules.where((module) =>
+          !_progressService!.isModuleTopicsCompleted(module.id, module.totalTopics)).toList();
+      if (incompleteModules.isNotEmpty) {
+        final count = incompleteModules.length;
+        final firstTitle = incompleteModules.first.title;
+        body = count == 1
+            ? 'You have 1 unfinished module: "$firstTitle". Keep going!'
+            : 'You have $count unfinished modules. Start with "$firstTitle" this week!';
+      } else {
+        // All modules completed — use a congratulatory message instead
+        body = 'Amazing work! All modules complete. Ready for a challenge?';
+      }
+    }
+
+    await _notificationsPlugin.zonedSchedule(
+      id: 4000,
+      title: "Weekly Module Check-in",
+      body: body,
+      scheduledDate: scheduledDate,
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          _weeklyModuleChannelId,
+          _weeklyModuleChannelName,
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
     );
   }
 

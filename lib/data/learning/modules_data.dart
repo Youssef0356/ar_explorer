@@ -2783,4 +2783,385 @@ final List<LearningModule> allModules = [
       ),
     ],
   ),
+
+  // ───────────────────────────────────────────────────────────────
+  //  MODULE 7 — Google AR Viewer: Scene Viewer & Model Viewer
+  // ───────────────────────────────────────────────────────────────
+  LearningModule(
+    id: 'mod_google_ar_viewer',
+    title: 'Google AR Viewer: Scene Viewer & Model Viewer',
+    description:
+        'Explore Google\'s tools for viewing 3D models in AR — from native Android Scene Viewer to the Model Viewer web component.',
+    icon: Icons.view_in_ar_rounded,
+    order: 7,
+    unlockCost: 0,
+    requiredQuizId: null,
+    keyConcepts: [
+      'Scene Viewer is Google\'s native AR viewer built into every ARCore-capable Android device.',
+      'Model Viewer is a web component that makes 3D/AR accessible with a single HTML tag.',
+      'Scene Viewer is launched via Android intents, not embedded in your app.',
+      'Model Viewer works cross-platform: WebXR on Android, Quick Look on iOS.',
+      'glTF/GLB is the standard 3D format for both viewers.',
+      'File size matters — keep models under 5MB for reliable loading.',
+    ],
+    topics: [
+      // ── Topic 1: Scene Viewer ──
+      Topic(
+        id: 'scene_viewer_intro',
+        title: 'Scene Viewer: Google\'s Native AR',
+        subtitle: 'How Android\'s built-in AR viewer works',
+        contentBlocks: [
+          const ContentBlock.heading('What Is Scene Viewer?'),
+          const ContentBlock.body(
+            'Scene Viewer is a native Android application that renders 3D models and places them in the real world using AR. '
+            'It ships pre-installed on every ARCore-capable device running Android 7.0 or later — no Play Store download required.',
+          ),
+          const ContentBlock.body(
+            'You don\'t build Scene Viewer into your app. Instead, you launch it via an Android intent, '
+            'passing the URL of a hosted 3D model. Scene Viewer opens as a separate process, downloads the model, '
+            'and lets the user view it in 3D or place it in AR.',
+          ),
+          const ContentBlock.info(
+            'Scene Viewer\'s UI (reticle, exit button, "View in your space" label) is controlled by Google. '
+            'You cannot customize it — this is a trade-off for zero integration effort.',
+          ),
+
+          const ContentBlock.subheading('How It\'s Launched'),
+          const ContentBlock.body(
+            'Scene Viewer is triggered through an Android intent URL. The intent tells the OS to open '
+            'a specific 3D model in Google\'s viewer app.',
+          ),
+          const ContentBlock.code(
+            '// Intent URL structure\n'
+            'intent://arvr.google.com/scene-viewer/1.0\n'
+            '  ?file=https://example.com/model.glb\n'
+            '  &mode=ar_preferred\n'
+            '#Intent;\n'
+            '  scheme=https;\n'
+            '  package=com.google.android.googlequicksearchbox;\n'
+            '  action=android.intent.action.VIEW;\n'
+            '  S.browser_fallback_url=https://example.com/fallback;\n'
+            'end;',
+          ),
+          const ContentBlock.body(
+            'The file parameter must be a public HTTPS URL to a glTF or GLB model. '
+            'Scene Viewer fetches it directly — it doesn\'t share your app\'s session or authentication.',
+          ),
+
+          const ContentBlock.subheading('The Four Modes'),
+          const ContentBlock.body(
+            'Scene Viewer supports four display modes, controlled by the mode parameter:',
+          ),
+          const ContentBlock.numbered(
+            '3d_preferred (default) — Starts in a 3D viewer. Users can tap "View in your space" to switch to AR. '
+            'If ARCore isn\'t available, the AR button is hidden.',
+          ),
+          const ContentBlock.numbered(
+            '3d_only — Always shows the 3D viewer with no option to switch to AR. '
+            'Useful when you want to showcase a model without requiring AR hardware.',
+          ),
+          const ContentBlock.numbered(
+            'ar_preferred — Starts in AR mode. Users can switch to 3D if they prefer. '
+            'Falls back to 3D if ARCore isn\'t available.',
+          ),
+          const ContentBlock.numbered(
+            'ar_only — Always starts in AR. No 3D fallback. If ARCore isn\'t available, '
+            'Scene Viewer shows an error or navigates to browser_fallback_url.',
+          ),
+          const ContentBlock.info(
+            'For the widest device support, use 3d_preferred (default). '
+            'For guaranteed AR experience, use ar_preferred with a fallback URL.',
+          ),
+
+          const ContentBlock.subheading('Launching from a Native Android App'),
+          const ContentBlock.body(
+            'From a Kotlin or Java app, build an explicit intent targeting the Google app package:',
+          ),
+          const ContentBlock.code(
+            '// Kotlin — Launch Scene Viewer from an Android app\n'
+            'val intent = Intent(Intent.ACTION_VIEW).apply {\n'
+            '    data = Uri.parse(\n'
+            '        "https://arvr.google.com/scene-viewer/1.0?"\n'
+            '        + "file=\$modelUrl&mode=ar_preferred"\n'
+            '    )\n'
+            '    setPackage("com.google.android.googlequicksearchbox")\n'
+            '}\n'
+            'startActivity(intent);',
+          ),
+
+          const ContentBlock.subheading('Fallback Strategy'),
+          const ContentBlock.body(
+            'Always provide a browser_fallback_url. This is the page Scene Viewer navigates to '
+            'if the device doesn\'t support AR or if the model can\'t load. '
+            'Common choices: a 3D-only viewer page, a download prompt, or a helpful error message.',
+          ),
+          const ContentBlock.warning(
+            'Don\'t use ar_only mode with the Google app package. Use ar_only only when targeting '
+            'com.google.ar.core directly and providing your own fallback.',
+          ),
+        ],
+      ),
+
+      // ── Topic 2: Model Viewer ──
+      Topic(
+        id: 'model_viewer_web',
+        title: 'Model Viewer: 3D on the Web',
+        subtitle: 'The web component that makes AR accessible',
+        contentBlocks: [
+          const ContentBlock.heading('What Is Model Viewer?'),
+          const ContentBlock.body(
+            '<model-viewer> is an open-source web component created by Google. '
+            'It renders interactive 3D models on any modern browser and transitions to AR '
+            'on supported mobile devices — all with a single HTML tag.',
+          ),
+          const ContentBlock.body(
+            'It\'s free, Apache 2.0 licensed, and requires no build step, no npm install, '
+            'and no framework dependency. Add a script tag and a <model-viewer> element. That\'s it.',
+          ),
+
+          const ContentBlock.subheading('Minimal Setup'),
+          const ContentBlock.code(
+            '<script type="module"\n'
+            '  src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js">\n'
+            '</script>\n\n'
+            '<model-viewer\n'
+            '  src="https://example.com/model.glb"\n'
+            '  ar\n'
+            '  camera-controls\n'
+            '  auto-rotate>\n'
+            '</model-viewer>',
+          ),
+          const ContentBlock.body(
+            'The ar attribute enables the AR button on supported devices. '
+            'camera-controls enables orbit, zoom, and pan. auto-rotate spins the model when idle.',
+          ),
+
+          const ContentBlock.subheading('Key Attributes'),
+          const ContentBlock.body(
+            'Model Viewer offers rich configuration through HTML attributes:',
+          ),
+          const ContentBlock.numbered(
+            'src — URL to a glTF or GLB file (required).',
+          ),
+          const ContentBlock.numbered(
+            'ios-src — URL to a USDZ file for iOS Quick Look. Optional; if omitted, '
+            'a USDZ is auto-generated from the glTF.',
+          ),
+          const ContentBlock.numbered(
+            'ar — Enables the AR button on supported devices.',
+          ),
+          const ContentBlock.numbered(
+            'ar-modes — Priority list of AR backends: "webxr scene-viewer quick-look". '
+            'WebXR stays in browser; Scene Viewer launches native; Quick Look is iOS.',
+          ),
+          const ContentBlock.numbered(
+            'ar-scale — "auto" (default) lets users resize; "fixed" locks to real-world units.',
+          ),
+          const ContentBlock.numbered(
+            'ar-placement — "floor" (default) or "wall" for wall-mounted objects.',
+          ),
+          const ContentBlock.numbered(
+            'camera-controls — Enables user orbit, zoom, and pan.',
+          ),
+          const ContentBlock.numbered(
+            'auto-rotate — Rotates the model when the user isn\'t interacting.',
+          ),
+          const ContentBlock.info(
+            'For product pages where real-world size matters (furniture, appliances), '
+            'set ar-scale="fixed" so the model appears at its true dimensions.',
+          ),
+
+          const ContentBlock.subheading('Custom AR Button'),
+          const ContentBlock.body(
+            'Use a slot to replace the default AR button with your own:',
+          ),
+          const ContentBlock.code(
+            '<model-viewer src="model.glb" ar>\n'
+            '  <button slot="ar-button" style="...">\n'
+            '    View in Your Space\n'
+            '  </button>\n'
+            '</model-viewer>',
+          ),
+
+          const ContentBlock.subheading('Handling AR Events'),
+          const ContentBlock.body(
+            'Listen for the ar-status event to track AR session state:',
+          ),
+          const ContentBlock.code(
+            'const viewer = document.querySelector("model-viewer");\n'
+            'viewer.addEventListener("ar-status", (e) => {\n'
+            '  if (e.detail.status === "failed") {\n'
+            '    showError("AR is not supported on this device");\n'
+            '  }\n'
+            '});',
+          ),
+          const ContentBlock.warning(
+            'Scene Viewer downloads the model again from its URL — it doesn\'t share the browser\'s cached copy. '
+            'If the model is large, there will be a second loading delay when entering AR.',
+          ),
+        ],
+      ),
+
+      // ── Topic 3: Formats & Optimization ──
+      Topic(
+        id: 'model_formats_optimization',
+        title: '3D Formats & Optimization',
+        subtitle: 'glTF, GLB, USDZ — and keeping file sizes small',
+        contentBlocks: [
+          const ContentBlock.heading('Supported Formats'),
+          const ContentBlock.body(
+            'Both Scene Viewer and Model Viewer work with glTF 2.0, the open standard for 3D assets '
+            'maintained by the Khronos Group. The two main variants are:',
+          ),
+          const ContentBlock.numbered(
+            'glTF (.gltf + textures) — A JSON-based format that references external files for textures and geometry. '
+            'Flexible but requires multiple files.',
+          ),
+          const ContentBlock.numbered(
+            'GLB (.glb) — A single binary file that packages everything (geometry, materials, textures, animations) '
+            'into one self-contained blob. Preferred for web and AR.',
+          ),
+          const ContentBlock.body(
+            'For iOS, USDZ is used by Apple\'s Quick Look. Model Viewer can auto-generate a USDZ '
+            'from the glTF, or you can provide a pre-built one via ios-src.',
+          ),
+
+          const ContentBlock.subheading('File Size Guidelines'),
+          const ContentBlock.body(
+            'File size directly impacts load time and user experience:',
+          ),
+          const ContentBlock.numbered(
+            '< 5MB — Ideal. Loads in under 2 seconds on most devices.',
+          ),
+          const ContentBlock.numbered(
+            '5–15MB — Acceptable. Noticeable delay on slower connections.',
+          ),
+          const ContentBlock.numbered(
+            '> 15MB — Problematic. May fail to load on mid-range devices or time out.',
+          ),
+          const ContentBlock.warning(
+            'Scene Viewer has no official file size limit, but field testing shows models over 35MB '
+            'may fail to trigger AR entirely. Treat 15MB as the practical ceiling.',
+          ),
+
+          const ContentBlock.subheading('Draco Compression'),
+          const ContentBlock.body(
+            'Draco is a glTF extension that compresses mesh geometry (vertices, normals, UVs). '
+            'It can reduce file size by 80–97% with minimal visual quality loss.',
+          ),
+          const ContentBlock.body(
+            'Draco only compresses geometry, not textures. If your model is large due to high-resolution '
+            'textures, reduce texture resolution separately (2K is usually sufficient for web).',
+          ),
+          const ContentBlock.info(
+            'Model Viewer loads the Draco decoder on-demand from a CDN. '
+            'The decoder is ~100KB, so only use Draco when the geometry savings exceed that cost.',
+          ),
+
+          const ContentBlock.subheading('Unit Scale'),
+          const ContentBlock.body(
+            'glTF treats 1 unit as 1 meter. A model exported at centimeter scale '
+            '(1 unit = 1cm) will appear 100x too large in Scene Viewer. '
+            'Always verify scale by comparing against a known-size reference.',
+          ),
+
+          const ContentBlock.subheading('Hosting Requirements'),
+          const ContentBlock.body(
+            'Scene Viewer fetches the model URL as a separate process, outside your page\'s session. '
+            'This means:',
+          ),
+          const ContentBlock.bullet(
+            'The URL must be publicly accessible (no auth, no login walls).',
+          ),
+          const ContentBlock.bullet(
+            'The server must return the correct MIME type: model/gltf-binary for GLB.',
+          ),
+          const ContentBlock.bullet(
+            'CORS headers must allow cross-origin access if hosting on a different domain.',
+          ),
+          const ContentBlock.bullet(
+            'HTTPS is required — HTTP URLs will fail silently.',
+          ),
+        ],
+      ),
+
+      // ── Topic 4: Best Practices ──
+      Topic(
+        id: 'ar_viewer_best_practices',
+        title: 'Best Practices & Common Pitfalls',
+        subtitle: 'What to do (and what not to do)',
+        contentBlocks: [
+          const ContentBlock.heading('Integration Patterns'),
+          const ContentBlock.body(
+            'Choose the right tool for your use case:',
+          ),
+          const ContentBlock.numbered(
+            'Product pages / e-commerce — Use Model Viewer. It\'s zero-config, works cross-platform, '
+            'and handles both 3D and AR with one tag.',
+          ),
+          const ContentBlock.numbered(
+            'Android app — Use Scene Viewer via intent. No need to build a custom 3D renderer '
+            'just to show a model.',
+          ),
+          const ContentBlock.numbered(
+            'Web app with custom UI — Use Model Viewer with WebXR mode. '
+            'This keeps the AR session in the browser with DOM overlay for custom controls.',
+          ),
+          const ContentBlock.numbered(
+            'iOS support — Model Viewer auto-generates USDZ for Quick Look, '
+            'or provide your own via ios-src for animations.',
+          ),
+
+          const ContentBlock.subheading('Performance Tips'),
+          const ContentBlock.bullet(
+            'Use poster images — Show a static preview while the GLB loads in the background.',
+          ),
+          const ContentBlock.bullet(
+            'Lazy loading — Add loading="lazy" to defer downloads until the viewer scrolls into view.',
+          ),
+          const ContentBlock.bullet(
+            'Compress textures — Use KTX2 format for GPU-friendly textures, or reduce resolution to 2K.',
+          ),
+          const ContentBlock.bullet(
+            'Set explicit dimensions — Prevents layout shift (CLS) which Google penalizes.',
+          ),
+
+          const ContentBlock.subheading('Common Pitfalls'),
+          const ContentBlock.warning(
+            'Wrong MIME type — If your server returns application/octet-stream instead of '
+            'model/gltf-binary, Scene Viewer will fail silently. Always verify with curl -I.',
+          ),
+          const ContentBlock.warning(
+            'Auth-gated URLs — Scene Viewer can\'t access cookies or tokens. '
+            'If the model URL requires login, it won\'t load.',
+          ),
+          const ContentBlock.warning(
+            'Wrong scale — A model exported in centimeters will appear 100x too large. '
+            'Set ar-scale="fixed" while testing to catch scale bugs.',
+          ),
+          const ContentBlock.warning(
+            'Oversized files — A 45MB GLB might work in your browser but fail on Scene Viewer. '
+            'Test on a mid-range device with a slow connection.',
+          ),
+
+          const ContentBlock.subheading('Debugging'),
+          const ContentBlock.body(
+            'Scene Viewer can\'t be debugged over USB like a webpage. '
+            'Instead, use Model Viewer\'s ar-status event to catch failures before they happen:',
+          ),
+          const ContentBlock.code(
+            'modelViewer.addEventListener("ar-status", (e) => {\n'
+            '  console.log("AR status:", e.detail.status);\n'
+            '  // "failed" fires before Scene Viewer gives up silently\n'
+            '});',
+          ),
+          const ContentBlock.info(
+            'A common interview question: "How would you show a 3D product in AR on Android?" '
+            'Answer: Use Model Viewer with ar-modes="scene-viewer" for a zero-config solution, '
+            'or launch Scene Viewer via intent from a native app for more control over the experience.',
+          ),
+        ],
+      ),
+    ],
+  ),
 ];

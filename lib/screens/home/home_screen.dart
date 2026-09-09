@@ -517,6 +517,102 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                             ),
 
+                            // ── Share Button with Daily Cap ──
+                            Consumer<ProgressService>(
+                              builder: (context, progress, _) {
+                                final remaining = progress.sharesRemaining;
+                                return Tooltip(
+                                  message: remaining > 0
+                                      ? 'Share & Earn XP ($remaining/3 left today)'
+                                      : 'Share limit reached today',
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                      if (!context.mounted) return;
+                                      soundService.playTap();
+
+                                      final earned = await progress.shareAndEarnXP();
+
+                                      if (!context.mounted) return;
+                                      if (earned) {
+                                        final newRemaining = progress.sharesRemaining;
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              '+50 XP earned! ($newRemaining/3 shares left today)',
+                                            ),
+                                            backgroundColor: AppTheme.successGreen,
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            duration: const Duration(seconds: 2),
+                                          ),
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: const Text(
+                                              'Daily share limit reached. Come back tomorrow!',
+                                            ),
+                                            backgroundColor: AppTheme.accentAmber,
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            duration: const Duration(seconds: 2),
+                                          ),
+                                        );
+                                      }
+
+                                      // Always open share sheet
+                                      Share.share(
+                                        'Check out AR Explorer – the ultimate app to learn Augmented Reality!\n\n'
+                                        'Download on Google Play:\n'
+                                        'https://play.google.com/store/apps/details?id=com.the356company.arexplorer',
+                                        subject: 'AR Explorer – Learn Augmented Reality',
+                                      );
+                                    },
+                                    child: Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(8),
+                                          child: Icon(
+                                            Icons.share_rounded,
+                                            color: remaining > 0
+                                                ? AppTheme.accentCyan
+                                                : AppTheme.textMutedC(isDark),
+                                            size: 22,
+                                          ),
+                                        ),
+                                        if (remaining > 0)
+                                          Positioned(
+                                            top: 2,
+                                            right: 0,
+                                            child: Container(
+                                              padding: const EdgeInsets.all(4),
+                                              decoration: const BoxDecoration(
+                                                color: AppTheme.accentPurple,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Text(
+                                                '$remaining',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 8,
+                                                  fontWeight: FontWeight.bold,
+                                                  height: 1,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+
                             // ── Premium Crown Button ──
                             Consumer<SubscriptionService>(
                               builder: (context, subscription, _) {
@@ -590,6 +686,61 @@ class _HomeScreenState extends State<HomeScreen> {
                         }
                         return content;
                       }(),
+
+                      const SizedBox(height: 16),
+
+                      // ── Search Bar ──
+                      GestureDetector(
+                        onTap: () {
+                          soundService.playTap();
+                          showSearch(
+                            context: context,
+                            delegate: TopicSearchDelegate(isDark: isDark),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.06)
+                                : Colors.black.withValues(alpha: 0.04),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: AppTheme.dividerC(isDark).withOpacity(0.5),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.search_rounded,
+                                color: AppTheme.textMutedC(isDark),
+                                size: 20,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Search modules, topics...',
+                                  style: AppTheme.bodyMedium.copyWith(
+                                    color: AppTheme.textMutedC(isDark),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.accentPurple.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.tune_rounded,
+                                  color: AppTheme.accentPurple,
+                                  size: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
 
                       const SizedBox(height: 16),
                       RepaintBoundary(
@@ -2075,18 +2226,54 @@ class TopicSearchDelegate extends SearchDelegate<String> {
   @override
   Widget buildSuggestions(BuildContext context) => _buildSearchResults(context);
 
+  String _highlightText(String text, String query) {
+    if (query.isEmpty) return text;
+    final lowerText = text.toLowerCase();
+    final lowerQuery = query.toLowerCase();
+    final spans = <TextSpan>[];
+    int start = 0;
+
+    while (true) {
+      final index = lowerText.indexOf(lowerQuery, start);
+      if (index == -1) {
+        spans.add(TextSpan(text: text.substring(start)));
+        break;
+      }
+      if (index > start) {
+        spans.add(TextSpan(text: text.substring(start, index)));
+      }
+      spans.add(TextSpan(
+        text: text.substring(index, index + query.length),
+        style: const TextStyle(
+          backgroundColor: Color(0x444FC3F7),
+          color: AppTheme.accentPurple,
+          fontWeight: FontWeight.bold,
+        ),
+      ));
+      start = index + query.length;
+    }
+    return TextSpan(children: spans).toPlainText();
+  }
+
   Widget _buildSearchResults(BuildContext context) {
     if (query.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('🔍', style: TextStyle(fontSize: 40)),
+            Icon(Icons.search_rounded, size: 48, color: AppTheme.textMutedC(isDark).withOpacity(0.4)),
             const SizedBox(height: 16),
             Text(
-              'Search for any AR topic...',
+              'Search modules, topics, and content...',
               style: AppTheme.bodyMedium.copyWith(
                 color: AppTheme.textMutedC(isDark),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Try "registration", "HoloLens", "tracking"',
+              style: AppTheme.bodySmall.copyWith(
+                color: AppTheme.textMutedC(isDark).withOpacity(0.6),
               ),
             ),
           ],
@@ -2094,26 +2281,48 @@ class TopicSearchDelegate extends SearchDelegate<String> {
       );
     }
 
-    // Filter topics across all modules
-    final results = <Map<String, dynamic>>[];
+    final q = query.toLowerCase();
+    final topicResults = <Map<String, dynamic>>[];
+    final moduleResults = <Map<String, dynamic>>[];
+
     for (var module in allModules) {
+      bool moduleMatched = false;
+
+      // Search module-level fields
+      if (module.title.toLowerCase().contains(q) ||
+          module.description.toLowerCase().contains(q) ||
+          module.keyConcepts.any((kc) => kc.toLowerCase().contains(q))) {
+        moduleResults.add({'module': module});
+        moduleMatched = true;
+      }
+
+      // Search topic-level fields
       for (var topic in module.topics) {
-        if (topic.title.toLowerCase().contains(query.toLowerCase()) ||
-            topic.subtitle.toLowerCase().contains(query.toLowerCase())) {
-          results.add({'module': module, 'topic': topic});
+        if (topic.title.toLowerCase().contains(q) ||
+            topic.subtitle.toLowerCase().contains(q)) {
+          topicResults.add({'module': module, 'topic': topic});
+          continue;
+        }
+
+        // Search content blocks
+        for (var block in topic.contentBlocks) {
+          if (block.content.toLowerCase().contains(q)) {
+            topicResults.add({'module': module, 'topic': topic});
+            break;
+          }
         }
       }
     }
 
-    if (results.isEmpty) {
+    if (topicResults.isEmpty && moduleResults.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('😕', style: TextStyle(fontSize: 40)),
+            Icon(Icons.search_off_rounded, size: 48, color: AppTheme.textMutedC(isDark).withOpacity(0.4)),
             const SizedBox(height: 16),
             Text(
-              'No topics found for "$query"',
+              'No results for "$query"',
               style: AppTheme.bodyMedium.copyWith(
                 color: AppTheme.textMutedC(isDark),
               ),
@@ -2123,50 +2332,141 @@ class TopicSearchDelegate extends SearchDelegate<String> {
       );
     }
 
-    return ListView.builder(
-      itemCount: results.length,
+    return ListView(
       padding: const EdgeInsets.symmetric(vertical: 16),
-      itemBuilder: (context, index) {
-        final module = results[index]['module'] as LearningModule;
-        final topic = results[index]['topic'] as Topic;
-        final color = AppTheme.getModuleColor(allModules.indexOf(module));
+      children: [
+        // Module-level matches
+        if (moduleResults.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+            child: Text(
+              'MODULES',
+              style: AppTheme.labelMedium.copyWith(
+                letterSpacing: 1.5,
+                color: AppTheme.textMutedC(isDark),
+                fontSize: 11,
+              ),
+            ),
+          ),
+          ...moduleResults.map((result) {
+            final module = result['module'] as LearningModule;
+            final color = AppTheme.getModuleColor(allModules.indexOf(module));
+            final matchedConcept = module.keyConcepts
+                .where((kc) => kc.toLowerCase().contains(q))
+                .firstOrNull;
 
-        return ListTile(
-          leading: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(module.icon, color: color, size: 20),
-          ),
-          title: Text(
-            topic.title,
-            style: AppTheme.bodyLarge.copyWith(
-              color: AppTheme.textPrimaryC(isDark),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          subtitle: Text(
-            'In ${module.title}',
-            style: AppTheme.bodySmall.copyWith(color: color),
-          ),
-          onTap: () {
-            close(context, '');
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TopicScreen(
-                  topic: topic,
-                  moduleId: module.id,
-                  accentColor: color,
+            return ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(module.icon, color: color, size: 20),
+              ),
+              title: Text(
+                _highlightText(module.title, query),
+                style: AppTheme.bodyLarge.copyWith(
+                  color: AppTheme.textPrimaryC(isDark),
+                  fontWeight: FontWeight.w600,
                 ),
               ),
+              subtitle: Text(
+                matchedConcept != null
+                    ? _highlightText(matchedConcept, query)
+                    : module.description,
+                style: AppTheme.bodySmall.copyWith(color: AppTheme.textSecondaryC(isDark)),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              onTap: () {
+                close(context, '');
+                // Navigate to module detail — find it via topic screen of first topic
+                if (module.topics.isNotEmpty) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TopicScreen(
+                        topic: module.topics.first,
+                        moduleId: module.id,
+                        accentColor: color,
+                      ),
+                    ),
+                  );
+                }
+              },
             );
-          },
-        );
-      },
+          }),
+        ],
+
+        // Topic-level matches
+        if (topicResults.isNotEmpty) ...[
+          if (moduleResults.isNotEmpty)
+            const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+            child: Text(
+              'TOPICS',
+              style: AppTheme.labelMedium.copyWith(
+                letterSpacing: 1.5,
+                color: AppTheme.textMutedC(isDark),
+                fontSize: 11,
+              ),
+            ),
+          ),
+          ...topicResults.map((result) {
+            final module = result['module'] as LearningModule;
+            final topic = result['topic'] as Topic;
+            final color = AppTheme.getModuleColor(allModules.indexOf(module));
+
+            // Find matching content preview
+            String contentPreview = topic.subtitle;
+            for (var block in topic.contentBlocks) {
+              if (block.content.toLowerCase().contains(q)) {
+                contentPreview = block.content;
+                break;
+              }
+            }
+
+            return ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(module.icon, color: color, size: 20),
+              ),
+              title: Text(
+                _highlightText(topic.title, query),
+                style: AppTheme.bodyLarge.copyWith(
+                  color: AppTheme.textPrimaryC(isDark),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              subtitle: Text(
+                'In ${module.title}',
+                style: AppTheme.bodySmall.copyWith(color: color),
+              ),
+              onTap: () {
+                close(context, '');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TopicScreen(
+                      topic: topic,
+                      moduleId: module.id,
+                      accentColor: color,
+                    ),
+                  ),
+                );
+              },
+            );
+          }),
+        ],
+      ],
     );
   }
 }

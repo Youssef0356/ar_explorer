@@ -40,7 +40,10 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
   static const _showDebugToolsKey = 'show_debug_tools';
   static const _activityDatesKey = 'activity_dates';
   static const _wrongAnswersDetailsKey = 'wrong_answers_details';
+  static const _shareDailyCountKey = 'share_daily_count';
+  static const _shareLastDateKey = 'share_last_date';
   static const int weeklyTopicsGoal = 5;
+  static const int maxDailyShares = 3;
 
   SharedPreferences? _prefs;
   String _username = '';
@@ -65,6 +68,10 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
   DateTime? _lastDailyLoginDate;
   bool _premiumXpGranted = false;
   bool _showDebugTools = kDebugMode; // Default to true in debug, but user can hide
+  int _shareDailyCount = 0;
+  String _shareLastDate = '';
+
+  int get sharesRemaining => maxDailyShares - _shareDailyCount;
 
   // Certificate IDs
   static const String certPipelineEngineer = 'cert_pipeline_engineer';
@@ -211,7 +218,15 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
     _weeklyTopicsCount = _prefs?.getInt(_weeklyTopicsKey) ?? 0;
     _weeklyChallengeDone = _prefs?.getBool(_weeklyCompletedKey) ?? false;
     _streakFreezeActive = _prefs?.getBool(_streakFreezeKey) ?? false;
-    
+
+    // Share tracking
+    _shareDailyCount = _prefs?.getInt(_shareDailyCountKey) ?? 0;
+    _shareLastDate = _prefs?.getString(_shareLastDateKey) ?? '';
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    if (_shareLastDate != today) {
+      _shareDailyCount = 0;
+    }
+
     _checkDailyLoginBonus();
   }
 
@@ -365,6 +380,23 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
       notifyListeners();
     }
     return success;
+  }
+
+  Future<bool> shareAndEarnXP() async {
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+
+    if (_shareLastDate != today) {
+      _shareDailyCount = 0;
+    }
+
+    if (_shareDailyCount >= maxDailyShares) return false;
+
+    _shareDailyCount++;
+    _shareLastDate = today;
+    await _prefs?.setInt(_shareDailyCountKey, _shareDailyCount);
+    await _prefs?.setString(_shareLastDateKey, _shareLastDate);
+    await addXP(50);
+    return true;
   }
 
   // ── Module & Topic Progress ────────────────────────────────────

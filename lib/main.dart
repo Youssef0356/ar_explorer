@@ -113,6 +113,12 @@ void main() async {
   progressService.setSubscriptionService(subscriptionService);
   progressService.setGameProgressService(gameProgressService);
 
+  try {
+    notificationService.setProgressService(progressService);
+  } catch (e) {
+    debugPrint('NotificationService setProgressService error: $e');
+  }
+
   runApp(
     MultiProvider(
       providers: [

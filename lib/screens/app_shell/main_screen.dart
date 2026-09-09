@@ -14,6 +14,7 @@ import '../home/roadmap_screen.dart';
 import '../profile/achievements_screen.dart';
 import '../games/play_screen.dart';
 import '../../services/navigation_service.dart';
+import '../../widgets/banner_ad_widget.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
@@ -99,9 +100,25 @@ class _MainScreenState extends State<MainScreen> {
     final currentIndex = navigationService.currentIndex;
 
     return Scaffold(
-      body: IndexedStack(
-        index: currentIndex,
-        children: _screens,
+      body: Stack(
+        children: [
+          IndexedStack(
+            index: currentIndex,
+            children: _screens,
+          ),
+          if (!isPremium)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: SafeArea(
+                bottom: false,
+                child: Center(
+                  child: BannerAdWidget(),
+                ),
+              ),
+            ),
+        ],
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
