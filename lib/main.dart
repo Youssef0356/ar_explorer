@@ -17,7 +17,6 @@ import 'services/ad_service.dart';
 import 'services/review_service.dart';
 import 'services/subscription_service.dart';
 import 'services/game_progress_service.dart';
-import 'services/notification_service.dart';
 import 'services/navigation_service.dart';
 
 
@@ -60,7 +59,6 @@ void main() async {
   final soundService = SoundService();
   final reviewService = ReviewService();
   final gameProgressService = GameProgressService();
-  final notificationService = NotificationService();
   final navigationService = NavigationService();
 
 
@@ -95,12 +93,6 @@ void main() async {
     debugPrint('SoundService init error: $e');
   }
 
-  try {
-    await notificationService.init();
-  } catch (e) {
-    debugPrint('NotificationService init error: $e');
-  }
-
 
 
   try {
@@ -123,7 +115,6 @@ void main() async {
         ChangeNotifierProvider.value(value: soundService),
         ChangeNotifierProvider.value(value: reviewService),
         ChangeNotifierProvider.value(value: gameProgressService),
-        ChangeNotifierProvider.value(value: notificationService),
         ChangeNotifierProvider.value(value: navigationService),
 
       ],
@@ -139,28 +130,7 @@ class ARExplorerApp extends StatefulWidget {
   State<ARExplorerApp> createState() => _ARExplorerAppState();
 }
 
-class _ARExplorerAppState extends State<ARExplorerApp> with WidgetsBindingObserver {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      if (mounted) {
-        context.read<NotificationService>().scheduleEngagementNotifications();
-      }
-    }
-  }
-
+class _ARExplorerAppState extends State<ARExplorerApp> {
   @override
   Widget build(BuildContext context) {
     final themeService = context.watch<ThemeService>();

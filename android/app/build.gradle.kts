@@ -62,3 +62,14 @@ flutter {
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
+
+// Force stable Glance versions to avoid alpha dependencies that require AGP 9.1.0+
+configurations.all {
+    resolutionStrategy {
+        force("androidx.glance:glance:1.1.1")
+        force("androidx.glance:glance-appwidget:1.1.1")
+        force("androidx.glance:glance-material:1.1.1")
+        force("androidx.glance:glance-material3:1.1.1")
+        exclude(group = "androidx.compose.remote", module = "remote-creation-android")
+    }
+}

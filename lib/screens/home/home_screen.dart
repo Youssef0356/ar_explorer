@@ -23,7 +23,6 @@ import '../../services/progress_service.dart';
 import '../../services/game_progress_service.dart';
 import '../../services/review_service.dart';
 import '../../services/subscription_service.dart'; 
-import '../../services/notification_service.dart';
 import '../../services/navigation_service.dart';
 import '../../widgets/animated_google_background.dart';
 import '../../widgets/daily_keyword_card.dart';
@@ -1338,27 +1337,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
-                    Consumer<NotificationService>(
-                      builder: (context, notifications, _) => SwitchListTile(
-                        secondary: const Icon(Icons.notifications_active_rounded, color: AppTheme.accentAmber),
-                        title: Text(
-                          'Notifications',
-                          style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
-                        ),
-                        subtitle: Text(
-                          'Streak reminders & tips',
-                          style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-                        ),
-                        value: notifications.notificationsEnabled,
-                        activeThumbColor: AppTheme.accentAmber,
-                        onChanged: (val) {
-                          notifications.toggleNotifications();
-                          context.read<SoundService>().playTap();
-                        },
-                      ),
-                    ),
 
-                    const SizedBox(height: 16),
                     Divider(color: AppTheme.dividerC(isDark)),
                     const SizedBox(height: 8),
 
@@ -1637,58 +1616,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   },
                                 ),
                               ),
-                              ListTile(
-                                leading: const Icon(Icons.notifications_active_rounded, color: AppTheme.accentAmber),
-                                title: Text(
-                                  'Trigger Debug Notification',
-                                  style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
-                                ),
-                                subtitle: Text(
-                                  'Test notification pipeline immediately',
-                                  style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-                                ),
-                                trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
-                                onTap: () {
-                                  context.read<SoundService>().playTap();
-                                  context.read<NotificationService>().triggerDebugNotification();
-                                },
-                              ),
-                              ListTile(
-                                leading: const Icon(Icons.timer_outlined, color: AppTheme.accentAmber),
-                                title: Text(
-                                  'Schedule Test Alarm (60s)',
-                                  style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
-                                ),
-                                subtitle: Text(
-                                  'Verify background scheduling works',
-                                  style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-                                ),
-                                trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
-                                onTap: () async {
-                                  final messenger = ScaffoldMessenger.of(context);
-                                  context.read<SoundService>().playTap();
-                                  await context.read<NotificationService>().scheduleTestAlarm60s();
-                                  messenger.showSnackBar(
-                                    const SnackBar(content: Text('Alarm scheduled for 60 seconds from now! 🕒')),
-                                  );
-                                },
-                              ),
-                              ListTile(
-                                leading: const Icon(Icons.emoji_emotions_rounded, color: AppTheme.accentAmber),
-                                title: Text(
-                                  'Trigger Funny Notification',
-                                  style: AppTheme.bodyLarge.copyWith(color: AppTheme.textPrimaryC(isDark)),
-                                ),
-                                subtitle: Text(
-                                  'Test random funny engagement messages',
-                                  style: AppTheme.bodySmall.copyWith(color: AppTheme.textMutedC(isDark)),
-                                ),
-                                trailing: Icon(Icons.chevron_right_rounded, color: AppTheme.textMutedC(isDark)),
-                                onTap: () {
-                                  context.read<SoundService>().playTap();
-                                  context.read<NotificationService>().triggerFunnyNotification();
-                                },
-                              ),
+
                               ListTile(
                                 leading: const Icon(Icons.workspace_premium_rounded, color: AppTheme.successGreen),
                                 title: Text(

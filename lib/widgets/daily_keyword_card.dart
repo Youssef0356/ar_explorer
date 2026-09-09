@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../core/app_theme.dart';
 import '../services/theme_service.dart';
@@ -116,6 +117,29 @@ class _DailyKeywordCardState extends State<DailyKeywordCard>
                 curve: Curves.easeOutBack,
               ).fadeIn(),
               
+          // Share button at top left
+          Positioned(
+            top: 0,
+            left: 0,
+            child: IconButton(
+              icon: Icon(Icons.share_rounded, color: AppTheme.textPrimaryC(isDark)),
+              onPressed: () {
+                SharePlus.instance.share(
+                  ShareParams(
+                    text: '💡 Today\'s AR Keyword on AR Explorer:\n\n'
+                        '🔹 ${widget.keyword}\n'
+                        '📝 ${widget.definition}\n\n'
+                        'Learn more Augmented Reality concepts with AR Explorer! 🚀',
+                    subject: 'AR Keyword of the Day: ${widget.keyword}',
+                  ),
+                );
+              },
+              style: IconButton.styleFrom(
+                backgroundColor: AppTheme.cardC(isDark).withValues(alpha: 0.8),
+              ),
+            ),
+          ).animate().fadeIn(delay: const Duration(milliseconds: 300)),
+          
           // Close button at top right
           Positioned(
             top: 0,

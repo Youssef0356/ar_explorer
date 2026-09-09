@@ -1755,4 +1755,94 @@ final Map<String, Quiz> allQuizzes = {
     ],
   ),
 
+  // ───────────────────────────────────────────────────────────────
+  //  QUIZ — Implementing AR in Flutter
+  // ───────────────────────────────────────────────────────────────
+  'quiz_flutter_ar': Quiz(
+    id: 'quiz_flutter_ar',
+    moduleId: 'mod_flutter_ar',
+    title: 'Checkup: Implementing AR in Flutter',
+    passingScore: 60,
+    questions: [
+      const QuizQuestion(
+        id: 'q_flutter_ar_1',
+        question: 'How does Flutter provide AR capabilities on iOS and Android?',
+        options: [
+          'It bridges to native ARKit and ARCore through platform-channel plugins',
+          'Flutter includes a built-in AR engine written entirely in Dart',
+          'AR only works through a WebView loading a web AR site',
+          'You must rewrite the app separately in Swift and Kotlin',
+        ],
+        correctIndex: 0,
+        explanation:
+            'Flutter renders UI; it reaches ARKit/ARCore through a plugin that communicates with native code.',
+      ),
+      const QuizQuestion(
+        id: 'q_flutter_ar_2',
+        question: 'Which package is the most common all-in-one wrapper for cross-platform AR in Flutter?',
+        options: [
+          'provider',
+          'ar_flutter_plugin',
+          'shared_preferences',
+          'path_provider',
+        ],
+        correctIndex: 1,
+        explanation:
+            'ar_flutter_plugin exposes ARKit (iOS) and ARCore (Android) through a single ARView widget.',
+      ),
+      const QuizQuestion(
+        id: 'q_flutter_ar_3',
+        question: 'What is the role of ARAnchorManager?',
+        options: [
+          'It serves advertisements inside the AR scene',
+          'It compresses 3D models before they are downloaded',
+          'It locks virtual content to real-world positions using anchors',
+          'It removes the need to request a camera permission',
+        ],
+        correctIndex: 2,
+        explanation:
+            'Anchors persist virtual content at fixed real-world points, which is what makes AR feel stable.',
+      ),
+      const QuizQuestion(
+        id: 'q_flutter_ar_4',
+        question: 'Why should AR features always be tested on a physical device?',
+        options: [
+          'The simulator can never grant a camera permission at all',
+          'ARKit and ARCore require real sensors unavailable in simulators',
+          'Flutter apps crash on the iOS simulator by design',
+          'Debug builds disable AR on emulators randomly',
+        ],
+        correctIndex: 1,
+        explanation:
+            'ARKit and ARCore depend on real cameras, IMUs, and depth sensors that simulators do not provide.',
+      ),
+      const QuizQuestion(
+        id: 'q_flutter_ar_5',
+        question: 'What does calling session.onInitialize() do?',
+        options: [
+          'It uploads analytics about the current user session',
+          'It restarts the Dart virtual machine',
+          'It configures planes, feature points, and the world origin before interaction',
+          'It is only required when using Unity, not native plugins',
+        ],
+        correctIndex: 2,
+        explanation:
+            'Initializing the session enables plane detection and feature points; node calls before this are ignored.',
+      ),
+      const QuizQuestion(
+        id: 'q_flutter_ar_6',
+        question: 'What happens if you add a 3D node without an anchor?',
+        options: [
+          'It is automatically anchored to the nearest detected wall',
+          'It stays permanently fixed in world space forever',
+          'It drifts relative to the world and follows the camera instead',
+          'It throws an exception and crashes the running app',
+        ],
+        correctIndex: 2,
+        explanation:
+            'Free nodes are positioned relative to the camera, so they move with the device instead of staying in the world.',
+      ),
+    ],
+  ),
+
 };
