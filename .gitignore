@@ -43,6 +43,5 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/flutter_tools_gradle/
 
-# Keystore and properties in secret folder
-/secret/

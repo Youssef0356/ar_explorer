@@ -1,9 +1,13 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/app_theme.dart';
+import '../../services/ad_service.dart';
 import '../../services/sound_service.dart';
+import '../../services/subscription_service.dart';
 import '../../services/theme_service.dart';
 import '../../widgets/animated_google_background.dart';
 import '../../core/tour_keys.dart';
@@ -14,8 +18,63 @@ import 'systems_engineer/coding_game_map_screen.dart';
 import 'pipeline_challenge/game_map_screen.dart'; // Pipeline Challenge
 import 'ar_debugger/ar_debugger_game.dart';
 
-class PlayScreen extends StatelessWidget {
+class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
+
+  @override
+  State<PlayScreen> createState() => _PlayScreenState();
+}
+
+class _PlayScreenState extends State<PlayScreen> {
+  bool _isCheckingAd = false;
+
+  /// Checks if surprise ad should be shown (1/10 chance, max once per day)
+  /// Returns true if ad was shown and navigation should be blocked
+  Future<bool> _maybeShowSurpriseAd() async {
+    final isPremium = context.read<SubscriptionService>().isPremium;
+    if (isPremium) return false; // No ads for premium users
+
+    if (_isCheckingAd) return false;
+    _isCheckingAd = true;
+
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final lastSurpriseAdDate = prefs.getString('surprise_ad_date');
+    
+    // Already shown today? Don't show again
+    if (lastSurpriseAdDate == today) {
+      _isCheckingAd = false;
+      return false;
+    }
+
+    // 1/10 chance (10% probability)
+    final random = Random();
+    final shouldShow = random.nextInt(10) == 0; // 0 out of 0-9 = 10%
+    
+    if (!shouldShow) {
+      _isCheckingAd = false;
+      return false;
+    }
+
+    // Show the ad
+    final adService = context.read<AdService>();
+    final adShown = await adService.showInterstitialAd();
+    
+    if (adShown && mounted) {
+      // Mark as shown for today
+      await prefs.setString('surprise_ad_date', today);
+    }
+    
+    _isCheckingAd = false;
+    return adShown; // Only block navigation if ad was actually shown
+  }
+
+  Future<void> _navigateToGame(VoidCallback navigate) async {
+    final adShown = await _maybeShowSurpriseAd();
+    if (!adShown && mounted) {
+      navigate();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +113,7 @@ class PlayScreen extends StatelessWidget {
                             subtitle: 'Build AR Inspector setups like a pro',
                             icon: Icons.architecture_rounded,
                             color: AppTheme.accentCyan,
-                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InspectorGameMapScreen())),
+                            onTap: () => _navigateToGame(() => Navigator.push(context, MaterialPageRoute(builder: (_) => const InspectorGameMapScreen()))),
                             delay: 100,
                           ),
                         ),
@@ -70,7 +129,7 @@ class PlayScreen extends StatelessWidget {
                             subtitle: 'Master AR logic & master scripts.',
                             icon: Icons.code_rounded,
                             color: const Color(0xFF00E5FF),
-                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CodingGameMapScreen())),
+                            onTap: () => _navigateToGame(() => Navigator.push(context, MaterialPageRoute(builder: (_) => const CodingGameMapScreen()))),
                             delay: 200,
                           ),
                         ),
@@ -86,7 +145,7 @@ class PlayScreen extends StatelessWidget {
                             subtitle: 'Connect logic pipelines in a spatial mapping puzzle.',
                             icon: Icons.account_tree_rounded,
                             color: AppTheme.accentPurple,
-                            onTap: () => _showPipelineExplanation(context, isDark),
+                            onTap: () => _navigateToGame(() => _showPipelineExplanation(context, isDark)),
                             delay: 300,
                           ),
                         ),
@@ -102,9 +161,7 @@ class PlayScreen extends StatelessWidget {
                             subtitle: 'Diagnose & fix broken AR apps',
                             icon: Icons.bug_report_rounded,
                             color: AppTheme.errorRed,
-                            onTap: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (_) => const ARDebuggerMapScreen()));
-                            },
+                            onTap: () => _navigateToGame(() => Navigator.push(context, MaterialPageRoute(builder: (_) => const ARDebuggerMapScreen()))),
                             delay: 400,
                           ),
                         ),
@@ -329,9 +386,12 @@ class PlayScreen extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         Navigator.pop(context);
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const GameMapScreen()));
+                        final adShown = await _maybeShowSurpriseAd();
+                        if (!adShown && mounted) {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const GameMapScreen()));
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.accentPurple,
