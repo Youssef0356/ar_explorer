@@ -17,6 +17,7 @@ import 'xr_builder/inspector_game_map_screen.dart';
 import 'systems_engineer/coding_game_map_screen.dart';
 import 'pipeline_challenge/game_map_screen.dart'; // Pipeline Challenge
 import 'ar_debugger/ar_debugger_game.dart';
+import 'slam_lab/slam_lab_map_screen.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -36,6 +37,7 @@ class _PlayScreenState extends State<PlayScreen> {
 
     if (_isCheckingAd) return false;
     _isCheckingAd = true;
+    final adService = context.read<AdService>();
 
     final prefs = await SharedPreferences.getInstance();
     final today = DateTime.now().toIso8601String().substring(0, 10);
@@ -57,7 +59,6 @@ class _PlayScreenState extends State<PlayScreen> {
     }
 
     // Show the ad
-    final adService = context.read<AdService>();
     final adShown = await adService.showInterstitialAd();
     
     if (adShown && mounted) {
@@ -70,8 +71,8 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 
   Future<void> _navigateToGame(VoidCallback navigate) async {
-    final adShown = await _maybeShowSurpriseAd();
-    if (!adShown && mounted) {
+    await _maybeShowSurpriseAd();
+    if (mounted) {
       navigate();
     }
   }
@@ -85,7 +86,10 @@ class _PlayScreenState extends State<PlayScreen> {
       body: AnimatedGoogleBackground(
         isDark: isDark,
         child: SafeArea(
-          child: Column(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 750),
+              child: Column(
             children: [
               _buildHeader(isDark),
               Expanded(
@@ -165,12 +169,30 @@ class _PlayScreenState extends State<PlayScreen> {
                             delay: 400,
                           ),
                         ),
+                        const SizedBox(height: 16),
+                        
+                        KeyedSubtree(
+                          key: TourKeys.playGameSLAMKey,
+                          child: _buildGameCard(
+                            context: context,
+                            isDark: isDark,
+                            sound: soundService,
+                            title: 'SLAM Simulator',
+                            subtitle: 'Calibrate feature tracking & filter noise',
+                            icon: Icons.sensors_rounded,
+                            color: AppTheme.accentCyan,
+                            onTap: () => _navigateToGame(() => Navigator.push(context, MaterialPageRoute(builder: (_) => const SlamLabMapScreen()))),
+                            delay: 500,
+                          ),
+                        ),
                         const SizedBox(height: 48),
                       ],
                     ),
                   ),
               ),
             ],
+          ),
+            ),
           ),
         ),
       ),

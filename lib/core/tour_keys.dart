@@ -86,6 +86,7 @@ class TourKeys {
   static final GlobalKey playGameSystemsEngineerKey = GlobalKey();
   static final GlobalKey playGamePipelineChallengeKey = GlobalKey();
   static final GlobalKey playGameARDebuggerKey = GlobalKey();
+  static final GlobalKey playGameSLAMKey = GlobalKey();
   static final GlobalKey playGamesListKey = GlobalKey(); // Legacy, keep just in case
 
   // ── REWARDS TAB ──

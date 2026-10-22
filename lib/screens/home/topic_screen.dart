@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:collection/collection.dart';
@@ -8,7 +9,6 @@ import '../../models/topic_model.dart';
 import '../../services/progress_service.dart';
 import '../../services/theme_service.dart';
 import '../../services/sound_service.dart';
-import '../../services/ad_service.dart';
 import '../../widgets/content_renderer.dart';
 import '../../data/learning/quiz_data.dart';
 import '../practice/quiz_screen.dart';
@@ -221,10 +221,13 @@ class _TopicScreenState extends State<TopicScreen> {
 
               // ── Content ──
               Expanded(
-                child: SingleChildScrollView(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 780),
+                    child: SingleChildScrollView(
                   controller: _scrollController,
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 100),
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -317,107 +320,217 @@ class _TopicScreenState extends State<TopicScreen> {
                   ),
                 ),
               ),
-            ],
+            ),
+          ),
+        ],
           ),
         ),
       ),
 
-      // ── Mark Complete FAB ──
-      floatingActionButton: Consumer<ProgressService>(
+      // ── Persistent Action Dock ──
+      bottomNavigationBar: Consumer<ProgressService>(
         builder: (context, progress, child) {
           final isCompleted = progress.isTopicCompleted(topicKey);
-          if (!isCompleted) {
-            return AnimatedScale(
-              scale: 1.0,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              child: FloatingActionButton.extended(
-                onPressed: () async {
-                  soundService.playTap();
-                  await progress.completeTopic(topicKey);
 
-                  if (context.mounted) {
-                    context.read<AdService>().showInterstitialAdWithProbability(0.25);
-                  }
-
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Row(
-                          children: [
-                            const Text(
-                              '\ud83c\udf89',
-                              style: TextStyle(fontSize: 20),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              'Topic completed! +50 XP',
-                              style: AppTheme.bodyMedium.copyWith(
-                                color: AppTheme.textPrimaryC(isDark),
-                              ),
-                            ),
-                          ],
-                        ),
-                        backgroundColor: AppTheme.cardC(isDark),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  }
-                },
-                backgroundColor: widget.accentColor,
-                foregroundColor: AppTheme.primaryDark,
-                icon: const Icon(Icons.check_rounded, size: 20),
-                label: Text('Mark Complete \u2728', style: AppTheme.buttonText),
+          return Container(
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppTheme.primaryDark.withValues(alpha: 0.95)
+                  : Colors.white.withValues(alpha: 0.95),
+              border: Border(
+                top: BorderSide(
+                  color: AppTheme.dividerC(isDark),
+                  width: 1,
+                ),
               ),
-            );
-          }
-
-          // After completion, show a "Next topic" button that asks the
-          // previous screen to move forward.
-          // Only show this if NOT opened from bookmarks.
-          if (widget.fromBookmark) return const SizedBox.shrink();
-
-          return Builder(builder: (context) {
-            final quiz = allQuizzes.values.firstWhereOrNull(
-              (q) => q.moduleId == widget.moduleId,
-            );
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (quiz != null)
-                  FloatingActionButton.extended(
-                    heroTag: 'fab_quiz',
-                    onPressed: () {
-                      soundService.playTap();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => QuizScreen(quiz: quiz)),
-                      );
-                    },
-                    backgroundColor: AppTheme.accentPink,
-                    foregroundColor: AppTheme.primaryDark,
-                    icon: const Icon(Icons.quiz_rounded, size: 20),
-                    label: Text('Quick Quiz', style: AppTheme.buttonText),
-                  ),
-                if (quiz != null) const SizedBox(height: 8),
-                FloatingActionButton.extended(
-                  heroTag: 'fab_next',
-                  onPressed: () => Navigator.pop<bool>(context, true),
-                  backgroundColor: widget.accentColor,
-                  foregroundColor: AppTheme.primaryDark,
-                  icon: const Icon(Icons.arrow_forward_rounded, size: 20),
-                  label: Text('Next topic', style: AppTheme.buttonText),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.06),
+                  blurRadius: 12,
+                  offset: const Offset(0, -3),
                 ),
               ],
-            );
-          });
-        },
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-    );
+            ),
+            child: SafeArea(
+              top: false,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 780),
+                  child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: !isCompleted
+                    ? SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            HapticFeedback.mediumImpact();
+                            soundService.playSuccess();
+                            await progress.completeTopic(topicKey);
+
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Row(
+                                    children: [
+                                      const Text(
+                                        '🎉',
+                                        style: TextStyle(fontSize: 20),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        'Topic completed! +50 XP',
+                                        style: AppTheme.bodyMedium.copyWith(
+                                          color: AppTheme.textPrimaryC(isDark),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  backgroundColor: AppTheme.cardC(isDark),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: BorderSide(
+                                      color: widget.accentColor.withValues(alpha: 0.3),
+                                    ),
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.check_circle_rounded, size: 22),
+                          label: Text(
+                            'Mark Complete (+50 XP)',
+                            style: AppTheme.buttonText.copyWith(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: widget.accentColor,
+                            foregroundColor: AppTheme.primaryDark,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                        ),
+                      )
+                    : Builder(
+                        builder: (context) {
+                          if (widget.fromBookmark) {
+                            return SizedBox(
+                              width: double.infinity,
+                              height: 50,
+                              child: OutlinedButton.icon(
+                                onPressed: () {
+                                  HapticFeedback.lightImpact();
+                                  soundService.playTap();
+                                  Navigator.pop(context);
+                                },
+                                icon: const Icon(Icons.check_circle_rounded, size: 20, color: AppTheme.successGreen),
+                                label: Text(
+                                  'Completed ✓ Back to Bookmarks',
+                                  style: AppTheme.buttonText.copyWith(
+                                    color: AppTheme.textPrimaryC(isDark),
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(color: AppTheme.dividerC(isDark)),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+
+                          final quiz = allQuizzes.values.firstWhereOrNull(
+                            (q) => q.moduleId == widget.moduleId,
+                          );
+
+                          return Row(
+                            children: [
+                              if (quiz != null) ...[
+                                Expanded(
+                                  flex: 2,
+                                  child: SizedBox(
+                                    height: 50,
+                                    child: OutlinedButton.icon(
+                                      onPressed: () {
+                                        HapticFeedback.lightImpact();
+                                        soundService.playTap();
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (_) => QuizScreen(quiz: quiz)),
+                                        );
+                                      },
+                                      icon: const Icon(Icons.quiz_rounded, size: 18, color: AppTheme.accentPink),
+                                      label: Text(
+                                        'Quiz',
+                                        style: AppTheme.buttonText.copyWith(
+                                          color: AppTheme.accentPink,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        side: BorderSide(
+                                          color: AppTheme.accentPink.withValues(alpha: 0.5),
+                                          width: 1.5,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(14),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                              ],
+                              Expanded(
+                                flex: 3,
+                                child: SizedBox(
+                                  height: 50,
+                                  child: ElevatedButton.icon(
+                                    onPressed: () {
+                                      HapticFeedback.lightImpact();
+                                      soundService.playTap();
+                                      Navigator.pop<bool>(context, true);
+                                    },
+                                    icon: const Icon(Icons.arrow_forward_rounded, size: 20),
+                                    label: Text(
+                                      'Next Topic',
+                                      style: AppTheme.buttonText.copyWith(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: widget.accentColor,
+                                      foregroundColor: AppTheme.primaryDark,
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    ),
+  );
   }
 }
