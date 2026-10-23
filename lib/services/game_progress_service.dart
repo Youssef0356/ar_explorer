@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'notification_service.dart';
 import 'package:home_widget/home_widget.dart';
 
 class GameProgressService extends ChangeNotifier {
@@ -333,9 +332,6 @@ class GameProgressService extends ChangeNotifier {
     await _prefs?.setString(_lastPlayedKey, today);
     await _saveProgress();
     
-    // Schedule streak reminder
-    NotificationService().scheduleStreakReminder(_dailyStreak);
-    
     notifyListeners();
   }
 
@@ -361,10 +357,6 @@ class GameProgressService extends ChangeNotifier {
 
     await _prefs?.setString(_codingLastPlayedKey, today);
     await _saveProgress();
-
-    // Schedule streak reminder (use the higher streak for reminder)
-    final maxStreak = _codingStreak > _dailyStreak ? _codingStreak : _dailyStreak;
-    NotificationService().scheduleStreakReminder(maxStreak);
 
     notifyListeners();
   }

@@ -2785,7 +2785,245 @@ final List<LearningModule> allModules = [
   ),
 
   // ───────────────────────────────────────────────────────────────
-  //  MODULE 7 — Google AR Viewer: Scene Viewer & Model Viewer
+  //  MODULE 7 — Implementing AR in Flutter (Practical)
+  // ───────────────────────────────────────────────────────────────
+  LearningModule(
+    id: 'mod_flutter_ar',
+    title: 'Implementing AR in Flutter',
+    description:
+        'Go from zero to a working AR scene on iOS and Android using Flutter and the ARCore/ARKit bridge.',
+    icon: Icons.code,
+    order: 7,
+    unlockCost: 0,
+    requiredQuizId: null,
+    keyConcepts: [
+      'Flutter reaches ARKit/ARCore through platform-channel plugins, not natively.',
+      'ar_flutter_plugin exposes a single ARView plus session, object, anchor, and location managers.',
+      'Anchors lock virtual content to real-world surfaces; free nodes drift with the camera.',
+      'AR requires real devices and explicit camera permissions on both platforms.',
+    ],
+    topics: [
+      Topic(
+        id: 'flutter_ar_overview',
+        title: 'The Flutter AR Landscape',
+        subtitle: 'How Dart reaches native AR frameworks.',
+        contentBlocks: [
+          const ContentBlock.heading('The Flutter AR Landscape'),
+          const ContentBlock.body(
+            'Flutter cannot talk to ARKit or ARCore on its own — it needs a platform-channel plugin '
+            'that bridges Dart to the native AR frameworks. The good news: a mature plugin ecosystem '
+            'means you can ship a cross-platform AR scene from a single Dart codebase.',
+          ),
+          const ContentBlock.subheading('Why Reach for Flutter?'),
+          const ContentBlock.bullet(
+            'One codebase for iOS and Android, with native ARKit/ARCore performance underneath.',
+          ),
+          const ContentBlock.bullet(
+            'Fast UI iteration for the 2D menus and controls that surround your 3D scene.',
+          ),
+          const ContentBlock.bullet(
+            'Easy to combine AR with the rest of your app: state management, networking, and payments.',
+          ),
+          const ContentBlock.subheading('The Three Common Approaches'),
+          const ContentBlock.bullet(
+            'ar_flutter_plugin — the most popular all-in-one wrapper. It exposes ARKit (iOS) and ARCore (Android) through a single ARView widget and manager classes.',
+          ),
+          const ContentBlock.bullet(
+            'arcore_flutter_plugin / arkit_plugin — lower-level, platform-specific plugins if you target one OS or need fine-grained control.',
+          ),
+          const ContentBlock.bullet(
+            'flutter_unity_widget — embeds a full Unity player with AR Foundation for complex 3D, physics, or shaders.',
+          ),
+          const ContentBlock.info(
+            'For most learning projects and prototypes, ar_flutter_plugin is the fastest path. '
+            'Choose flutter_unity_widget when scene complexity outgrows what a lightweight plugin can handle.',
+          ),
+          const ContentBlock.quote(
+            'INTERVIEW FOCUS: "Can Flutter do AR natively?" \n'
+            'Answer: No. Flutter renders UI; AR is provided by platform channels to ARKit/ARCore '
+            '(or a Unity embedding). Knowing this boundary shows you understand where Dart ends and native begins.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'flutter_ar_setup',
+        title: 'Project Setup & Permissions',
+        subtitle: 'Dependency, Android manifest, and iOS Info.plist.',
+        contentBlocks: [
+          const ContentBlock.heading('Project Setup & Permissions'),
+          const ContentBlock.body(
+            'AR needs the camera, and both platforms gate it behind explicit permissions. '
+            'Miss one and the AR view silently shows nothing — the most common beginner failure.',
+          ),
+          const ContentBlock.subheading('1. Add the dependency'),
+          const ContentBlock.code(
+            'dependencies:\n'
+            '  flutter:\n'
+            '    sdk: flutter\n'
+            '  ar_flutter_plugin: ^0.7.3',
+          ),
+          const ContentBlock.subheading('2. Android — declare the camera'),
+          const ContentBlock.code(
+            '<uses-permission android:name="android.permission.CAMERA" />\n'
+            '<uses-feature\n'
+            '  android:name="android.hardware.camera.ar"\n'
+            '  android:required="true" />',
+          ),
+          const ContentBlock.subheading('3. iOS — describe camera usage'),
+          const ContentBlock.code(
+            '<key>NSCameraUsageDescription</key>\n'
+            '<string>This app uses the camera to display Augmented Reality.</string>',
+          ),
+          const ContentBlock.warning(
+            'On iOS, if the camera view does not appear even after granting permission, the Podfile '
+            'is usually missing the PERMISSION_CAMERA preprocessor definition required by permission_handler. '
+            'Add it in the post_install block and run pod install again.',
+          ),
+          const ContentBlock.quote(
+            'PRO TIP: Always test AR on a real device. ARKit and ARCore are unavailable on the '
+            'simulator/emulator, so a blank screen in development is often just the absence of a '
+            'real sensor — not a bug in your code.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'flutter_ar_first_scene',
+        title: 'Your First AR Scene',
+        subtitle: 'The ARView widget and its four managers.',
+        contentBlocks: [
+          const ContentBlock.heading('Your First AR Scene'),
+          const ContentBlock.body(
+            'The core widget is ARView. Its onARViewCreated callback hands you four manager objects '
+            'that you configure once, then drive from your UI.',
+          ),
+          const ContentBlock.code(
+            "import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';\n"
+            '\n'
+            'class ARPage extends StatelessWidget {\n'
+            '  const ARPage({super.key});\n'
+            '\n'
+            '  @override\n'
+            '  Widget build(BuildContext context) {\n'
+            '    return ARView(onARViewCreated: onARViewCreated);\n'
+            '  }\n'
+            '\n'
+            '  void onARViewCreated(\n'
+            '    ARSessionManager session,\n'
+            '    ARObjectManager objects,\n'
+            '    ARAnchorManager anchors,\n'
+            '    ARLocationManager location,\n'
+            '  ) {\n'
+            '    session.onInitialize(\n'
+            '      showFeaturePoints: true,\n'
+            '      showPlanes: true,\n'
+            '      showWorldOrigin: true,\n'
+            '    );\n'
+            '    objects.onInitialize();\n'
+            '  }\n'
+            '}',
+          ),
+          const ContentBlock.subheading('What each manager does'),
+          const ContentBlock.bullet(
+            'ARSessionManager — owns the AR session lifecycle: start, pause, and configure planes and feature points.',
+          ),
+          const ContentBlock.bullet(
+            'ARObjectManager — adds, removes, and transforms 3D nodes in the scene.',
+          ),
+          const ContentBlock.bullet(
+            'ARAnchorManager — creates anchors that lock content to real-world positions.',
+          ),
+          const ContentBlock.bullet(
+            'ARLocationManager — optional: ties content to GPS locations for location-based AR.',
+          ),
+          const ContentBlock.info(
+            'Call session.onInitialize() and objects.onInitialize() before interacting with the scene. '
+            'Until then, addNode calls are silently ignored.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'flutter_ar_interaction',
+        title: 'Placing Objects on Planes',
+        subtitle: 'Tap-to-place with anchors.',
+        contentBlocks: [
+          const ContentBlock.heading('Placing Objects on Planes'),
+          const ContentBlock.body(
+            'Tapping a detected plane is the canonical "hello world" of AR. You capture the hit result '
+            'and attach a 3D model to that real-world point using an anchor.',
+          ),
+          const ContentBlock.code(
+            "import 'package:vector_math/vector_math.dart';\n"
+            '\n'
+            'void onPlaneTap(List<ARHitTestResult> hits) async {\n'
+            '  if (hits.isEmpty) return;\n'
+            '  final hit = hits.first;\n'
+            '  final node = ARNode(\n'
+            '    type: NodeType.webGLB,\n'
+            "    uri: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',\n"
+            '    scale: Vector3(0.2, 0.2, 0.2),\n'
+            '  );\n'
+            '  await anchors.addAnchor(node, hit.worldTransform);\n'
+            '}',
+          ),
+          const ContentBlock.subheading('Anchors vs. Free Nodes'),
+          const ContentBlock.bullet(
+            'Anchored nodes stay fixed to a real surface even as you walk around — this is what makes AR feel real.',
+          ),
+          const ContentBlock.bullet(
+            'Free nodes (added without an anchor) drift relative to the world and are only useful for UI-locked content.',
+          ),
+          const ContentBlock.warning(
+            "Always dispose the session in your widget's dispose() method (session.dispose() in a "
+            'StatefulWidget). Leaking the native AR session is the number one cause of a black screen '
+            'on the second open.',
+          ),
+          const ContentBlock.quote(
+            'INTERVIEW SCENARIO: "Why did my object move when I walked away?" \n'
+            'Answer: you added a free node instead of an anchor. Anchors store the world transform once; '
+            'free nodes are positioned relative to the camera, so they follow the device.',
+          ),
+        ],
+      ),
+      Topic(
+        id: 'flutter_ar_debugging',
+        title: 'Debugging & Common Pitfalls',
+        subtitle: 'A checklist for the most frequent failures.',
+        quizId: 'quiz_flutter_ar',
+        contentBlocks: [
+          const ContentBlock.heading('Debugging & Common Pitfalls'),
+          const ContentBlock.body(
+            'AR is unforgiving about environment and configuration. Keep this checklist by your desk.',
+          ),
+          const ContentBlock.numbered(
+            '1. Blank camera on iOS? Check NSCameraUsageDescription AND the Podfile PERMISSION_CAMERA flag.',
+          ),
+          const ContentBlock.numbered(
+            '2. No planes detected? Move the device slowly in a figure-eight; ARCore/ARKit need motion and texture to initialize.',
+          ),
+          const ContentBlock.numbered(
+            '3. App crashes on launch? Ensure minSdk 24+ (Android) and use a real device, not the emulator.',
+          ),
+          const ContentBlock.numbered(
+            '4. Model invisible? Verify the GLB/GLTF URI is reachable and the scale is neither 0 nor astronomically large.',
+          ),
+          const ContentBlock.numbered(
+            '5. Jitter or drift? Reduce the number of active anchors and keep lighting stable.',
+          ),
+          const ContentBlock.info(
+            'Thermal throttling is real on phones. Long AR sessions drop frame rate; design for short, '
+            'focused interactions and pause the session when your app is backgrounded.',
+          ),
+          const ContentBlock.quote(
+            'PRO INSIGHT: Treat AR as a sensor-driven feature, not a normal screen. The single most '
+            'valuable habit is to test on-device, in varied lighting, early and often — the simulator will lie to you.',
+          ),
+        ],
+      ),
+    ],
+  ),
+
+  // ───────────────────────────────────────────────────────────────
+  //  MODULE 8 — Google AR Viewer: Scene Viewer & Model Viewer
   // ───────────────────────────────────────────────────────────────
   LearningModule(
     id: 'mod_google_ar_viewer',
@@ -2793,7 +3031,7 @@ final List<LearningModule> allModules = [
     description:
         'Explore Google\'s tools for viewing 3D models in AR — from native Android Scene Viewer to the Model Viewer web component.',
     icon: Icons.view_in_ar_rounded,
-    order: 7,
+    order: 8,
     unlockCost: 0,
     requiredQuizId: null,
     keyConcepts: [
