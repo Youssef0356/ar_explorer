@@ -530,6 +530,56 @@ class _HomeScreenState extends State<HomeScreen> {
                                       if (!context.mounted) return;
                                       soundService.playTap();
 
+                                      // Always open share sheet first, then only award
+                                      // XP once the user actually picks a share target.
+                                      ShareResult shareResult;
+                                      try {
+                                        shareResult = await SharePlus.instance.share(
+                                          ShareParams(
+                                            text: 'Check out AR Explorer – the ultimate app to learn Augmented Reality!\n\n'
+                                                'Download on Google Play:\n'
+                                                'https://play.google.com/store/apps/details?id=com.the356company.arexplorer',
+                                            subject: 'AR Explorer – Learn Augmented Reality',
+                                          ),
+                                        );
+                                      } catch (e) {
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: const Text(
+                                              'Couldn\'t open the share sheet. Please try again.',
+                                            ),
+                                            backgroundColor: AppTheme.errorRed,
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            duration: const Duration(seconds: 2),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      if (!context.mounted) return;
+
+                                      // Dismissed or unconfirmed shares must not earn XP,
+                                      // otherwise the button could be farmed for free XP.
+                                      if (shareResult.status != ShareResultStatus.success) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: const Text(
+                                              'Share cancelled. No XP awarded.',
+                                            ),
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            duration: const Duration(seconds: 2),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
                                       final earned = await progress.shareAndEarnXP();
 
                                       if (!context.mounted) return;
@@ -563,14 +613,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                         );
                                       }
-
-                                      // Always open share sheet
-                                      Share.share(
-                                        'Check out AR Explorer – the ultimate app to learn Augmented Reality!\n\n'
-                                        'Download on Google Play:\n'
-                                        'https://play.google.com/store/apps/details?id=com.the356company.arexplorer',
-                                        subject: 'AR Explorer – Learn Augmented Reality',
-                                      );
                                     },
                                     child: Stack(
                                       clipBehavior: Clip.none,

@@ -382,6 +382,11 @@ class ProgressService extends ChangeNotifier with WidgetsBindingObserver {
     return success;
   }
 
+  /// Awards 50 XP for a completed share, up to [maxDailyShares] per day.
+  ///
+  /// MUST only be called after the share sheet reports a confirmed share
+  /// (ShareResultStatus.success). Calling it on button tap lets users farm
+  /// XP by dismissing the sheet.
   Future<bool> shareAndEarnXP() async {
     final today = DateTime.now().toIso8601String().substring(0, 10);
 
